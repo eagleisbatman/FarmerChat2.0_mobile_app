@@ -9,6 +9,7 @@ import com.digitalgreen.farmerchat.utils.PreferencesManager
 import com.digitalgreen.farmerchat.utils.SpeechRecognitionManager
 import com.digitalgreen.farmerchat.utils.TextToSpeechManager
 import com.digitalgreen.farmerchat.utils.PromptManager
+import com.digitalgreen.farmerchat.utils.TagManager
 import com.google.ai.client.generativeai.GenerativeModel
 import com.google.ai.client.generativeai.type.content
 import kotlinx.coroutines.flow.*
@@ -47,6 +48,9 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
     val isRecording: StateFlow<Boolean> = speechRecognitionManager.isListening
     val isSpeaking: StateFlow<Boolean> = ttsManager.isSpeaking
     val speechError: StateFlow<String?> = speechRecognitionManager.error
+    val voiceConfidenceScore: StateFlow<Float> = speechRecognitionManager.confidenceScore
+    val voiceConfidenceLevel: SpeechRecognitionManager.ConfidenceLevel 
+        get() = speechRecognitionManager.getConfidenceLevel()
     
     private val _followUpQuestions = MutableStateFlow<List<String>>(emptyList())
     val followUpQuestions: StateFlow<List<String>> = _followUpQuestions
@@ -324,10 +328,14 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                 // Update conversation title in title map
                 _conversationTitles.value = _conversationTitles.value + (conversationId to title)
                 
+                // Generate tags based on conversation content
+                val allMessageTexts = messages.map { it.content }
+                val tags = TagManager.generateTags(title, allMessageTexts)
+                
                 // Get current user ID from auth instead of profile
                 val userId = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid ?: ""
                 
-                android.util.Log.d("ChatViewModel", "Updating conversation: id=$conversationId, title=$title, userId=$userId")
+                android.util.Log.d("ChatViewModel", "Updating conversation: id=$conversationId, title=$title, userId=$userId, tags=$tags")
                 
                 val conversation = Conversation(
                     id = conversationId,
@@ -336,7 +344,8 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                     lastMessageTime = lastMessage.timestamp,
                     lastMessageIsUser = lastMessage.isUser,
                     userId = userId,
-                    createdAt = Date() // Add creation date
+                    createdAt = Date(), // Add creation date
+                    tags = tags
                 )
                 
                 repository.updateConversationMetadata(conversation)

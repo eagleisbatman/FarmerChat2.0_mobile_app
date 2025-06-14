@@ -11,6 +11,9 @@ import com.digitalgreen.farmerchat.ui.screens.ChatScreen
 import com.digitalgreen.farmerchat.ui.screens.ConversationsScreen
 import com.digitalgreen.farmerchat.ui.screens.OnboardingScreen
 import com.digitalgreen.farmerchat.ui.screens.SplashScreen
+import com.digitalgreen.farmerchat.ui.screens.SettingsScreen
+import com.digitalgreen.farmerchat.ui.screens.CropSelectionScreen
+import com.digitalgreen.farmerchat.ui.screens.LivestockSelectionScreen
 
 sealed class Screen(val route: String) {
     object Splash : Screen("splash")
@@ -19,6 +22,9 @@ sealed class Screen(val route: String) {
     object Chat : Screen("chat/{conversationId}") {
         fun createRoute(conversationId: String) = "chat/$conversationId"
     }
+    object Settings : Screen("settings")
+    object CropSelection : Screen("crop_selection")
+    object LivestockSelection : Screen("livestock_selection")
 }
 
 @Composable
@@ -60,7 +66,7 @@ fun FarmerChatNavigation(
                     navController.navigate(Screen.Chat.createRoute(conversationId))
                 },
                 onNavigateToSettings = {
-                    // TODO: Navigate to settings screen
+                    navController.navigate(Screen.Settings.route)
                 }
             )
         }
@@ -72,6 +78,41 @@ fun FarmerChatNavigation(
             val conversationId = backStackEntry.arguments?.getString("conversationId") ?: ""
             ChatScreen(
                 conversationId = conversationId,
+                onNavigateBack = {
+                    navController.popBackStack()
+                }
+            )
+        }
+        
+        composable(Screen.Settings.route) {
+            SettingsScreen(
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+                onNavigateToOnboarding = {
+                    navController.navigate(Screen.Onboarding.route) {
+                        popUpTo(Screen.Settings.route) { inclusive = true }
+                    }
+                },
+                onNavigateToCropSelection = {
+                    navController.navigate(Screen.CropSelection.route)
+                },
+                onNavigateToLivestockSelection = {
+                    navController.navigate(Screen.LivestockSelection.route)
+                }
+            )
+        }
+        
+        composable(Screen.CropSelection.route) {
+            CropSelectionScreen(
+                onNavigateBack = {
+                    navController.popBackStack()
+                }
+            )
+        }
+        
+        composable(Screen.LivestockSelection.route) {
+            LivestockSelectionScreen(
                 onNavigateBack = {
                     navController.popBackStack()
                 }

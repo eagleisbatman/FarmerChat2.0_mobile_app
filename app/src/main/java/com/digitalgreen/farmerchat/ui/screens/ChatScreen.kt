@@ -38,6 +38,7 @@ import com.digitalgreen.farmerchat.ui.components.CompactQuestionChip
 import com.digitalgreen.farmerchat.ui.components.VoiceRecordingButton
 import com.digitalgreen.farmerchat.ui.components.localizedString
 import com.digitalgreen.farmerchat.utils.StringsManager.StringKey
+import com.digitalgreen.farmerchat.utils.SpeechRecognitionManager
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
@@ -62,6 +63,8 @@ fun ChatScreen(
     val conversationTitles by viewModel.conversationTitles.collectAsState()
     val recognizedText by viewModel.recognizedText.collectAsState()
     val userProfile by viewModel.userProfile.collectAsState()
+    val voiceConfidenceScore by viewModel.voiceConfidenceScore.collectAsState()
+    val voiceConfidenceLevel = viewModel.voiceConfidenceLevel
     
     val conversationTitle = conversationTitles[conversationId] ?: "New Conversation"
     
@@ -328,6 +331,43 @@ fun ChatScreen(
                                 color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f),
                                 textAlign = TextAlign.Center
                             )
+                            
+                            // Confidence indicator
+                            if (voiceConfidenceScore > 0) {
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Row(
+                                    horizontalArrangement = Arrangement.Center,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    LinearProgressIndicator(
+                                        progress = voiceConfidenceScore,
+                                        modifier = Modifier
+                                            .width(100.dp)
+                                            .height(4.dp)
+                                            .clip(RoundedCornerShape(2.dp)),
+                                        color = when (voiceConfidenceLevel) {
+                                            SpeechRecognitionManager.ConfidenceLevel.HIGH -> Color(0xFF4CAF50)
+                                            SpeechRecognitionManager.ConfidenceLevel.MEDIUM -> Color(0xFFFFA726)
+                                            SpeechRecognitionManager.ConfidenceLevel.LOW -> Color(0xFFEF5350)
+                                        }
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(
+                                        text = when (voiceConfidenceLevel) {
+                                            SpeechRecognitionManager.ConfidenceLevel.HIGH -> localizedString(StringKey.CONFIDENCE_HIGH)
+                                            SpeechRecognitionManager.ConfidenceLevel.MEDIUM -> localizedString(StringKey.CONFIDENCE_MEDIUM)
+                                            SpeechRecognitionManager.ConfidenceLevel.LOW -> localizedString(StringKey.CONFIDENCE_LOW)
+                                        },
+                                        fontSize = 12.sp,
+                                        color = when (voiceConfidenceLevel) {
+                                            SpeechRecognitionManager.ConfidenceLevel.HIGH -> Color(0xFF4CAF50)
+                                            SpeechRecognitionManager.ConfidenceLevel.MEDIUM -> Color(0xFFFFA726)
+                                            SpeechRecognitionManager.ConfidenceLevel.LOW -> Color(0xFFEF5350)
+                                        },
+                                        fontWeight = FontWeight.Medium
+                                    )
+                                }
+                            }
                         }
                         
                         speechError?.let { error ->

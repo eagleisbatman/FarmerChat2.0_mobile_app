@@ -24,6 +24,12 @@ class SpeechRecognitionManager(private val context: Context) {
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error
     
+    private val _confidenceScore = MutableStateFlow(0f)
+    val confidenceScore: StateFlow<Float> = _confidenceScore
+    
+    private val _alternativeResults = MutableStateFlow<List<Pair<String, Float>>>(emptyList())
+    val alternativeResults: StateFlow<List<Pair<String, Float>>> = _alternativeResults
+    
     private var onResultCallback: ((String) -> Unit)? = null
     
     init {
@@ -79,18 +85,48 @@ class SpeechRecognitionManager(private val context: Context) {
             override fun onResults(results: Bundle?) {
                 _isListening.value = false
                 val matches = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
+                val confidenceScores = results?.getFloatArray(SpeechRecognizer.CONFIDENCE_SCORES)
+                
                 if (!matches.isNullOrEmpty()) {
                     val text = matches[0]
                     _recognizedText.value = text
+                    
+                    // Set confidence score for the top result
+                    if (confidenceScores != null && confidenceScores.isNotEmpty()) {
+                        _confidenceScore.value = confidenceScores[0]
+                        
+                        // Store alternative results with confidence scores
+                        val alternatives = mutableListOf<Pair<String, Float>>()
+                        for (i in matches.indices) {
+                            if (i < confidenceScores.size) {
+                                alternatives.add(matches[i] to confidenceScores[i])
+                            }
+                        }
+                        _alternativeResults.value = alternatives
+                        
+                        Log.d("SpeechRecognition", "Result: $text (confidence: ${confidenceScores[0]})")
+                        Log.d("SpeechRecognition", "Alternatives: $alternatives")
+                    } else {
+                        // No confidence scores available, use default
+                        _confidenceScore.value = 0.5f
+                        _alternativeResults.value = listOf(text to 0.5f)
+                    }
+                    
                     onResultCallback?.invoke(text)
-                    Log.d("SpeechRecognition", "Result: $text")
                 }
             }
             
             override fun onPartialResults(partialResults: Bundle?) {
                 val matches = partialResults?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
+                val confidenceScores = partialResults?.getFloatArray(SpeechRecognizer.CONFIDENCE_SCORES)
+                
                 if (!matches.isNullOrEmpty()) {
                     _recognizedText.value = matches[0]
+                    
+                    // Update confidence for partial results
+                    if (confidenceScores != null && confidenceScores.isNotEmpty()) {
+                        _confidenceScore.value = confidenceScores[0]
+                    }
                 }
             }
             
@@ -153,11 +189,27 @@ class SpeechRecognitionManager(private val context: Context) {
     
     fun clearRecognizedText() {
         _recognizedText.value = ""
+        _confidenceScore.value = 0f
+        _alternativeResults.value = emptyList()
+    }
+    
+    fun getConfidenceLevel(): ConfidenceLevel {
+        return when (_confidenceScore.value) {
+            in 0.8f..1.0f -> ConfidenceLevel.HIGH
+            in 0.5f..0.8f -> ConfidenceLevel.MEDIUM
+            else -> ConfidenceLevel.LOW
+        }
     }
     
     fun destroy() {
         speechRecognizer?.destroy()
         speechRecognizer = null
+    }
+    
+    enum class ConfidenceLevel {
+        HIGH,
+        MEDIUM,
+        LOW
     }
     
     private fun getErrorMessage(errorCode: Int): String {

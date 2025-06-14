@@ -7,6 +7,8 @@ import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
 import java.io.IOException
 
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "farmer_chat_prefs")
@@ -19,6 +21,11 @@ class PreferencesManager(private val context: Context) {
         val USER_LOCATION = stringPreferencesKey("user_location")
         val USER_CROPS = stringSetPreferencesKey("user_crops")
         val USER_LIVESTOCK = stringSetPreferencesKey("user_livestock")
+        val VOICE_RESPONSES_ENABLED = booleanPreferencesKey("voice_responses_enabled")
+        val VOICE_INPUT_ENABLED = booleanPreferencesKey("voice_input_enabled")
+        val RESPONSE_LENGTH = stringPreferencesKey("response_length")
+        val FORMATTED_RESPONSES_ENABLED = booleanPreferencesKey("formatted_responses_enabled")
+        val USER_NAME = stringPreferencesKey("user_name")
     }
     
     val hasCompletedOnboarding: Flow<Boolean> = context.dataStore.data
@@ -72,4 +79,77 @@ class PreferencesManager(private val context: Context) {
         .map { preferences ->
             preferences[USER_LIVESTOCK] ?: emptySet()
         }
+    
+    // New preference methods for settings
+    fun getSelectedLanguage(): String {
+        return runBlocking {
+            context.dataStore.data.first()[USER_LANGUAGE] ?: "en"
+        }
+    }
+    
+    suspend fun saveSelectedLanguage(language: String) {
+        context.dataStore.edit { preferences ->
+            preferences[USER_LANGUAGE] = language
+        }
+    }
+    
+    fun getVoiceResponsesEnabled(): Boolean {
+        return runBlocking {
+            context.dataStore.data.first()[VOICE_RESPONSES_ENABLED] ?: true
+        }
+    }
+    
+    suspend fun saveVoiceResponsesEnabled(enabled: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[VOICE_RESPONSES_ENABLED] = enabled
+        }
+    }
+    
+    fun getVoiceInputEnabled(): Boolean {
+        return runBlocking {
+            context.dataStore.data.first()[VOICE_INPUT_ENABLED] ?: true
+        }
+    }
+    
+    suspend fun saveVoiceInputEnabled(enabled: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[VOICE_INPUT_ENABLED] = enabled
+        }
+    }
+    
+    fun getResponseLength(): String? {
+        return runBlocking {
+            context.dataStore.data.first()[RESPONSE_LENGTH]
+        }
+    }
+    
+    suspend fun saveResponseLength(length: String) {
+        context.dataStore.edit { preferences ->
+            preferences[RESPONSE_LENGTH] = length
+        }
+    }
+    
+    fun getFormattedResponsesEnabled(): Boolean {
+        return runBlocking {
+            context.dataStore.data.first()[FORMATTED_RESPONSES_ENABLED] ?: true
+        }
+    }
+    
+    suspend fun saveFormattedResponsesEnabled(enabled: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[FORMATTED_RESPONSES_ENABLED] = enabled
+        }
+    }
+    
+    suspend fun clearAll() {
+        context.dataStore.edit { preferences ->
+            preferences.clear()
+        }
+    }
+    
+    suspend fun saveUserName(name: String) {
+        context.dataStore.edit { preferences ->
+            preferences[USER_NAME] = name
+        }
+    }
 }
