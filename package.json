@@ -1,0 +1,13 @@
+{
+  "name": "farmerchat-seed",
+  "version": "1.0.0",
+  "description": "Database seeding script for FarmerChat",
+  "main": "seed-database.js",
+  "scripts": {
+    "seed": "node seed-database.js"
+  },
+  "dependencies": {
+    "firebase": "^10.7.1",
+    "firebase-admin": "^13.4.0"
+  }
+}

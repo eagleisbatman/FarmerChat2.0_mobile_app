@@ -1,0 +1,43 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Allow anonymous users to read starter questions
+    // Allow authenticated users to write for seeding purposes
+    match /starter_questions/{document=**} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    
+    // Allow authenticated users to manage their own data
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Allow authenticated users to manage their conversations
+    match /conversations/{conversationId} {
+      allow create: if request.auth != null && 
+        request.resource.data.userId == request.auth.uid;
+      allow read, update, delete: if request.auth != null && 
+        resource.data.userId == request.auth.uid;
+    }
+    
+    // Allow authenticated users to create and manage their chat sessions
+    match /chat_sessions/{sessionId} {
+      allow create: if request.auth != null;
+      allow read, write: if request.auth != null && 
+        (resource == null || resource.data.userId == request.auth.uid);
+      
+      // Allow users to read/write messages in their sessions
+      match /messages/{messageId} {
+        allow read, write: if request.auth != null &&
+          get(/databases/$(database)/documents/chat_sessions/$(sessionId)).data.userId == request.auth.uid;
+      }
+    }
+    
+    // Allow authenticated users to submit feedback
+    match /feedback/{feedbackId} {
+      allow create: if request.auth != null;
+      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
+    }
+  }
+}
