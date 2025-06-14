@@ -148,3 +148,32 @@ The app follows **MVVM (Model-View-ViewModel)** architecture with:
 - Routes defined in `Navigation.kt`
 - Deep linking supported for future features
 - Navigation state preserved across configuration changes
+
+## Recent Feature Enhancements
+
+### Voice Confidence Scoring
+- **Real-time confidence tracking** in `SpeechRecognitionManager`
+- **Visual feedback** with color-coded progress bars (High/Medium/Low confidence)
+- **Confidence levels** categorized as HIGH (0.8+), MEDIUM (0.5-0.8), LOW (<0.5)
+- **UI integration** in ChatScreen with live confidence display during voice input
+
+### Enhanced Settings Management
+- **Fully editable settings** with dedicated dialogs for each option
+- **Name editing** with immediate profile updates
+- **Location editing** with manual input and GPS detection capability
+- **Response length preferences** (Concise/Detailed/Comprehensive)
+- **Data export functionality** with proper file provider configuration
+- **Separate screens** for crop and livestock selection (no onboarding flow)
+
+### Improved User Experience
+- **Dedicated CropSelectionScreen** and **LivestockSelectionScreen** for settings updates
+- **Search functionality** across crops and livestock with multi-language support
+- **Real-time selection counts** and visual feedback
+- **Conversation categorization** via TagManager for better organization
+- **Persistent user preferences** with proper state management
+
+### Technical Improvements
+- **File provider configuration** for secure data sharing and export
+- **Enhanced error handling** across all ViewModels
+- **Improved state synchronization** between UI and data layers
+- **Cleaner separation** between onboarding and settings flows
