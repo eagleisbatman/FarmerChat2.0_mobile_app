@@ -24,6 +24,9 @@ FarmerChat is an AI-powered Android application designed to help smallholder far
 - **Architecture Pattern**: MVVM (Model-View-ViewModel)
 - **Minimum SDK**: API 24 (Android 7.0)
 - **Target SDK**: API 34 (Android 14)
+- **Location Services**: Google Play Services Location API
+- **Speech Recognition**: Android SpeechRecognizer API
+- **Text-to-Speech**: Android TextToSpeech API
 
 ### Key Components
 ```
@@ -33,14 +36,21 @@ FarmerChat/
 │       ├── MainActivity.kt
 │       ├── data/
 │       │   ├── FarmerChatRepository.kt
-│       │   └── Models.kt
+│       │   ├── Models.kt
+│       │   ├── LanguageManager.kt
+│       │   ├── LocationInfo.kt
+│       │   ├── CropsManager.kt
+│       │   ├── LivestockManager.kt
+│       │   ├── CropTranslations.kt
+│       │   └── LivestockTranslations.kt
 │       ├── navigation/
 │       │   └── Navigation.kt
 │       ├── ui/
 │       │   ├── components/
 │       │   │   ├── FeedbackDialog.kt
 │       │   │   ├── MessageBubble.kt
-│       │   │   └── VoiceRecordingButton.kt
+│       │   │   ├── VoiceRecordingButton.kt
+│       │   │   └── LocalizationUtils.kt
 │       │   ├── screens/
 │       │   │   ├── SplashScreen.kt
 │       │   │   ├── OnboardingScreen.kt
@@ -50,6 +60,9 @@ FarmerChat/
 │       └── utils/
 │           ├── PreferencesManager.kt
 │           ├── TextToSpeechManager.kt
+│           ├── SpeechRecognitionManager.kt
+│           ├── LocationManager.kt
+│           ├── StringsManager.kt
 │           └── StarterQuestionSeeder.kt
 ├── firebase.json
 ├── firestore.rules
@@ -66,20 +79,30 @@ FarmerChat/
 
 ### 2. Onboarding Flow
 **Screen 1: Language Selection**
-- Options: English, हिन्दी, Kiswahili, తెలుగు
-- Stores preference locally
+- Global language support with 50+ languages
+- Agricultural priority languages prominently displayed
+- Search functionality to find any language
+- Stores preference for entire app experience
 
-**Screen 2: Location Input**
-- Text field for location entry
-- Helps provide localized advice
+**Screen 2: Location Detection**
+- Automatic GPS-based location detection
+- Reverse geocoding to get address hierarchy
+- Manual location entry as fallback option
+- Captures country, state, district, and locality
 
 **Screen 3: Crop Selection**
-- Multi-select chips
-- Options: Potato, Sugarcane, Cotton, Maize, Tomato, Rice, Onion, Wheat
+- Categorized crop selection (Cereals, Vegetables, Fruits, etc.)
+- 50+ crops with multilingual names
+- Search functionality across all translations
+- Category filters for easy navigation
+- Shows scientific names and emojis
 
 **Screen 4: Livestock Selection**
-- Multi-select chips
-- Options: Chicken, Goat, Sheep, Buffalo, Dairy Cow, Pig
+- Categorized livestock selection (Cattle, Poultry, etc.)
+- 20+ animals with multilingual names
+- Search functionality across all translations
+- Shows primary purposes (Dairy, Meat, Eggs, etc.)
+- Category filters for easy navigation
 
 ### 3. Conversations Screen
 - Lists all user conversations
@@ -99,20 +122,41 @@ FarmerChat/
 
 ### Core Features
 1. **Anonymous Authentication**: Users are automatically signed in anonymously
-2. **Personalized Starter Questions**: Based on selected crops and livestock
-3. **Voice Input**: Record questions using voice
-4. **Text-to-Speech**: Listen to AI responses
-5. **Intelligent Conversation Titles**: AI-generated summaries of conversations
-6. **Follow-up Questions**: Context-aware suggestions after each response
-7. **Feedback System**: Users can rate and comment on AI responses
-8. **Multi-language Support**: UI in multiple languages (content in English)
+2. **Comprehensive Language Support**: 
+   - 50+ languages with native names
+   - Agricultural priority languages highlighted
+   - UI labels and messages in selected language
+   - Search across all language names
+3. **GPS-Based Location Services**:
+   - Automatic location detection with permissions
+   - Reverse geocoding for address details
+   - Hierarchical location data (country to locality)
+   - Manual entry fallback option
+4. **Enhanced Voice Features**:
+   - Improved voice recognition with visual feedback
+   - Language-specific speech recognition
+   - Smart voice selection for TTS quality
+   - Real-time transcription display
+5. **Rich Crop/Livestock Selection**:
+   - 50+ crops across 10 categories
+   - 20+ livestock across 6 categories
+   - Multilingual names with search
+   - Scientific names and visual emojis
+6. **Personalized Starter Questions**: Based on selected crops and livestock
+7. **Intelligent Conversation Titles**: AI-generated summaries of conversations
+8. **Follow-up Questions**: Context-aware suggestions after each response
+9. **Feedback System**: Users can rate and comment on AI responses
+10. **Formatted AI Responses**: Support for bullets, bold, and structured content
 
 ### AI Features
 - Context-aware responses based on user profile
-- Location-specific agricultural advice
-- Crop and livestock-specific guidance
-- Follow-up question generation
+- Location-specific agricultural advice with GPS precision
+- Crop and livestock-specific guidance for 70+ items
+- Follow-up question generation with improved formatting
 - Intelligent conversation summarization
+- Language-aware prompt engineering
+- Formatted responses with bullets and emphasis
+- Enhanced context injection from user profile
 
 ## Database Structure
 
@@ -123,10 +167,18 @@ FarmerChat/
 {
   userId: string,           // Firebase Auth UID
   name: string,            // User's name
-  language: string,        // Selected language (en, hi, sw, te)
-  location: string,        // User's location
-  crops: string[],         // Selected crops
-  livestock: string[],     // Selected livestock
+  language: string,        // Selected language code (50+ options)
+  location: string,        // Full formatted location string
+  locationDetails: {       // Detailed location hierarchy
+    country: string,
+    adminArea: string,     // State/Province
+    locality: string,      // City/Town
+    subLocality: string,   // Area/Neighborhood
+    latitude: number,
+    longitude: number
+  },
+  crops: string[],         // Selected crop IDs
+  livestock: string[],     // Selected livestock IDs
   createdAt: timestamp,    // Account creation time
   lastUpdated: timestamp   // Last profile update
 }
@@ -279,27 +331,35 @@ service cloud.firestore {
 ### Prompt Template
 ```kotlin
 """
-You are an AI assistant helping smallholder farmers with agricultural advice.
+You are FarmerChat AI, a helpful agricultural assistant for smallholder farmers.
 
-User Profile:
-- Language preference: ${profile?.language ?: "en"}
+USER PROFILE:
+- Language: ${languageName}
 - Location: ${profile?.location ?: "Unknown"}
-- Crops: ${profile?.crops?.joinToString(", ") ?: "None specified"}
-- Livestock: ${profile?.livestock?.joinToString(", ") ?: "None specified"}
+${locationContext}
+- Crops: ${cropNames}
+- Livestock: ${livestockNames}
 
-User Query: $userQuery
+USER'S QUESTION: $userQuery
 
-Please provide:
-1. A helpful, practical response tailored to their context
-2. Keep the response concise and easy to understand
-3. If relevant, mention local conditions or practices
+RESPONSE GUIDELINES:
+1. Provide practical, actionable advice specific to their location and context
+2. Use simple, clear language that farmers can easily understand
+3. When relevant, mention:
+   - Local weather patterns and seasons
+   - Region-specific farming practices
+   - Available local resources
+4. Format your response with:
+   - Use bullet points (•) for lists
+   - Use **bold** for important terms
+   - Use clear paragraph breaks
 
-IMPORTANT: You MUST end your response with exactly this format:
+You MUST end your response with EXACTLY this format:
 
 FOLLOW_UP_QUESTIONS:
 Question 1|Question 2|Question 3
 
-The follow-up questions line MUST start with "FOLLOW_UP_QUESTIONS:" and have 2-3 questions separated by "|"
+Generate 2-3 relevant follow-up questions separated by "|" that help the farmer explore the topic further.
 """
 ```
 
@@ -361,14 +421,42 @@ Title:
 #### PreferencesManager
 - Stores user preferences locally
 - Manages onboarding completion status
+- Persists language selection
 
 #### TextToSpeechManager
-- Converts text to speech
+- Enhanced voice selection algorithm
+- Language-specific voice mapping
+- Quality-based voice prioritization
 - Manages TTS lifecycle
 
 #### SpeechRecognitionManager
-- Handles voice input
-- Converts speech to text
+- Language-aware speech recognition
+- Visual feedback during recording
+- Error handling and retry logic
+- Converts speech to text with locale support
+
+#### LocationManager
+- GPS-based location detection
+- Reverse geocoding implementation
+- Permission handling
+- Formatted location string generation
+
+#### StringsManager
+- Centralized string management
+- Multi-language string resources
+- Dynamic string lookup by key
+
+#### LanguageManager
+- Global language database (50+ languages)
+- Agricultural priority sorting
+- Language search functionality
+- Native name display
+
+#### CropsManager & LivestockManager
+- Categorized data management
+- Multi-language name support
+- Search across translations
+- Scientific name tracking
 
 ## Setup Instructions
 
@@ -424,14 +512,23 @@ Title:
 ## Maintenance
 
 ### Adding New Languages
-1. Add language option in `OnboardingScreen`
-2. Update `StarterQuestionSeeder` with translated questions
-3. Add language-specific prompts in AI integration
+1. Add language to `LanguageManager.languages` list
+2. Update `StringsManager` with translations for all UI strings
+3. Add translations to `CropTranslations` and `LivestockTranslations`
+4. Update `StarterQuestionSeeder` with translated questions
+5. Test voice recognition and TTS for the new language
 
 ### Adding New Crops/Livestock
-1. Update options in `OnboardingScreen`
-2. Add relevant starter questions in database
-3. Update AI prompts to handle new categories
+1. Add to `CropsManager.crops` or `LivestockManager.livestock` lists
+2. Include category, emoji, and metadata
+3. Add translations to respective translation files
+4. Update starter questions in database
+5. Test search functionality with new entries
+
+### Location Services
+- Requires ACCESS_FINE_LOCATION and ACCESS_COARSE_LOCATION permissions
+- Fallback to manual entry if GPS unavailable
+- Stores both formatted string and detailed hierarchy
 
 ### Performance Optimization
 - Conversations are loaded with Firestore listeners for real-time updates
@@ -445,10 +542,46 @@ Title:
 - API keys are kept in local configuration
 - No personal data is stored without user consent
 
-## Future Enhancements
-1. Offline support with local caching
-2. Image-based disease detection
-3. Weather integration
-4. Market price information
-5. Community features
-6. Expert consultation booking
+## Recent Improvements (Latest Update)
+
+### Language System Overhaul
+- Migrated from 4 hardcoded languages to 50+ global languages
+- Added comprehensive language search functionality
+- Implemented agricultural priority sorting
+- Full UI localization support
+
+### Location System Enhancement
+- Replaced city dropdown with GPS-based detection
+- Added reverse geocoding for address hierarchy
+- Implemented permission handling with fallbacks
+- Captures precise lat/long for weather integration
+
+### Voice Features Upgrade
+- Enhanced speech recognition with visual feedback
+- Improved TTS voice selection algorithm
+- Added language-specific voice mapping
+- Real-time transcription display
+
+### Crop/Livestock Management
+- Expanded from 8 crops to 50+ categorized crops
+- Added 20+ livestock with purpose classification
+- Implemented multilingual search across all names
+- Added scientific names and visual emojis
+
+### AI Response Improvements
+- Enhanced prompt engineering with better context
+- Added formatting support (bullets, bold text)
+- Improved follow-up question generation
+- Better location-aware responses
+
+## Pending Features
+1. Settings screen for preference management
+2. Conversation search functionality
+3. Tagging system for conversations
+4. Language confidence scoring for voice input
+5. Offline support with local caching
+6. Image-based disease detection
+7. Weather integration
+8. Market price information
+9. Community features
+10. Expert consultation booking

@@ -8,6 +8,7 @@ import com.digitalgreen.farmerchat.data.*
 import com.digitalgreen.farmerchat.utils.PreferencesManager
 import com.digitalgreen.farmerchat.utils.SpeechRecognitionManager
 import com.digitalgreen.farmerchat.utils.TextToSpeechManager
+import com.digitalgreen.farmerchat.utils.PromptManager
 import com.google.ai.client.generativeai.GenerativeModel
 import com.google.ai.client.generativeai.type.content
 import kotlinx.coroutines.flow.*
@@ -56,8 +57,12 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
     private val _conversationTitles = MutableStateFlow<Map<String, String>>(emptyMap())
     val conversationTitles: StateFlow<Map<String, String>> = _conversationTitles
     
+    val recognizedText: StateFlow<String> = speechRecognitionManager.recognizedText
+    
+    private val _userProfile = MutableStateFlow<UserProfile?>(null)
+    val userProfile: StateFlow<UserProfile?> = _userProfile
+    
     private var currentSessionId: String? = null
-    private var userProfile: UserProfile? = null
     private var streamingMessageId: String? = null
     
     fun initializeChat(conversationId: String) {
@@ -66,8 +71,13 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             // Load user profile
             repository.getUserProfile().onSuccess { profile ->
-                userProfile = profile
+                _userProfile.value = profile
                 android.util.Log.d("ChatViewModel", "User profile loaded: userId=${profile?.userId}")
+                
+                // Initialize TTS with user's language
+                profile?.language?.let { languageCode ->
+                    ttsManager.setLanguageByCode(languageCode)
+                }
                 
                 // Load starter questions based on user preferences
                 if (profile != null) {
@@ -200,45 +210,35 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
     }
     
     private fun buildPrompt(userQuery: String): String {
-        val profile = userProfile
-        return """
-            You are an AI assistant helping smallholder farmers with agricultural advice.
-            
-            User Profile:
-            - Language preference: ${profile?.language ?: "en"}
-            - Location: ${profile?.location ?: "Unknown"}
-            - Crops: ${profile?.crops?.joinToString(", ") ?: "None specified"}
-            - Livestock: ${profile?.livestock?.joinToString(", ") ?: "None specified"}
-            
-            User Query: $userQuery
-            
-            Please provide:
-            1. A helpful, practical response tailored to their context
-            2. Keep the response concise and easy to understand
-            3. If relevant, mention local conditions or practices
-            
-            IMPORTANT: You MUST end your response with exactly this format:
-            
-            FOLLOW_UP_QUESTIONS:
-            Question 1|Question 2|Question 3
-            
-            The follow-up questions line MUST start with "FOLLOW_UP_QUESTIONS:" and have 2-3 questions separated by "|"
-        """.trimIndent()
+        // Collect conversation history
+        val conversationHistory = _messages.value
+            .filter { !it.isUser || it.content.isNotEmpty() }
+            .takeLast(6) // Last 3 exchanges
+            .chunked(2)
+            .mapNotNull { messages ->
+                val userMsg = messages.firstOrNull { it.isUser }?.content
+                val aiMsg = messages.firstOrNull { !it.isUser }?.content
+                if (userMsg != null && aiMsg != null) {
+                    userMsg to aiMsg
+                } else null
+            }
+        
+        // Build system prompt + query prompt
+        val systemPrompt = PromptManager.generateSystemPrompt(_userProfile.value)
+        val queryPrompt = PromptManager.generateQueryPrompt(userQuery, _userProfile.value, conversationHistory)
+        
+        return "$systemPrompt\n\n$queryPrompt"
     }
     
     private fun parseAIResponse(response: String): Pair<String, List<String>> {
-        val parts = response.split("FOLLOW_UP_QUESTIONS:")
-        val mainResponse = parts[0].trim()
-        val questions = if (parts.size > 1) {
-            parts[1].trim().split("|").map { it.trim() }.filter { it.isNotEmpty() }
-        } else {
-            emptyList()
-        }
-        return mainResponse to questions
+        val followUpQuestions = PromptManager.extractFollowUpQuestions(response)
+        val mainResponse = PromptManager.cleanResponse(response)
+        
+        return mainResponse to followUpQuestions
     }
     
     fun startRecording() {
-        val language = userProfile?.language ?: "en"
+        val language = _userProfile.value?.language ?: "en"
         speechRecognitionManager.startListening(language) { recognizedText ->
             if (recognizedText.isNotBlank()) {
                 sendMessage(recognizedText)
@@ -251,7 +251,8 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
     }
     
     fun speakMessage(text: String) {
-        ttsManager.speak(text)
+        val language = _userProfile.value?.language ?: "en"
+        ttsManager.speak(text, language)
     }
     
     fun stopSpeaking() {
@@ -262,13 +263,18 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
         speechRecognitionManager.clearError()
     }
     
+    fun clearRecognizedText() {
+        // Clear the recognized text by resetting the speech recognition manager's state
+        speechRecognitionManager.clearRecognizedText()
+    }
+    
     fun submitFeedback(messageId: String, rating: Int, comment: String) {
         viewModelScope.launch {
             val feedback = Feedback(
                 id = UUID.randomUUID().toString(),
                 sessionId = currentSessionId ?: "",
                 messageId = messageId,
-                userId = userProfile?.userId ?: "",
+                userId = _userProfile.value?.userId ?: "",
                 rating = rating,
                 comment = comment
             )
@@ -295,21 +301,7 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                         val firstUserQuery = userMessages.first().content
                         val firstAiResponse = aiMessages.first().content.take(200) // Use first 200 chars of AI response
                         
-                        val titlePrompt = """
-                            Based on this farming conversation, generate a concise title (2-4 words) that captures the main topic:
-                            
-                            User Query: $firstUserQuery
-                            AI Response (excerpt): $firstAiResponse
-                            
-                            Generate ONLY the title, nothing else. Examples:
-                            - Rice Pest Control
-                            - Organic Fertilizer Guide
-                            - Tomato Disease Management
-                            - Irrigation Schedule Help
-                            - Wheat Harvest Timing
-                            
-                            Title:
-                        """.trimIndent()
+                        val titlePrompt = PromptManager.generateTitlePrompt(firstUserQuery, firstAiResponse)
                         
                         val response = generativeModel.generateContent(
                             content { text(titlePrompt) }
