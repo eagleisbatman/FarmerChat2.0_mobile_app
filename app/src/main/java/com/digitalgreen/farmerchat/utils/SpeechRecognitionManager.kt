@@ -114,20 +114,23 @@ class SpeechRecognitionManager(private val context: Context) {
         _recognizedText.value = ""
         _error.value = null
         
-        // Update language if needed
-        val locale = when (languageCode) {
-            "hi" -> Locale("hi", "IN")
-            "bn" -> Locale("bn", "IN")
-            "te" -> Locale("te", "IN")
-            "mr" -> Locale("mr", "IN")
-            "ta" -> Locale("ta", "IN")
-            "gu" -> Locale("gu", "IN")
-            "kn" -> Locale("kn", "IN")
-            else -> Locale("en", "IN")
-        }
+        // Get the appropriate locale for the language
+        val locale = getLocaleForLanguage(languageCode)
         
-        recognitionIntent?.putExtra(RecognizerIntent.EXTRA_LANGUAGE, locale)
-        recognitionIntent?.putExtra(RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE, locale)
+        // Create a new intent with updated language settings
+        recognitionIntent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE, locale.toString())
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE, locale.toString())
+            putExtra(RecognizerIntent.EXTRA_ONLY_RETURN_LANGUAGE_PREFERENCE, locale.toString())
+            putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, context.packageName)
+            putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
+            putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1)
+            // Add extra hints for better recognition
+            putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS, 1500)
+            putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_MINIMUM_LENGTH_MILLIS, 1500)
+            putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS, 1500)
+        }
         
         try {
             speechRecognizer?.startListening(recognitionIntent)
@@ -148,6 +151,10 @@ class SpeechRecognitionManager(private val context: Context) {
         _error.value = null
     }
     
+    fun clearRecognizedText() {
+        _recognizedText.value = ""
+    }
+    
     fun destroy() {
         speechRecognizer?.destroy()
         speechRecognizer = null
@@ -166,5 +173,74 @@ class SpeechRecognitionManager(private val context: Context) {
             SpeechRecognizer.ERROR_SPEECH_TIMEOUT -> "No speech input"
             else -> "Unknown error"
         }
+    }
+    
+    private fun getLocaleForLanguage(languageCode: String): Locale {
+        return when (languageCode) {
+            // Indian languages
+            "hi" -> Locale("hi", "IN")
+            "bn" -> Locale("bn", "IN")
+            "te" -> Locale("te", "IN")
+            "mr" -> Locale("mr", "IN")
+            "ta" -> Locale("ta", "IN")
+            "gu" -> Locale("gu", "IN")
+            "kn" -> Locale("kn", "IN")
+            "ml" -> Locale("ml", "IN")
+            "pa" -> Locale("pa", "IN")
+            "or" -> Locale("or", "IN")
+            "as" -> Locale("as", "IN")
+            "ur" -> Locale("ur", "IN")
+            
+            // African languages
+            "sw" -> Locale("sw", "KE")
+            "am" -> Locale("am", "ET")
+            "ha" -> Locale("ha", "NG")
+            "yo" -> Locale("yo", "NG")
+            "ig" -> Locale("ig", "NG")
+            "zu" -> Locale("zu", "ZA")
+            "xh" -> Locale("xh", "ZA")
+            "af" -> Locale("af", "ZA")
+            
+            // Global languages
+            "es" -> Locale("es", "ES")
+            "fr" -> Locale("fr", "FR")
+            "pt" -> Locale("pt", "BR")
+            "ar" -> Locale("ar", "SA")
+            "zh" -> Locale("zh", "CN")
+            "ru" -> Locale("ru", "RU")
+            "de" -> Locale("de", "DE")
+            "ja" -> Locale("ja", "JP")
+            "ko" -> Locale("ko", "KR")
+            "it" -> Locale("it", "IT")
+            "nl" -> Locale("nl", "NL")
+            "pl" -> Locale("pl", "PL")
+            "tr" -> Locale("tr", "TR")
+            
+            // Southeast Asian
+            "id" -> Locale("id", "ID")
+            "ms" -> Locale("ms", "MY")
+            "th" -> Locale("th", "TH")
+            "vi" -> Locale("vi", "VN")
+            "fil" -> Locale("fil", "PH")
+            
+            // Default
+            else -> Locale("en", "US")
+        }
+    }
+    
+    // Check if a language is supported for speech recognition
+    fun isLanguageSupported(languageCode: String): Boolean {
+        // These languages generally have good speech recognition support
+        val wellSupportedLanguages = setOf(
+            "en", "es", "fr", "de", "it", "pt", "nl", "pl", "ru",
+            "zh", "ja", "ko", "hi", "ar", "id", "tr", "th", "vi"
+        )
+        
+        // These have partial or developing support
+        val partiallySupportedLanguages = setOf(
+            "bn", "te", "mr", "ta", "gu", "kn", "ml", "sw", "fil"
+        )
+        
+        return languageCode in wellSupportedLanguages || languageCode in partiallySupportedLanguages
     }
 }

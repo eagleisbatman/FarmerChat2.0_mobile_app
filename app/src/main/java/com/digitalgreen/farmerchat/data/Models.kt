@@ -6,12 +6,31 @@ import java.util.Date
 // User profile data model
 data class UserProfile(
     val userId: String = "",
-    val language: String = "en", // Default to English
-    val location: String = "",
+    val language: String = "en", // ISO 639-1 language code
+    val location: String = "", // Will be replaced with LocationInfo
+    val locationInfo: LocationInfo? = null, // New detailed location
     val crops: List<String> = emptyList(),
     val livestock: List<String> = emptyList(),
     val hasCompletedOnboarding: Boolean = false,
-    val createdAt: Date = Date()
+    val createdAt: Date = Date(),
+    val lastUpdated: Date = Date()
+)
+
+// Detailed location information
+data class LocationInfo(
+    val latitude: Double = 0.0,
+    val longitude: Double = 0.0,
+    val country: String = "",
+    val countryCode: String = "", // ISO 3166-1 alpha-2
+    val regionLevel1: String = "", // State/Province/Region
+    val regionLevel2: String = "", // District/County
+    val regionLevel3: String = "", // Sub-district/Sub-county
+    val regionLevel4: String = "", // Block/Ward
+    val regionLevel5: String = "", // Village/Locality
+    val city: String = "",
+    val postalCode: String = "",
+    val formattedAddress: String = "",
+    val timestamp: Date = Date()
 )
 
 // Chat message data model

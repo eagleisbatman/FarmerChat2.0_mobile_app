@@ -73,9 +73,13 @@ private fun parseMarkdown(text: String, textColor: Color, baseFontSize: Int): An
                     }
                 }
                 // Bullet points
-                line.trim().startsWith("- ") || line.trim().startsWith("* ") -> {
+                line.trim().startsWith("- ") || line.trim().startsWith("* ") || line.trim().startsWith("• ") -> {
+                    val bulletText = when {
+                        line.trim().startsWith("• ") -> line.trim().substring(2)
+                        else -> line.trim().substring(2)
+                    }
                     append("  • ")
-                    processInlineMarkdown(line.trim().substring(2), textColor, baseFontSize)
+                    processInlineMarkdown(bulletText, textColor, baseFontSize)
                 }
                 // Numbered lists
                 line.trim().matches(Regex("^\\d+\\.\\s.*")) -> {
@@ -100,67 +104,99 @@ private fun AnnotatedString.Builder.processInlineMarkdown(
     textColor: Color,
     baseFontSize: Int
 ) {
-    var currentText = text
-    var lastIndex = 0
+    // Define regex patterns for different markdown elements
+    val patterns = listOf(
+        Triple("bold", Regex("\\*\\*(.+?)\\*\\*"), 1),
+        Triple("underline", Regex("__(.*?)__"), 1),
+        Triple("italic", Regex("(?<!\\*)\\*(?!\\*)(.+?)(?<!\\*)\\*(?!\\*)"), 1),
+        Triple("code", Regex("`(.+?)`"), 1),
+        Triple("separator", Regex("^---$"), 0)
+    )
     
-    // Process bold (**text**)
-    val boldRegex = Regex("\\*\\*(.+?)\\*\\*")
-    val boldMatches = boldRegex.findAll(currentText)
+    var remainingText = text
+    var currentPosition = 0
     
-    boldMatches.forEach { match ->
-        if (match.range.first > lastIndex) {
-            append(currentText.substring(lastIndex, match.range.first))
-        }
-        withStyle(SpanStyle(
-            fontWeight = FontWeight.Bold,
-            color = textColor,
-            fontSize = baseFontSize.sp
-        )) {
-            append(match.groupValues[1])
-        }
-        lastIndex = match.range.last + 1
-    }
-    
-    if (lastIndex < currentText.length) {
-        // Process italic (*text*)
-        val remaining = currentText.substring(lastIndex)
-        var processedText = remaining
+    while (remainingText.isNotEmpty()) {
+        var earliestMatch: MatchResult? = null
+        var matchType = ""
         
-        val italicRegex = Regex("(?<!\\*)\\*(?!\\*)(.+?)(?<!\\*)\\*(?!\\*)")
-        processedText = processedText.replace(italicRegex) { matchResult ->
-            buildAnnotatedString {
+        // Find the earliest match among all patterns
+        patterns.forEach { (type, regex, _) ->
+            val match = regex.find(remainingText)
+            if (match != null && (earliestMatch == null || match.range.first < earliestMatch!!.range.first)) {
+                earliestMatch = match
+                matchType = type
+            }
+        }
+        
+        if (earliestMatch != null) {
+            val match = earliestMatch!!
+            
+            // Append text before the match
+            if (match.range.first > 0) {
                 withStyle(SpanStyle(
-                    fontStyle = FontStyle.Italic,
                     color = textColor,
                     fontSize = baseFontSize.sp
                 )) {
-                    append(matchResult.groupValues[1])
-                }
-            }.toString()
-        }
-        
-        // Process inline code (`code`)
-        val codeRegex = Regex("`(.+?)`")
-        val parts = processedText.split(codeRegex)
-        val matches = codeRegex.findAll(processedText).toList()
-        
-        parts.forEachIndexed { index, part ->
-            if (index > 0 && index <= matches.size) {
-                withStyle(SpanStyle(
-                    fontFamily = FontFamily.Monospace,
-                    fontSize = (baseFontSize - 1).sp,
-                    background = Color.Gray.copy(alpha = 0.2f),
-                    color = textColor
-                )) {
-                    append(matches[index - 1].groupValues[1])
+                    append(remainingText.substring(0, match.range.first))
                 }
             }
+            
+            // Apply formatting based on match type
+            when (matchType) {
+                "bold" -> {
+                    withStyle(SpanStyle(
+                        fontWeight = FontWeight.Bold,
+                        color = textColor,
+                        fontSize = baseFontSize.sp
+                    )) {
+                        append(match.groupValues[1])
+                    }
+                }
+                "underline" -> {
+                    withStyle(SpanStyle(
+                        textDecoration = TextDecoration.Underline,
+                        color = textColor,
+                        fontSize = baseFontSize.sp
+                    )) {
+                        append(match.groupValues[1])
+                    }
+                }
+                "italic" -> {
+                    withStyle(SpanStyle(
+                        fontStyle = FontStyle.Italic,
+                        color = textColor,
+                        fontSize = baseFontSize.sp
+                    )) {
+                        append(match.groupValues[1])
+                    }
+                }
+                "code" -> {
+                    withStyle(SpanStyle(
+                        fontFamily = FontFamily.Monospace,
+                        fontSize = (baseFontSize - 1).sp,
+                        background = Color.Gray.copy(alpha = 0.2f),
+                        color = textColor
+                    )) {
+                        append(match.groupValues[1])
+                    }
+                }
+                "separator" -> {
+                    append("───────────")
+                }
+            }
+            
+            // Move to the text after the match
+            remainingText = remainingText.substring(match.range.last + 1)
+        } else {
+            // No more matches, append the remaining text
             withStyle(SpanStyle(
                 color = textColor,
                 fontSize = baseFontSize.sp
             )) {
-                append(part)
+                append(remainingText)
             }
+            break
         }
     }
 }

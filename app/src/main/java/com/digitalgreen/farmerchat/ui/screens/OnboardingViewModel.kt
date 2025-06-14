@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.digitalgreen.farmerchat.data.FarmerChatRepository
 import com.digitalgreen.farmerchat.data.OnboardingState
 import com.digitalgreen.farmerchat.data.UserProfile
+import com.digitalgreen.farmerchat.data.LocationInfo
 import com.digitalgreen.farmerchat.utils.PreferencesManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -19,12 +20,19 @@ class OnboardingViewModel(application: Application) : AndroidViewModel(applicati
     private val _onboardingState = MutableStateFlow(OnboardingState())
     val onboardingState: StateFlow<OnboardingState> = _onboardingState
     
+    private var locationInfo: LocationInfo? = null
+    
     fun selectLanguage(language: String) {
         _onboardingState.update { it.copy(selectedLanguage = language) }
     }
     
     fun selectLocation(location: String) {
         _onboardingState.update { it.copy(selectedLocation = location) }
+    }
+    
+    fun setLocationInfo(info: LocationInfo) {
+        locationInfo = info
+        _onboardingState.update { it.copy(selectedLocation = info.formattedAddress) }
     }
     
     fun toggleCrop(cropId: String) {
@@ -75,6 +83,7 @@ class OnboardingViewModel(application: Application) : AndroidViewModel(applicati
             val userProfile = UserProfile(
                 language = state.selectedLanguage,
                 location = state.selectedLocation,
+                locationInfo = locationInfo,
                 crops = state.selectedCrops,
                 livestock = state.selectedLivestock,
                 hasCompletedOnboarding = true

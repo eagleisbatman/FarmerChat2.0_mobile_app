@@ -35,6 +35,9 @@ import com.digitalgreen.farmerchat.ui.components.FeedbackDialog
 import com.digitalgreen.farmerchat.ui.components.MessageBubble
 import com.digitalgreen.farmerchat.ui.components.QuestionChip
 import com.digitalgreen.farmerchat.ui.components.CompactQuestionChip
+import com.digitalgreen.farmerchat.ui.components.VoiceRecordingButton
+import com.digitalgreen.farmerchat.ui.components.localizedString
+import com.digitalgreen.farmerchat.utils.StringsManager.StringKey
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
@@ -57,12 +60,15 @@ fun ChatScreen(
     val speechError by viewModel.speechError.collectAsState()
     val followUpQuestions by viewModel.followUpQuestions.collectAsState()
     val conversationTitles by viewModel.conversationTitles.collectAsState()
+    val recognizedText by viewModel.recognizedText.collectAsState()
+    val userProfile by viewModel.userProfile.collectAsState()
     
     val conversationTitle = conversationTitles[conversationId] ?: "New Conversation"
     
     var textInput by remember { mutableStateOf("") }
     var showFeedbackDialog by remember { mutableStateOf(false) }
     var feedbackMessageId by remember { mutableStateOf<String?>(null) }
+    var showVoiceFeedback by remember { mutableStateOf(false) }
     
     val scrollState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
@@ -87,6 +93,24 @@ fun ChatScreen(
                 delay(3000)
                 viewModel.clearSpeechError()
             }
+        }
+    }
+    
+    // Handle recognized text
+    LaunchedEffect(recognizedText) {
+        if (recognizedText.isNotEmpty() && !isRecording) {
+            textInput = recognizedText
+            viewModel.clearRecognizedText()
+        }
+    }
+    
+    // Show voice feedback when recording
+    LaunchedEffect(isRecording) {
+        showVoiceFeedback = isRecording
+        if (!isRecording && showVoiceFeedback) {
+            // Keep showing for a brief moment after recording stops
+            delay(500)
+            showVoiceFeedback = false
         }
     }
     
@@ -260,6 +284,65 @@ fun ChatScreen(
                 }
             }
             
+            // Voice recording feedback
+            AnimatedVisibility(
+                visible = showVoiceFeedback,
+                enter = slideInVertically() + fadeIn(),
+                exit = slideOutVertically() + fadeOut()
+            ) {
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    color = MaterialTheme.colorScheme.primaryContainer,
+                    shadowElevation = 4.dp
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Mic,
+                                contentDescription = null,
+                                tint = if (isRecording) Color.Red else MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(24.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = if (isRecording) {
+                                    localizedString(StringKey.LISTENING)
+                                } else {
+                                    localizedString(StringKey.PROCESSING)
+                                },
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
+                        
+                        if (recognizedText.isNotEmpty() && isRecording) {
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = recognizedText,
+                                fontSize = 14.sp,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f),
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                        
+                        speechError?.let { error ->
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = error,
+                                fontSize = 12.sp,
+                                color = MaterialTheme.colorScheme.error,
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    }
+                }
+            }
+            
             // Input area
             Surface(
                 modifier = Modifier.fillMaxWidth(),
@@ -284,7 +367,7 @@ fun ChatScreen(
                                 .clip(RoundedCornerShape(24.dp)),
                             placeholder = { 
                                 Text(
-                                    "Ask about farming...",
+                                    localizedString(StringKey.TYPE_MESSAGE),
                                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                                 ) 
                             },
@@ -295,54 +378,48 @@ fun ChatScreen(
                                 unfocusedIndicatorColor = Color.Transparent
                             ),
                             singleLine = true,
-                            trailingIcon = {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    // Voice recording button
-                                    IconButton(
-                                        onClick = {
-                                            if (recordAudioPermission.status.isGranted) {
-                                                if (isRecording) {
-                                                    viewModel.stopRecording()
-                                                } else {
-                                                    viewModel.startRecording()
-                                                }
-                                            } else {
-                                                recordAudioPermission.launchPermissionRequest()
-                                            }
-                                        }
-                                    ) {
-                                        Icon(
-                                            imageVector = if (isRecording) Icons.Default.Stop else Icons.Default.Mic,
-                                            contentDescription = if (isRecording) "Stop Recording" else "Start Recording",
-                                            tint = if (isRecording) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
+                            enabled = !isRecording
+                        )
+                        
+                        Spacer(modifier = Modifier.width(8.dp))
+                        
+                        // Voice recording button
+                        VoiceRecordingButton(
+                            isRecording = isRecording,
+                            onClick = {
+                                if (recordAudioPermission.status.isGranted) {
+                                    if (isRecording) {
+                                        viewModel.stopRecording()
+                                    } else {
+                                        viewModel.startRecording()
                                     }
-                                    
-                                    // Send button
-                                    IconButton(
-                                        onClick = {
-                                            if (textInput.isNotBlank()) {
-                                                viewModel.sendMessage(textInput)
-                                                textInput = ""
-                                            }
-                                        },
-                                        enabled = textInput.isNotBlank() && !isLoading
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.AutoMirrored.Filled.Send,
-                                            contentDescription = "Send",
-                                            tint = if (textInput.isNotBlank() && !isLoading) {
-                                                MaterialTheme.colorScheme.primary
-                                            } else {
-                                                MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
-                                            }
-                                        )
-                                    }
+                                } else {
+                                    recordAudioPermission.launchPermissionRequest()
                                 }
                             }
                         )
+                        
+                        // Send button
+                        AnimatedVisibility(
+                            visible = textInput.isNotBlank() && !isLoading,
+                            enter = scaleIn() + fadeIn(),
+                            exit = scaleOut() + fadeOut()
+                        ) {
+                            IconButton(
+                                onClick = {
+                                    if (textInput.isNotBlank()) {
+                                        viewModel.sendMessage(textInput)
+                                        textInput = ""
+                                    }
+                                }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.Send,
+                                    contentDescription = localizedString(StringKey.SEND),
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                        }
                     }
                 }
             }

@@ -76,6 +76,9 @@ dependencies {
     // Speech Recognition & Text-to-Speech
     implementation("com.google.accompanist:accompanist-permissions:0.36.0")
     
+    // Location Services
+    implementation("com.google.android.gms:play-services-location:21.0.1")
+    
     // Compose Icons Extended
     implementation("androidx.compose.material:material-icons-extended:1.7.6")
     
