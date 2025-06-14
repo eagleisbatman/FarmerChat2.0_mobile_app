@@ -100,5 +100,6 @@ data class Conversation(
     val unreadCount: Int = 0,
     val hasUnreadMessages: Boolean = false,
     val userId: String = "",
-    val createdAt: Date = Date()
+    val createdAt: Date = Date(),
+    val tags: List<String> = emptyList()
 )

@@ -327,4 +327,102 @@ class FarmerChatRepository {
             Result.failure(e)
         }
     }
+    
+    // Get user profile by ID
+    suspend fun getUserProfile(userId: String): UserProfile? {
+        return try {
+            val document = firestore.collection("users")
+                .document(userId)
+                .get()
+                .await()
+            
+            if (document.exists()) {
+                document.toObject(UserProfile::class.java)
+            } else {
+                null
+            }
+        } catch (e: Exception) {
+            null
+        }
+    }
+    
+    // Update user language
+    suspend fun updateUserLanguage(userId: String, language: String): Result<Unit> {
+        return try {
+            firestore.collection("users")
+                .document(userId)
+                .update("language", language)
+                .await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+    
+    // Get user conversations (non-flow version for export)
+    suspend fun getUserConversations(userId: String): List<Conversation> {
+        return try {
+            val snapshot = firestore.collection("conversations")
+                .whereEqualTo("userId", userId)
+                .get()
+                .await()
+            
+            snapshot.documents.mapNotNull { doc ->
+                doc.toObject(Conversation::class.java)
+            }
+        } catch (e: Exception) {
+            emptyList()
+        }
+    }
+    
+    // Get conversation messages (non-flow version for export)
+    suspend fun getConversationMessages(sessionId: String): List<ChatMessage> {
+        return try {
+            val snapshot = firestore.collection("chat_sessions")
+                .document(sessionId)
+                .collection("messages")
+                .orderBy("timestamp", Query.Direction.ASCENDING)
+                .get()
+                .await()
+            
+            snapshot.documents.mapNotNull { doc ->
+                doc.toObject(ChatMessage::class.java)
+            }
+        } catch (e: Exception) {
+            emptyList()
+        }
+    }
+    
+    // Delete all user data
+    suspend fun deleteAllUserData(userId: String): Result<Unit> {
+        return try {
+            // Delete user profile
+            firestore.collection("users")
+                .document(userId)
+                .delete()
+                .await()
+            
+            // Get all user conversations
+            val conversations = getUserConversations(userId)
+            
+            // Delete each conversation and its messages
+            conversations.forEach { conversation ->
+                deleteConversation(conversation.id)
+            }
+            
+            // Delete all feedback from user
+            val feedbackDocs = firestore.collection("feedback")
+                .whereEqualTo("userId", userId)
+                .get()
+                .await()
+            
+            feedbackDocs.documents.forEach { doc ->
+                doc.reference.delete().await()
+            }
+            
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 }
