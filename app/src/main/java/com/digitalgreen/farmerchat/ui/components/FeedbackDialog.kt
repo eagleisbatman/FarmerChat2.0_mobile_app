@@ -15,6 +15,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import com.digitalgreen.farmerchat.utils.StringsManager.StringKey
+import com.digitalgreen.farmerchat.ui.theme.DesignSystem
 
 @Composable
 fun FeedbackDialog(
@@ -40,13 +42,13 @@ fun FeedbackDialog(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = "How helpful was this response?",
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
+                    text = localizedString(StringKey.HOW_HELPFUL),
+                    fontSize = DesignSystem.Typography.titleMedium,
+                    fontWeight = DesignSystem.Typography.Weight.Bold,
                     textAlign = TextAlign.Center
                 )
                 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(DesignSystem.Spacing.lg))
                 
                 // Star rating
                 Row(
@@ -59,35 +61,35 @@ fun FeedbackDialog(
                             } else {
                                 Icons.Outlined.Star
                             },
-                            contentDescription = "Star $i",
+                            contentDescription = localizedString(StringKey.STAR_RATING, i),
                             modifier = Modifier
                                 .size(40.dp)
                                 .clickable { rating = i },
                             tint = if (i <= rating) {
-                                Color(0xFFFFB300)
+                                DesignSystem.Colors.Warning
                             } else {
-                                Color.Gray
+                                MaterialTheme.colorScheme.onSurfaceVariant
                             }
                         )
                     }
                 }
                 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(DesignSystem.Spacing.lg))
                 
                 // Comment field
                 OutlinedTextField(
                     value = comment,
                     onValueChange = { comment = it },
                     modifier = Modifier.fillMaxWidth(),
-                    label = { Text("Additional feedback (optional)") },
-                    placeholder = { Text("Tell us more...") },
+                    label = { Text(localizedString(StringKey.ADDITIONAL_FEEDBACK_OPTIONAL)) },
+                    placeholder = { Text(localizedString(StringKey.TELL_US_MORE)) },
                     maxLines = 3,
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = Color(0xFF4CAF50)
+                        focusedBorderColor = MaterialTheme.colorScheme.primary
                     )
                 )
                 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(DesignSystem.Spacing.lg))
                 
                 // Action buttons
                 Row(
@@ -98,7 +100,7 @@ fun FeedbackDialog(
                         onClick = onDismiss,
                         modifier = Modifier.weight(1f)
                     ) {
-                        Text("Cancel")
+                        Text(localizedString(StringKey.CANCEL))
                     }
                     
                     Button(
@@ -110,10 +112,10 @@ fun FeedbackDialog(
                         modifier = Modifier.weight(1f),
                         enabled = rating > 0,
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFF4CAF50)
+                            containerColor = MaterialTheme.colorScheme.primary
                         )
                     ) {
-                        Text("Submit")
+                        Text(localizedString(StringKey.SUBMIT_FEEDBACK))
                     }
                 }
             }

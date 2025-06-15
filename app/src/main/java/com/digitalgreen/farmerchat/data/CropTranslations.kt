@@ -156,14 +156,220 @@ object CropTranslations {
             "es" to "Caña de azúcar",
             "pt" to "Cana-de-açúcar",
             "ar" to "قصب السكر"
-        )
+        ),
         
-        // Add more crop translations as needed...
+        // Additional cereals
+        "sorghum" to mapOf(
+            "en" to "Sorghum",
+            "hi" to "ज्वार",
+            "sw" to "Mtama"
+        ),
+        "millet" to mapOf(
+            "en" to "Millet",
+            "hi" to "बाजरा",
+            "sw" to "Uwele"
+        ),
+        "barley" to mapOf(
+            "en" to "Barley",
+            "hi" to "जौ",
+            "sw" to "Shayiri"
+        ),
+        
+        // Pulses
+        "chickpea" to mapOf(
+            "en" to "Chickpea",
+            "hi" to "चना",
+            "sw" to "Dengu"
+        ),
+        "lentil" to mapOf(
+            "en" to "Lentil",
+            "hi" to "मसूर",
+            "sw" to "Dengu"
+        ),
+        "blackgram" to mapOf(
+            "en" to "Black Gram",
+            "hi" to "उड़द",
+            "sw" to "Choroko"
+        ),
+        "greengram" to mapOf(
+            "en" to "Green Gram",
+            "hi" to "मूंग",
+            "sw" to "Choroko kijani"
+        ),
+        "pigeonpea" to mapOf(
+            "en" to "Pigeon Pea",
+            "hi" to "अरहर",
+            "sw" to "Mbaazi"
+        ),
+        "fieldpea" to mapOf(
+            "en" to "Field Pea",
+            "hi" to "मटर",
+            "sw" to "Njegere"
+        ),
+        
+        // More vegetables
+        "cabbage" to mapOf(
+            "en" to "Cabbage",
+            "hi" to "बंदगोभी",
+            "sw" to "Kabeji"
+        ),
+        "cauliflower" to mapOf(
+            "en" to "Cauliflower",
+            "hi" to "फूलगोभी",
+            "sw" to "Kolifwawa"
+        ),
+        "carrot" to mapOf(
+            "en" to "Carrot",
+            "hi" to "गाजर",
+            "sw" to "Karoti"
+        ),
+        "eggplant" to mapOf(
+            "en" to "Eggplant/Brinjal",
+            "hi" to "बैंगन",
+            "sw" to "Bilingani"
+        ),
+        "okra" to mapOf(
+            "en" to "Okra",
+            "hi" to "भिंडी",
+            "sw" to "Bamia"
+        ),
+        "spinach" to mapOf(
+            "en" to "Spinach",
+            "hi" to "पालक",
+            "sw" to "Mchicha"
+        ),
+        
+        // Cash crops
+        "tobacco" to mapOf(
+            "en" to "Tobacco",
+            "hi" to "तंबाकू",
+            "sw" to "Tumbaku"
+        ),
+        "jute" to mapOf(
+            "en" to "Jute",
+            "hi" to "पटसन",
+            "sw" to "Pamba ya maji"
+        ),
+        
+        // Oilseeds
+        "groundnut" to mapOf(
+            "en" to "Groundnut/Peanut",
+            "hi" to "मूंगफली",
+            "sw" to "Karanga"
+        ),
+        "soybean" to mapOf(
+            "en" to "Soybean",
+            "hi" to "सोयाबीन",
+            "sw" to "Soya"
+        ),
+        "mustard" to mapOf(
+            "en" to "Mustard",
+            "hi" to "सरसों",
+            "sw" to "Haradali"
+        ),
+        "sunflower" to mapOf(
+            "en" to "Sunflower",
+            "hi" to "सूरजमुखी",
+            "sw" to "Alizeti"
+        ),
+        "sesame" to mapOf(
+            "en" to "Sesame",
+            "hi" to "तिल",
+            "sw" to "Ufuta"
+        ),
+        
+        // Spices
+        "turmeric" to mapOf(
+            "en" to "Turmeric",
+            "hi" to "हल्दी",
+            "sw" to "Binzari"
+        ),
+        "ginger" to mapOf(
+            "en" to "Ginger",
+            "hi" to "अदरक",
+            "sw" to "Tangawizi"
+        ),
+        "chilli" to mapOf(
+            "en" to "Chilli",
+            "hi" to "मिर्च",
+            "sw" to "Pilipili"
+        ),
+        "coriander" to mapOf(
+            "en" to "Coriander",
+            "hi" to "धनिया",
+            "sw" to "Giligilani"
+        ),
+        "cumin" to mapOf(
+            "en" to "Cumin",
+            "hi" to "जीरा",
+            "sw" to "Bizari"
+        ),
+        
+        // Fruits
+        "mango" to mapOf(
+            "en" to "Mango",
+            "hi" to "आम",
+            "sw" to "Embe"
+        ),
+        "banana" to mapOf(
+            "en" to "Banana",
+            "hi" to "केला",
+            "sw" to "Ndizi"
+        ),
+        "apple" to mapOf(
+            "en" to "Apple",
+            "hi" to "सेब",
+            "sw" to "Tofaa"
+        ),
+        "grape" to mapOf(
+            "en" to "Grape",
+            "hi" to "अंगूर",
+            "sw" to "Zabibu"
+        ),
+        "orange" to mapOf(
+            "en" to "Orange",
+            "hi" to "संतरा",
+            "sw" to "Chungwa"
+        ),
+        "papaya" to mapOf(
+            "en" to "Papaya",
+            "hi" to "पपीता",
+            "sw" to "Papai"
+        ),
+        
+        // Plantation crops
+        "tea" to mapOf(
+            "en" to "Tea",
+            "hi" to "चाय",
+            "sw" to "Chai"
+        ),
+        "coffee" to mapOf(
+            "en" to "Coffee",
+            "hi" to "कॉफी",
+            "sw" to "Kahawa"
+        ),
+        "coconut" to mapOf(
+            "en" to "Coconut",
+            "hi" to "नारियल",
+            "sw" to "Nazi"
+        ),
+        "rubber" to mapOf(
+            "en" to "Rubber",
+            "hi" to "रबर",
+            "sw" to "Mpira"
+        )
     )
     
     fun getCropName(cropId: String, languageCode: String): String {
-        return translations[cropId]?.get(languageCode) 
-            ?: translations[cropId]?.get("en") // Fallback to English
+        val translation = translations[cropId]?.get(languageCode)
+        val englishFallback = translations[cropId]?.get("en")
+        
+        // Debug logging
+        android.util.Log.d("CropTranslations", "Getting crop name for id: $cropId, language: $languageCode")
+        android.util.Log.d("CropTranslations", "Translation found: $translation, English fallback: $englishFallback")
+        
+        return translation 
+            ?: englishFallback // Fallback to English
             ?: cropId.replaceFirstChar { it.uppercase() } // Fallback to ID
     }
     

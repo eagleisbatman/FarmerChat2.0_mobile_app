@@ -24,6 +24,7 @@ import com.digitalgreen.farmerchat.ui.theme.DesignSystem
 import com.digitalgreen.farmerchat.utils.StringsManager.StringKey
 import com.digitalgreen.farmerchat.data.FarmerChatRepository
 import com.digitalgreen.farmerchat.utils.PreferencesManager
+import com.digitalgreen.farmerchat.utils.StringProvider
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -41,7 +42,8 @@ fun SettingsScreen(
                 @Suppress("UNCHECKED_CAST")
                 return SettingsViewModel(
                     repository = FarmerChatRepository(),
-                    preferencesManager = PreferencesManager(context.applicationContext)
+                    preferencesManager = PreferencesManager(context.applicationContext),
+                    stringProvider = StringProvider.create(context)
                 ) as T
             }
         }
@@ -286,11 +288,12 @@ fun SettingsScreen(
     if (showNameDialog) {
         AlertDialog(
             onDismissRequest = { showNameDialog = false },
-            title = { Text(localizedString(StringKey.NAME)) },
+            title = { Text(localizedString(StringKey.EDIT_NAME)) },
             text = {
                 TextField(
                     value = editableName,
                     onValueChange = { editableName = it },
+                    placeholder = { Text(localizedString(StringKey.ENTER_YOUR_NAME)) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -317,12 +320,13 @@ fun SettingsScreen(
     if (showLocationDialog) {
         AlertDialog(
             onDismissRequest = { showLocationDialog = false },
-            title = { Text(localizedString(StringKey.LOCATION)) },
+            title = { Text(localizedString(StringKey.EDIT_LOCATION)) },
             text = {
                 Column {
                     TextField(
                         value = editableLocation,
                         onValueChange = { editableLocation = it },
+                        placeholder = { Text(localizedString(StringKey.ENTER_LOCATION)) },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth()
                     )

@@ -126,12 +126,19 @@ fun CropSelectionScreen(
                 ) {
                     items(filteredCrops) { crop ->
                         val currentLanguage = currentLanguage()
+                        val localizedName = crop.getLocalizedName(currentLanguage)
+                        
+                        // Debug logging
+                        LaunchedEffect(crop.id, currentLanguage) {
+                            android.util.Log.d("CropSelectionScreen", "Crop: ${crop.id}, Language: $currentLanguage, Localized: $localizedName")
+                        }
+                        
                         FilterChip(
                             selected = selectedCrops.contains(crop.id),
                             onClick = { viewModel.toggleCrop(crop.id) },
                             label = {
                                 Text(
-                                    text = "${crop.emoji} ${crop.getLocalizedName(currentLanguage)}",
+                                    text = "${crop.emoji} $localizedName",
                                     textAlign = TextAlign.Center,
                                     modifier = Modifier.fillMaxWidth()
                                 )
