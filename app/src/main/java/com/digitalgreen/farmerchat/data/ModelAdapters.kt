@@ -3,6 +3,8 @@ package com.digitalgreen.farmerchat.data
 import com.digitalgreen.farmerchat.network.*
 import java.text.SimpleDateFormat
 import java.util.*
+import com.digitalgreen.farmerchat.network.Language as ApiLanguage
+import com.digitalgreen.farmerchat.data.Language as DataLanguage
 
 /**
  * Adapter functions to convert between old Firebase models and new API models
@@ -92,17 +94,8 @@ fun StarterQuestion.toApiRequest(): StarterQuestionsRequest {
 }
 
 // Convert API Languages to a simple list for compatibility
-fun List<Language>.toLanguageCodes(): List<String> {
+fun List<ApiLanguage>.toLanguageCodes(): List<String> {
     return this.map { it.code }
-}
-
-// Convert API Language to display format
-fun Language.toDisplayString(): String {
-    return if (this.nativeName != this.name) {
-        "${this.name} (${this.nativeName})"
-    } else {
-        this.name
-    }
 }
 
 // Parse API date string to Date object
@@ -189,4 +182,15 @@ object MigrationHelper {
     }
     
     fun shouldUseApi(): Boolean = useApiRepository
+}
+
+// Convert API Language to Data Language
+fun ApiLanguage.toDataLanguage(): DataLanguage {
+    return DataLanguage(
+        code = this.code,
+        name = this.nativeName,  // Use nativeName as name
+        englishName = this.name,  // Use name as englishName (API doesn't have separate englishName)
+        locale = Locale(this.code),  // Create locale from code
+        isRTL = this.isRTL
+    )
 }

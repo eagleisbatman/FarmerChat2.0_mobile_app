@@ -75,6 +75,9 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
     private val _userProfile = MutableStateFlow<UserProfile?>(null)
     val userProfile: StateFlow<UserProfile?> = _userProfile
     
+    private val _currentConversation = MutableStateFlow<Conversation?>(null)
+    val currentConversation: StateFlow<Conversation?> = _currentConversation
+    
     private var currentSessionId: String? = null
     private var streamingMessageId: String? = null
     
@@ -82,6 +85,14 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
         android.util.Log.d("ChatViewModel", "initializeChat called with conversationId: $conversationId")
         currentSessionId = conversationId
         viewModelScope.launch {
+            // Load conversation metadata
+            repository.getConversation(conversationId).onSuccess { conversation ->
+                _currentConversation.value = conversation
+                android.util.Log.d("ChatViewModel", "Conversation loaded: ${conversation?.title}")
+            }.onFailure { e ->
+                android.util.Log.e("ChatViewModel", "Failed to load conversation", e)
+            }
+            
             // Load user profile
             repository.getUserProfile().onSuccess { profile ->
                 _userProfile.value = profile
@@ -106,6 +117,22 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                     if (messages.isNotEmpty()) {
                         android.util.Log.d("ChatViewModel", "Calling updateConversationMetadata for $conversationId with ${messages.size} messages")
                         updateConversationMetadata(conversationId, messages)
+                        
+                        // Check if we need to generate or restore follow-up questions
+                        val lastAiMessage = messages.lastOrNull { !it.isUser }
+                        if (lastAiMessage != null) {
+                            if (lastAiMessage.followUpQuestions.isNotEmpty()) {
+                                // Restore saved follow-up questions
+                                _followUpQuestions.value = lastAiMessage.followUpQuestions
+                                android.util.Log.d("ChatViewModel", "Restored ${lastAiMessage.followUpQuestions.size} follow-up questions")
+                            } else {
+                                // Generate dynamic follow-up questions for old conversations
+                                generateDynamicFollowUpQuestions(messages)
+                            }
+                        }
+                    } else {
+                        // No messages yet, show starter questions instead
+                        _followUpQuestions.value = emptyList()
                     }
                 }
             }
@@ -178,7 +205,7 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                 // Parse final response for follow-up questions
                 val (mainResponse, questions) = parseAIResponse(fullResponse)
                 
-                // Save final message to Firestore
+                // Save final message to Firestore with follow-up questions
                 val finalMessage = ChatMessage(
                     id = streamingMessageId!!,
                     content = mainResponse,
@@ -187,7 +214,8 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                     audioUrl = null,
                     isVoiceMessage = false,
                     user = false,
-                    voiceMessage = false
+                    voiceMessage = false,
+                    followUpQuestions = questions // Save follow-up questions with the message
                 )
                 repository.saveMessage(sessionId, finalMessage)
                 
@@ -195,19 +223,53 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                 _followUpQuestions.value = questions
                 
             } catch (e: Exception) {
-                // Handle error
-                android.util.Log.e("ChatViewModel", "Error generating AI response", e)
+                // Enhanced error logging
+                android.util.Log.e("ChatViewModel", "Error generating AI response: ${e.message}", e)
+                android.util.Log.e("ChatViewModel", "Error type: ${e.javaClass.simpleName}")
+                android.util.Log.e("ChatViewModel", "Stack trace: ${e.stackTrace.take(5).joinToString("\n")}")
+                
+                // Check for specific error types and localize the error messages
+                val errorContent = when {
+                    e.message?.contains("quota", ignoreCase = true) == true -> {
+                        when (_userProfile.value?.language) {
+                            "hi" -> "API कोटा समाप्त हो गया है। कृपया बाद में पुनः प्रयास करें।"
+                            "sw" -> "Kiwango cha API kimekwisha. Tafadhali jaribu tena baadaye."
+                            else -> "API quota exceeded. Please try again later."
+                        }
+                    }
+                    e.message?.contains("rate limit", ignoreCase = true) == true -> {
+                        when (_userProfile.value?.language) {
+                            "hi" -> "बहुत सारे अनुरोध। कृपया थोड़ी देर प्रतीक्षा करें और पुनः प्रयास करें।"
+                            "sw" -> "Maombi mengi sana. Tafadhali subiri kidogo kisha ujaribu tena."
+                            else -> "Too many requests. Please wait a moment and try again."
+                        }
+                    }
+                    e.message?.contains("timeout", ignoreCase = true) == true -> {
+                        when (_userProfile.value?.language) {
+                            "hi" -> "अनुरोध समय समाप्त। कृपया अपना इंटरनेट कनेक्शन जांचें और पुनः प्रयास करें।"
+                            "sw" -> "Muda wa ombi umeisha. Tafadhali angalia mtandao wako kisha ujaribu tena."
+                            else -> "Request timed out. Please check your internet connection and try again."
+                        }
+                    }
+                    else -> 
+                        stringProvider.getString(StringKey.ERROR_AI_RESPONSE)
+                }
+                
                 val errorMessage = ChatMessage(
                     id = UUID.randomUUID().toString(),
-                    content = stringProvider.getString(StringKey.ERROR_AI_RESPONSE),
+                    content = errorContent,
                     isUser = false,
                     timestamp = Date(),
                     audioUrl = null,
                     isVoiceMessage = false,
                     user = false,
-                    voiceMessage = false
+                    voiceMessage = false,
+                    followUpQuestions = emptyList()
                 )
                 repository.saveMessage(sessionId, errorMessage)
+                
+                // Clear follow-up questions on error
+                _followUpQuestions.value = emptyList()
             } finally {
                 _isLoading.value = false
                 _currentStreamingMessage.value = ""
@@ -496,9 +558,26 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                 }
             } catch (e: Exception) {
                 android.util.Log.e("ChatViewModel", "Error generating dynamic starter questions", e)
-                _starterQuestionsError.value = stringProvider.getString(StringKey.ERROR_GENERIC)
-                // Fallback to repository questions
-                loadFallbackStarterQuestions(userProfile)
+                android.util.Log.e("ChatViewModel", "Error type: ${e.javaClass.simpleName}")
+                android.util.Log.e("ChatViewModel", "Error message: ${e.message}")
+                
+                // Check if it's an API quota issue
+                if (e.message?.contains("quota", ignoreCase = true) == true || 
+                    e.message?.contains("rate limit", ignoreCase = true) == true) {
+                    // Don't fallback to database questions for API issues
+                    val errorMsg = when (userProfile.language) {
+                        "hi" -> "प्रश्न उत्पन्न करने में असमर्थ। कृपया बाद में पुनः प्रयास करें।"
+                        "sw" -> "Imeshindwa kutengeneza maswali. Tafadhali jaribu tena baadaye."
+                        else -> "Unable to generate questions. Please try again later."
+                    }
+                    _starterQuestionsError.value = errorMsg
+                    _starterQuestionsLoading.value = false
+                    _starterQuestions.value = emptyList() // Clear questions instead of loading from DB
+                } else {
+                    // For other errors, try fallback
+                    _starterQuestionsError.value = stringProvider.getString(StringKey.ERROR_GENERIC)
+                    loadFallbackStarterQuestions(userProfile)
+                }
             }
         }
     }
@@ -514,6 +593,40 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
         }.onFailure { 
             _starterQuestionsError.value = stringProvider.getString(StringKey.ERROR_GENERIC)
             _starterQuestionsLoading.value = false
+        }
+    }
+    
+    private fun generateDynamicFollowUpQuestions(messages: List<ChatMessage>) {
+        viewModelScope.launch {
+            try {
+                // Only generate if we have both user and AI messages
+                if (messages.none { it.isUser } || messages.none { !it.isUser }) {
+                    return@launch
+                }
+                
+                val prompt = PromptManager.generateDynamicFollowUpQuestionsPrompt(messages, _userProfile.value)
+                
+                android.util.Log.d("ChatViewModel", "Generating dynamic follow-up questions for conversation")
+                
+                val response = generativeModel.generateContent(
+                    content { text(prompt) }
+                )
+                
+                val generatedQuestions = response.text?.lines()
+                    ?.filter { it.isNotBlank() }
+                    ?.map { it.trim() }
+                    ?.filter { it.length <= 40 } // Ensure questions are short
+                    ?.take(3) // Take only 3 questions
+                    ?: emptyList()
+                
+                if (generatedQuestions.isNotEmpty()) {
+                    _followUpQuestions.value = generatedQuestions
+                    android.util.Log.d("ChatViewModel", "Generated ${generatedQuestions.size} dynamic follow-up questions")
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("ChatViewModel", "Error generating dynamic follow-up questions", e)
+                // Silently fail - follow-up questions are not critical
+            }
         }
     }
     

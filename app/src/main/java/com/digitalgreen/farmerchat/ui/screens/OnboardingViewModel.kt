@@ -3,10 +3,11 @@ package com.digitalgreen.farmerchat.ui.screens
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.digitalgreen.farmerchat.data.FarmerChatRepository
+import com.digitalgreen.farmerchat.FarmerChatApplication
 import com.digitalgreen.farmerchat.data.OnboardingState
 import com.digitalgreen.farmerchat.data.UserProfile
 import com.digitalgreen.farmerchat.data.LocationInfo
+import com.digitalgreen.farmerchat.network.UpdateUserRequest
 import com.digitalgreen.farmerchat.utils.PreferencesManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -15,7 +16,7 @@ import kotlinx.coroutines.launch
 
 class OnboardingViewModel(application: Application) : AndroidViewModel(application) {
     private val preferencesManager = PreferencesManager(application)
-    private val repository = FarmerChatRepository()
+    private val repository = (application as FarmerChatApplication).repository
     
     private val _onboardingState = MutableStateFlow(OnboardingState())
     val onboardingState: StateFlow<OnboardingState> = _onboardingState
@@ -24,6 +25,15 @@ class OnboardingViewModel(application: Application) : AndroidViewModel(applicati
     
     fun selectLanguage(language: String) {
         _onboardingState.update { it.copy(selectedLanguage = language) }
+        // Immediately save the language preference so UI updates right away
+        viewModelScope.launch {
+            preferencesManager.saveUserPreferences(
+                language = language,
+                location = _onboardingState.value.selectedLocation,
+                crops = _onboardingState.value.selectedCrops.toSet(),
+                livestock = _onboardingState.value.selectedLivestock.toSet()
+            )
+        }
     }
     
     fun selectLocation(location: String) {
@@ -57,6 +67,18 @@ class OnboardingViewModel(application: Application) : AndroidViewModel(applicati
         }
     }
     
+    fun updateName(name: String) {
+        _onboardingState.update { it.copy(name = name) }
+    }
+    
+    fun updateRole(role: String) {
+        _onboardingState.update { it.copy(role = role) }
+    }
+    
+    fun updateGender(gender: String) {
+        _onboardingState.update { it.copy(gender = gender) }
+    }
+    
     fun nextStep() {
         _onboardingState.update { it.copy(currentStep = it.currentStep + 1) }
     }
@@ -79,17 +101,19 @@ class OnboardingViewModel(application: Application) : AndroidViewModel(applicati
             
             preferencesManager.setOnboardingCompleted(true)
             
-            // Save user profile to Firestore
-            val userProfile = UserProfile(
+            // Update user profile via API
+            repository.updateUserProfile(
+                name = state.name.ifEmpty { "Farmer" }, // Use name from state, fallback to "Farmer" if empty
                 language = state.selectedLanguage,
                 location = state.selectedLocation,
-                locationInfo = locationInfo,
-                crops = state.selectedCrops,
-                livestock = state.selectedLivestock,
-                hasCompletedOnboarding = true
-            )
-            
-            repository.saveUserProfile(userProfile)
+                crops = state.selectedCrops.toList(),
+                livestock = state.selectedLivestock.toList(),
+                role = state.role,
+                gender = state.gender,
+                responseLength = "medium"
+            ).onFailure { error ->
+                android.util.Log.e("OnboardingViewModel", "Failed to update profile", error)
+            }
         }
     }
 }

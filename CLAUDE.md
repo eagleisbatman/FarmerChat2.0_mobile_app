@@ -2,6 +2,15 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## 🚨 Important: No Existing Users - API-Only Mode
+**There are NO existing users in this application.** This is a new deployment, so:
+- ✅ Use API-based repositories (AppRepository, ApiRepository) directly
+- ❌ Remove Firebase Firestore functionality (except Auth)
+- ❌ Remove migration code (MigrationManager) 
+- ❌ Remove hybrid ViewModels (HybridChatViewModel, HybridConversationsViewModel)
+- ✅ Use ApiChatViewModel and ApiConversationsViewModel directly
+- ✅ Simplify architecture by removing backward compatibility
+
 ## Common Development Commands
 
 ### Building and Running

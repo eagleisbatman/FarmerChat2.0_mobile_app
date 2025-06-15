@@ -15,13 +15,13 @@ interface AuthApiService {
 }
 
 interface UserApiService {
-    @GET("user/profile")
+    @GET("users/profile")
     suspend fun getUserProfile(): Response<ApiResponse<ApiUser>>
     
-    @PUT("user/profile")
+    @PUT("users/profile")
     suspend fun updateUserProfile(@Body request: UpdateUserRequest): Response<ApiResponse<ApiUser>>
     
-    @DELETE("user/profile")
+    @DELETE("users/profile")
     suspend fun deleteUserProfile(): Response<ApiResponse<Unit>>
 }
 

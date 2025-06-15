@@ -3,6 +3,7 @@ package com.digitalgreen.farmerchat.network
 import android.content.Context
 import android.content.pm.PackageManager
 import android.util.Log
+import com.digitalgreen.farmerchat.utils.PreferencesManager
 import com.google.gson.GsonBuilder
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
@@ -17,14 +18,38 @@ object NetworkConfig {
     private const val TAG = "NetworkConfig"
     
     // TODO: Update with your backend URL
-    private const val BASE_URL = "http://10.0.2.2:3000/api/v1/" // Android emulator localhost
-    // For physical device, use your computer's IP: "http://192.168.1.XXX:3000/api/v1/"
+    private const val BASE_URL = "http://10.0.2.2:3002/api/v1/" // Android emulator localhost
+    // For physical device, use your computer's IP: "http://192.168.1.XXX:3002/api/v1/"
     
     private var authToken: String? = null
     private lateinit var applicationContext: Context
+    private lateinit var preferencesManager: PreferencesManager
     
     fun initialize(context: Context) {
         applicationContext = context.applicationContext
+        preferencesManager = PreferencesManager(context)
+        
+        // Load stored token on initialization
+        loadStoredToken()
+    }
+    
+    private fun loadStoredToken() {
+        try {
+            val storedToken = preferencesManager.getJwtToken()
+            if (storedToken != null && !preferencesManager.isTokenExpired()) {
+                authToken = storedToken
+                Log.d(TAG, "Loaded valid token from storage")
+            } else if (storedToken != null) {
+                Log.d(TAG, "Stored token is expired, clearing")
+                runBlocking {
+                    preferencesManager.clearAuthTokens()
+                }
+                authToken = null
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error loading stored token", e)
+            authToken = null
+        }
     }
     
     fun setAuthToken(token: String?) {
@@ -32,23 +57,71 @@ object NetworkConfig {
         Log.d(TAG, "Auth token updated: ${if (token != null) "Set" else "Cleared"}")
     }
     
+    fun setAuthTokens(jwtToken: String, refreshToken: String, expiresIn: Long) {
+        authToken = jwtToken
+        // Save tokens to persistent storage
+        runBlocking {
+            preferencesManager.saveAuthTokens(jwtToken, refreshToken, expiresIn)
+        }
+        Log.d(TAG, "Auth tokens saved to storage")
+    }
+    
+    fun clearAuthTokens() {
+        authToken = null
+        runBlocking {
+            preferencesManager.clearAuthTokens()
+        }
+        Log.d(TAG, "Auth tokens cleared from storage")
+    }
+    
     private val authInterceptor = Interceptor { chain ->
         val request = chain.request().newBuilder().apply {
-            authToken?.let { token ->
+            Log.d(TAG, "=== AUTH INTERCEPTOR DEBUG ===")
+            Log.d(TAG, "Request URL: ${chain.request().url}")
+            Log.d(TAG, "PreferencesManager initialized: ${::preferencesManager.isInitialized}")
+            Log.d(TAG, "In-memory authToken: ${authToken?.take(10) ?: "null"}")
+            
+            // Always try to get the latest token from storage
+            val currentToken = if (::preferencesManager.isInitialized) {
+                val storedToken = preferencesManager.getJwtToken()
+                val isExpired = preferencesManager.isTokenExpired()
+                Log.d(TAG, "Stored token: ${storedToken?.take(10) ?: "null"}")
+                Log.d(TAG, "Token expired: $isExpired")
+                
+                if (storedToken != null && !isExpired) {
+                    storedToken
+                } else {
+                    authToken // fallback to in-memory token
+                }
+            } else {
+                authToken // fallback to in-memory token
+            }
+            
+            Log.d(TAG, "Final token to use: ${currentToken?.take(10) ?: "null"}")
+            
+            currentToken?.let { token ->
                 addHeader("Authorization", "Bearer $token")
+                Log.d(TAG, "✅ Added Authorization header")
+            } ?: run {
+                Log.w(TAG, "❌ No auth token available - request will fail")
             }
             addHeader("Content-Type", "application/json")
             addHeader("Accept", "application/json")
             
             // Add device info headers
-            try {
-                val packageInfo = applicationContext.packageManager.getPackageInfo(
-                    applicationContext.packageName, 0
-                )
-                addHeader("X-App-Version", packageInfo.versionName)
+            if (::applicationContext.isInitialized) {
+                try {
+                    val packageInfo = applicationContext.packageManager.getPackageInfo(
+                        applicationContext.packageName, 0
+                    )
+                    addHeader("X-App-Version", packageInfo.versionName ?: "1.0")
+                    addHeader("X-Platform", "android")
+                } catch (e: PackageManager.NameNotFoundException) {
+                    Log.e(TAG, "Error getting app version", e)
+                }
+            } else {
                 addHeader("X-Platform", "android")
-            } catch (e: PackageManager.NameNotFoundException) {
-                Log.e(TAG, "Error getting app version", e)
+                addHeader("X-App-Version", "1.0")
             }
         }.build()
         

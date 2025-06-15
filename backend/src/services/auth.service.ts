@@ -7,6 +7,7 @@ import { FirebaseService } from './firebase.service';
 
 export interface User {
   id: string;
+  firebase_uid: string;
   email?: string;
   phone?: string;
   name?: string;
@@ -16,6 +17,8 @@ export interface User {
   crops: string[];
   livestock: string[];
   preferences: any;
+  role?: string;
+  gender?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -122,26 +125,26 @@ export class AuthService {
   }
   
   private async getOrCreateUser(
-    userId: string,
+    firebaseUid: string,
     identifier: string
   ): Promise<User> {
     const isEmail = identifier.includes('@');
     const isPhone = identifier.startsWith('+') || /^\d+$/.test(identifier);
     
     return transaction(async (client) => {
-      // Check if user exists
+      // Check if user exists by Firebase UID
       const existingResult = await client.query(
-        'SELECT * FROM users WHERE id = $1',
-        [userId]
+        'SELECT * FROM users WHERE firebase_uid = $1',
+        [firebaseUid]
       );
       
       if (existingResult.rows.length > 0) {
         return existingResult.rows[0];
       }
       
-      // Create new user
-      let query = 'INSERT INTO users (id';
-      let values = [userId];
+      // Create new user with a proper UUID
+      let query = 'INSERT INTO users (firebase_uid';
+      let values = [firebaseUid];
       let paramCount = 1;
       
       if (isEmail) {
@@ -170,11 +173,9 @@ export class AuthService {
       type: 'access'
     };
     
-    const options = {
-      expiresIn: config.jwt.expiresIn
-    };
-    
-    return jwt.sign(payload, config.jwt.secret, options);
+    return jwt.sign(payload, config.jwt.secret, {
+      expiresIn: config.jwt.expiresIn as any
+    });
   }
   
   private generateRefreshToken(user: User): string {

@@ -6,6 +6,26 @@ import { logger } from '../utils/logger';
 const router = Router();
 const authService = new AuthService();
 
+/**
+ * @swagger
+ * /auth/config:
+ *   get:
+ *     summary: Get Firebase auth configuration
+ *     tags: [Authentication]
+ *     security: []
+ *     responses:
+ *       200:
+ *         description: Firebase configuration
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success: 
+ *                   type: boolean
+ *                 data:
+ *                   type: object
+ */
 // Get Firebase auth config
 router.get('/config', async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -16,6 +36,39 @@ router.get('/config', async (req: Request, res: Response, next: NextFunction) =>
   }
 });
 
+/**
+ * @swagger
+ * /auth/verify:
+ *   post:
+ *     summary: Verify Firebase ID token and authenticate user
+ *     tags: [Authentication]
+ *     security: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/AuthRequest'
+ *     responses:
+ *       200:
+ *         description: Authentication successful
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/AuthResponse'
+ *       400:
+ *         description: Invalid request
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       401:
+ *         description: Invalid token
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
 // Verify Firebase ID token
 router.post('/verify', async (req: Request, res: Response, next: NextFunction) => {
   try {

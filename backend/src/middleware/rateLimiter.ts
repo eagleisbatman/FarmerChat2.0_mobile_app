@@ -2,18 +2,33 @@ import { Request, Response, NextFunction } from 'express';
 import Redis from 'ioredis';
 import { config } from '../config';
 import { AppError } from './errorHandler';
+import { logger } from '../utils/logger';
 
-const redis = new Redis({
-  host: config.redis.url,
-  password: config.redis.password,
-  db: config.redis.db,
-  lazyConnect: true
-});
+// Only create Redis instance if URL is provided
+let redis: Redis | null = null;
 
-// Connect to Redis with error handling
-redis.connect().catch((err) => {
-  console.error('Redis connection error:', err);
-});
+if (config.redis.url) {
+  redis = new Redis(config.redis.url, {
+    password: config.redis.password,
+    db: config.redis.db,
+    lazyConnect: true,
+    retryStrategy: (times: number) => {
+      const delay = Math.min(times * 50, 2000);
+      return delay;
+    }
+  });
+
+  // Connect to Redis with error handling
+  redis.connect().catch((err) => {
+    logger.error('Redis connection error:', err);
+  });
+
+  redis.on('error', (err) => {
+    logger.error('Redis error in rate limiter:', err);
+  });
+} else {
+  logger.info('Redis URL not provided, rate limiting will be disabled');
+}
 
 interface RateLimitOptions {
   windowMs: number;
@@ -32,8 +47,8 @@ export const createRateLimiter = (options: RateLimitOptions) => {
   
   return async (req: Request, res: Response, next: NextFunction) => {
     try {
-      // Skip rate limiting if Redis is not connected
-      if (redis.status !== 'ready') {
+      // Skip rate limiting if Redis is not available or not connected
+      if (!redis || redis.status !== 'ready') {
         return next();
       }
       
@@ -64,7 +79,7 @@ export const createRateLimiter = (options: RateLimitOptions) => {
         next(error);
       } else {
         // If Redis fails, allow the request but log the error
-        console.error('Rate limiter error:', error);
+        logger.error('Rate limiter error:', error);
         next();
       }
     }

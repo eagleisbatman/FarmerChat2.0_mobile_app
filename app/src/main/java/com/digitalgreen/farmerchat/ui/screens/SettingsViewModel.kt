@@ -29,6 +29,8 @@ data class SettingsState(
     val userLocation: String = "",
     val selectedCrops: List<String> = emptyList(),
     val selectedLivestock: List<String> = emptyList(),
+    val userRole: String = "",
+    val userGender: String = "",
     val currentLanguage: String = "en",
     val currentLanguageName: String = "English",
     val voiceResponsesEnabled: Boolean = true,
@@ -68,6 +70,8 @@ class SettingsViewModel(
                                 userLocation = profile.locationInfo?.formattedAddress ?: profile.location,
                                 selectedCrops = profile.crops,
                                 selectedLivestock = profile.livestock,
+                                userRole = profile.role ?: "",
+                                userGender = profile.gender ?: "",
                                 currentLanguage = profile.language
                             )
                         }
@@ -281,6 +285,34 @@ class SettingsViewModel(
                 val profile = repository.getUserProfile(userId)
                 profile?.let {
                     val updatedProfile = it.copy(location = location)
+                    repository.saveUserProfile(updatedProfile)
+                }
+            }
+        }
+    }
+    
+    fun updateUserRole(role: String) {
+        viewModelScope.launch {
+            _settingsState.update { it.copy(userRole = role) }
+            val userId = FirebaseAuth.getInstance().currentUser?.uid
+            if (userId != null) {
+                val profile = repository.getUserProfile(userId)
+                profile?.let {
+                    val updatedProfile = it.copy(role = role)
+                    repository.saveUserProfile(updatedProfile)
+                }
+            }
+        }
+    }
+    
+    fun updateUserGender(gender: String) {
+        viewModelScope.launch {
+            _settingsState.update { it.copy(userGender = gender) }
+            val userId = FirebaseAuth.getInstance().currentUser?.uid
+            if (userId != null) {
+                val profile = repository.getUserProfile(userId)
+                profile?.let {
+                    val updatedProfile = it.copy(gender = gender)
                     repository.saveUserProfile(updatedProfile)
                 }
             }

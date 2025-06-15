@@ -47,7 +47,7 @@ fun ConversationsScreen(
     onNavigateToChat: (String) -> Unit,
     onNavigateToSettings: () -> Unit,
     startNewChat: Boolean = false,
-    viewModel: ConversationsViewModel = viewModel(
+    viewModel: ApiConversationsViewModel = viewModel(
         factory = ViewModelProvider.AndroidViewModelFactory.getInstance(LocalContext.current.applicationContext as android.app.Application)
     )
 ) {
@@ -79,9 +79,13 @@ fun ConversationsScreen(
         }
     }
     
+    // State to track if we've already handled the startNewChat
+    var hasHandledNewChat by remember { mutableStateOf(false) }
+    
     // Handle startNewChat navigation
-    LaunchedEffect(startNewChat) {
-        if (startNewChat) {
+    LaunchedEffect(startNewChat, hasHandledNewChat) {
+        if (startNewChat && !hasHandledNewChat) {
+            hasHandledNewChat = true
             viewModel.createNewConversation { conversationId ->
                 onNavigateToChat(conversationId)
             }

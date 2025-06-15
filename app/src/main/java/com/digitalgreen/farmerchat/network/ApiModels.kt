@@ -41,6 +41,8 @@ data class ApiUser(
     @SerializedName("language") val language: String = "en",
     @SerializedName("crops") val crops: List<String> = emptyList(),
     @SerializedName("livestock") val livestock: List<String> = emptyList(),
+    @SerializedName("role") val role: String? = null,
+    @SerializedName("gender") val gender: String? = null,
     @SerializedName("responseLength") val responseLength: String = "medium",
     @SerializedName("isActive") val isActive: Boolean = true,
     @SerializedName("createdAt") val createdAt: String,
@@ -53,6 +55,8 @@ data class UpdateUserRequest(
     @SerializedName("language") val language: String? = null,
     @SerializedName("crops") val crops: List<String>? = null,
     @SerializedName("livestock") val livestock: List<String>? = null,
+    @SerializedName("role") val role: String? = null,
+    @SerializedName("gender") val gender: String? = null,
     @SerializedName("responseLength") val responseLength: String? = null
 )
 

@@ -11,6 +11,8 @@ data class UserProfile(
     val locationInfo: LocationInfo? = null, // New detailed location
     val crops: List<String> = emptyList(),
     val livestock: List<String> = emptyList(),
+    val role: String? = null,
+    val gender: String? = null,
     val hasCompletedOnboarding: Boolean = false,
     val createdAt: Date = Date(),
     val lastUpdated: Date = Date()
@@ -89,7 +91,10 @@ data class OnboardingState(
     val selectedLanguage: String = "en",
     val selectedLocation: String = "",
     val selectedCrops: List<String> = emptyList(),
-    val selectedLivestock: List<String> = emptyList()
+    val selectedLivestock: List<String> = emptyList(),
+    val role: String = "",
+    val gender: String = "",
+    val name: String = ""
 )
 
 // Conversation/Chat list item

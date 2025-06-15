@@ -94,6 +94,8 @@ class AppRepository(private val context: Context) {
         language: String? = null,
         crops: List<String>? = null,
         livestock: List<String>? = null,
+        role: String? = null,
+        gender: String? = null,
         responseLength: String? = null
     ): Result<ApiUser> {
         val request = UpdateUserRequest(
@@ -102,6 +104,8 @@ class AppRepository(private val context: Context) {
             language = language,
             crops = crops,
             livestock = livestock,
+            role = role,
+            gender = gender,
             responseLength = responseLength
         )
         
@@ -251,7 +255,7 @@ class AppRepository(private val context: Context) {
         return safeApiCall { NetworkConfig.translationApi.getSupportedLanguages() }
             .mapCatching { response ->
                 if (response.success && response.data != null) {
-                    response.data
+                    response.data.map { it.toDataLanguage() }
                 } else {
                     throw Exception(response.error ?: "Failed to get supported languages")
                 }
@@ -299,7 +303,7 @@ class AppRepository(private val context: Context) {
     private fun getAppVersion(): String {
         return try {
             val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
-            packageInfo.versionName
+            packageInfo.versionName ?: "1.0"
         } catch (e: Exception) {
             "1.0"
         }

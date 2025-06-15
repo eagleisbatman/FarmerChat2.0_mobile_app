@@ -150,7 +150,7 @@ class ApiConversationsViewModel(application: Application) : AndroidViewModel(app
     fun resetOnboarding() {
         viewModelScope.launch {
             // Clear local preferences
-            preferencesManager.clearOnboardingData()
+            preferencesManager.clearAll()
             
             // Sign out and clear profile
             repository.signOut()
