@@ -12,6 +12,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -25,6 +26,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.digitalgreen.farmerchat.data.Conversation
+import com.digitalgreen.farmerchat.data.LanguageManager
+import com.digitalgreen.farmerchat.ui.components.FarmerChatAppBar
+import com.digitalgreen.farmerchat.ui.components.localizedString
+import com.digitalgreen.farmerchat.ui.components.currentLanguage
+import com.digitalgreen.farmerchat.utils.StringsManager.StringKey
+import com.digitalgreen.farmerchat.ui.theme.DesignSystem
+import com.digitalgreen.farmerchat.ui.theme.appBarColor
+import com.digitalgreen.farmerchat.ui.theme.primaryTextColor
+import com.digitalgreen.farmerchat.ui.theme.secondaryTextColor
+import com.digitalgreen.farmerchat.utils.StringsManager
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -41,6 +52,7 @@ fun ConversationsScreen(
     var searchQuery by remember { mutableStateOf("") }
     var selectedTags by remember { mutableStateOf<Set<String>>(emptySet()) }
     var showTagFilter by remember { mutableStateOf(false) }
+    val languageCode = currentLanguage()
     
     // Get all unique tags from conversations
     val allTags = remember(conversations) {
@@ -81,7 +93,7 @@ fun ConversationsScreen(
                             onValueChange = { searchQuery = it },
                             placeholder = { 
                                 Text(
-                                    "Search conversations",
+                                    localizedString(StringKey.SEARCH_CONVERSATIONS),
                                     color = Color.White.copy(alpha = 0.7f)
                                 ) 
                             },
@@ -104,8 +116,8 @@ fun ConversationsScreen(
                             searchQuery = ""
                         }) {
                             Icon(
-                                Icons.Default.ArrowBack,
-                                contentDescription = "Back",
+                                Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = localizedString(StringKey.BACK),
                                 tint = Color.White
                             )
                         }
@@ -115,36 +127,26 @@ fun ConversationsScreen(
                             IconButton(onClick = { searchQuery = "" }) {
                                 Icon(
                                     Icons.Default.Clear,
-                                    contentDescription = "Clear",
+                                    contentDescription = localizedString(StringKey.CLEAR),
                                     tint = Color.White
                                 )
                             }
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = Color(0xFF075E54),
+                        containerColor = appBarColor(),
                         titleContentColor = Color.White
                     )
                 )
             } else {
-                // Normal App Bar
-                TopAppBar(
-                    title = { 
-                        Text(
-                            "FarmerChat",
-                            fontSize = 24.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                    },
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = Color(0xFF075E54),
-                        titleContentColor = Color.White
-                    ),
+                // Normal App Bar - Using regular size for better space utilization
+                FarmerChatAppBar(
+                    title = localizedString(StringKey.APP_NAME),
                     actions = {
                         IconButton(onClick = { isSearching = true }) {
                             Icon(
                                 Icons.Default.Search,
-                                contentDescription = "Search",
+                                contentDescription = localizedString(StringKey.SEARCH),
                                 tint = Color.White
                             )
                         }
@@ -153,14 +155,14 @@ fun ConversationsScreen(
                                 Icon(
                                     if (showTagFilter) Icons.Default.FilterListOff else Icons.Default.FilterList,
                                     contentDescription = if (showTagFilter) "Hide filters" else "Show filters",
-                                    tint = if (selectedTags.isNotEmpty()) Color(0xFF25D366) else Color.White
+                                    tint = if (selectedTags.isNotEmpty()) DesignSystem.Colors.Primary else Color.White
                                 )
                             }
                         }
                         IconButton(onClick = onNavigateToSettings) {
                             Icon(
                                 Icons.Default.Settings,
-                                contentDescription = "Settings",
+                                contentDescription = localizedString(StringKey.SETTINGS),
                                 tint = Color.White
                             )
                         }
@@ -176,12 +178,12 @@ fun ConversationsScreen(
                         onNavigateToChat(conversationId)
                     }
                 },
-                containerColor = Color(0xFF25D366),
-                contentColor = Color.White
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary
             ) {
                 Icon(
                     Icons.Default.ChatBubbleOutline,
-                    contentDescription = "New chat"
+                    contentDescription = localizedString(StringKey.NEW_CONVERSATION)
                 )
             }
         }
@@ -202,19 +204,19 @@ fun ConversationsScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .background(MaterialTheme.colorScheme.surface)
-                            .padding(horizontal = 16.dp, vertical = 8.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            .padding(horizontal = DesignSystem.Spacing.md, vertical = DesignSystem.Spacing.sm),
+                        horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.sm)
                     ) {
                         item {
                             if (selectedTags.isNotEmpty()) {
                                 AssistChip(
                                     onClick = { selectedTags = emptySet() },
-                                    label = { Text("Clear all") },
+                                    label = { Text(localizedString(StringKey.CLEAR) + " " + localizedString(StringKey.ALL)) },
                                     leadingIcon = {
                                         Icon(
                                             Icons.Default.Clear,
-                                            contentDescription = "Clear",
-                                            modifier = Modifier.size(16.dp)
+                                            contentDescription = localizedString(StringKey.CLEAR),
+                                            modifier = Modifier.size(DesignSystem.IconSize.small)
                                         )
                                     },
                                     colors = AssistChipDefaults.assistChipColors(
@@ -240,8 +242,8 @@ fun ConversationsScreen(
                                     {
                                         Icon(
                                             Icons.Default.Check,
-                                            contentDescription = "Selected",
-                                            modifier = Modifier.size(16.dp)
+                                            contentDescription = localizedString(StringKey.SELECTED),
+                                            modifier = Modifier.size(DesignSystem.IconSize.small)
                                         )
                                     }
                                 } else null
@@ -267,32 +269,32 @@ fun ConversationsScreen(
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(32.dp),
+                            .padding(DesignSystem.Spacing.xl),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center
                     ) {
                 Icon(
                     if (searchQuery.isNotEmpty()) Icons.Default.SearchOff else Icons.Outlined.Forum,
                     contentDescription = null,
-                    modifier = Modifier.size(120.dp),
-                    tint = Color.Gray.copy(alpha = 0.5f)
+                    modifier = Modifier.size(DesignSystem.IconSize.splash),
+                    tint = secondaryTextColor().copy(alpha = DesignSystem.Opacity.medium)
                 )
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(DesignSystem.Spacing.lg))
                 Text(
-                    if (searchQuery.isNotEmpty()) "No results found" else "No conversations yet",
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = Color.Gray
+                    if (searchQuery.isNotEmpty()) localizedString(StringKey.NO_RESULTS_FOUND) else localizedString(StringKey.NO_CONVERSATIONS),
+                    fontSize = DesignSystem.Typography.titleMedium,
+                    fontWeight = DesignSystem.Typography.Weight.Medium,
+                    color = secondaryTextColor()
                 )
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(DesignSystem.Spacing.sm))
                 Text(
                     if (searchQuery.isNotEmpty()) {
                         "Try searching with different keywords"
                     } else {
-                        "Tap the button below to start a new chat"
+                        localizedString(StringKey.START_FIRST_CONVERSATION)
                     },
-                    fontSize = 16.sp,
-                    color = Color.Gray.copy(alpha = 0.7f),
+                    fontSize = DesignSystem.Typography.bodyLarge,
+                    color = secondaryTextColor().copy(alpha = DesignSystem.Opacity.high),
                     textAlign = TextAlign.Center
                         )
                     }
@@ -300,7 +302,7 @@ fun ConversationsScreen(
                 else -> {
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
-                        verticalArrangement = Arrangement.spacedBy(0.dp)
+                        verticalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.xxs)
                     ) {
                         items(filteredConversations) { conversation ->
                             ConversationItem(
@@ -308,8 +310,8 @@ fun ConversationsScreen(
                                 onClick = { onNavigateToChat(conversation.id) }
                             )
                             HorizontalDivider(
-                                modifier = Modifier.padding(start = 16.dp),
-                                color = Color.Gray.copy(alpha = 0.2f),
+                                modifier = Modifier.padding(start = DesignSystem.Spacing.md),
+                                color = secondaryTextColor().copy(alpha = 0.2f),
                                 thickness = 0.5.dp
                             )
                         }
@@ -325,11 +327,12 @@ fun ConversationItem(
     conversation: Conversation,
     onClick: () -> Unit
 ) {
+    val languageCode = currentLanguage()
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onClick() }
-            .padding(horizontal = 16.dp, vertical = 12.dp)
+            .padding(horizontal = DesignSystem.Spacing.md, vertical = DesignSystem.Spacing.sm + DesignSystem.Spacing.xs)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -339,8 +342,9 @@ fun ConversationItem(
             // Title
             Text(
                 conversation.title,
-                fontSize = 17.sp,
-                fontWeight = FontWeight.Medium,
+                fontSize = DesignSystem.Typography.titleSmall,
+                fontWeight = DesignSystem.Typography.Weight.Medium,
+                color = primaryTextColor(),
                 modifier = Modifier.weight(1f),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
@@ -348,17 +352,17 @@ fun ConversationItem(
             
             // Time
             Text(
-                formatTimestamp(conversation.lastMessageTime),
-                fontSize = 13.sp,
+                formatTimestamp(conversation.lastMessageTime, languageCode),
+                fontSize = DesignSystem.Typography.labelMedium,
                 color = if (conversation.hasUnreadMessages) {
-                    Color(0xFF25D366)
+                    DesignSystem.Colors.Primary
                 } else {
-                    Color.Gray
+                    secondaryTextColor()
                 }
             )
         }
         
-        Spacer(modifier = Modifier.height(4.dp))
+        Spacer(modifier = Modifier.height(DesignSystem.Spacing.xs))
         
         // Tags
         if (conversation.tags.isNotEmpty()) {
@@ -372,33 +376,33 @@ fun ConversationItem(
                         label = { 
                             Text(
                                 tag, 
-                                fontSize = 11.sp,
+                                fontSize = DesignSystem.Typography.labelSmall,
                                 maxLines = 1
                             ) 
                         },
                         modifier = Modifier
-                            .padding(end = 4.dp)
-                            .height(24.dp),
+                            .padding(end = DesignSystem.Spacing.xs)
+                            .height(DesignSystem.Spacing.lg),
                         colors = AssistChipDefaults.assistChipColors(
-                            containerColor = Color(0xFF4CAF50).copy(alpha = 0.1f),
-                            labelColor = Color(0xFF4CAF50)
+                            containerColor = DesignSystem.Colors.Primary.copy(alpha = 0.1f),
+                            labelColor = DesignSystem.Colors.Primary
                         ),
                         border = BorderStroke(
                             width = 1.dp,
-                            color = Color(0xFF4CAF50).copy(alpha = 0.3f)
+                            color = DesignSystem.Colors.Primary.copy(alpha = 0.3f)
                         )
                     )
                 }
                 if (conversation.tags.size > 3) {
                     Text(
                         "+${conversation.tags.size - 3}",
-                        fontSize = 11.sp,
-                        color = Color(0xFF4CAF50),
+                        fontSize = DesignSystem.Typography.labelSmall,
+                        color = DesignSystem.Colors.Primary,
                         modifier = Modifier.align(Alignment.CenterVertically)
                     )
                 }
             }
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(DesignSystem.Spacing.xs))
         }
         
         Row(
@@ -415,36 +419,36 @@ fun ConversationItem(
                     Icon(
                         Icons.Default.SmartToy,
                         contentDescription = null,
-                        modifier = Modifier.size(16.dp),
-                        tint = Color.Gray
+                        modifier = Modifier.size(DesignSystem.IconSize.small),
+                        tint = secondaryTextColor()
                     )
-                    Spacer(modifier = Modifier.width(4.dp))
+                    Spacer(modifier = Modifier.width(DesignSystem.Spacing.xs))
                 }
                 Text(
                     conversation.lastMessage,
-                    fontSize = 15.sp,
-                    color = Color.Gray,
+                    fontSize = DesignSystem.Typography.bodyMedium,
+                    color = secondaryTextColor(),
                     maxLines = if (conversation.tags.isEmpty()) 2 else 1,
                     overflow = TextOverflow.Ellipsis,
-                    lineHeight = 20.sp
+                    lineHeight = DesignSystem.Typography.titleMedium
                 )
             }
             
             // Unread count
             if (conversation.unreadCount > 0) {
-                Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.width(DesignSystem.Spacing.sm))
                 Box(
                     modifier = Modifier
-                        .size(24.dp)
+                        .size(DesignSystem.Spacing.lg)
                         .clip(CircleShape)
-                        .background(Color(0xFF25D366)),
+                        .background(DesignSystem.Colors.Primary),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
                         conversation.unreadCount.toString(),
                         color = Color.White,
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Bold
+                        fontSize = DesignSystem.Typography.bodySmall,
+                        fontWeight = DesignSystem.Typography.Weight.Bold
                     )
                 }
             }
@@ -452,7 +456,7 @@ fun ConversationItem(
     }
 }
 
-fun formatTimestamp(date: Date): String {
+fun formatTimestamp(date: Date, languageCode: String): String {
     val now = Calendar.getInstance()
     val messageTime = Calendar.getInstance().apply { time = date }
     
@@ -461,7 +465,7 @@ fun formatTimestamp(date: Date): String {
             SimpleDateFormat("HH:mm", Locale.getDefault()).format(date)
         }
         isYesterday(now, messageTime) -> {
-            "Yesterday"
+            StringsManager.getString(StringKey.YESTERDAY, languageCode)
         }
         isSameWeek(now, messageTime) -> {
             SimpleDateFormat("EEEE", Locale.getDefault()).format(date)

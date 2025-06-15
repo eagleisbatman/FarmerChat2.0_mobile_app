@@ -135,13 +135,26 @@ object StringsManager {
         // Voice confidence
         CONFIDENCE_HIGH,
         CONFIDENCE_MEDIUM,
-        CONFIDENCE_LOW
+        CONFIDENCE_LOW,
+        
+        // Additional UI strings from audit
+        MORE,
+        ASK_ME_ANYTHING,
+        NO_RESULTS_FOUND,
+        YESTERDAY,
+        START_CHATTING,
+        EMPOWERING_FARMERS_WITH_AI,
+        COPYRIGHT,
+        ALL,
+        SELECTED_WITH_CHECK,
+        CROPS_SELECTED,
+        ANIMALS_SELECTED
     }
     
     private val translations = mapOf(
         // English
         "en" to mapOf(
-            StringKey.APP_NAME to "FarmerChat",
+            StringKey.APP_NAME to "FarmerChat", // Brand name - DO NOT TRANSLATE
             StringKey.CHOOSE_LANGUAGE to "Choose your preferred language",
             StringKey.LANGUAGE_SUBTITLE to "Select the language you're most comfortable with",
             StringKey.WHERE_LOCATED to "Where are you located?",
@@ -246,12 +259,23 @@ object StringsManager {
             StringKey.DELETE_ACCOUNT_ERROR to "Failed to delete account. Please try again.",
             StringKey.CONFIDENCE_HIGH to "High",
             StringKey.CONFIDENCE_MEDIUM to "Medium",
-            StringKey.CONFIDENCE_LOW to "Low"
+            StringKey.CONFIDENCE_LOW to "Low",
+            StringKey.MORE to "More",
+            StringKey.ASK_ME_ANYTHING to "Ask me anything or try one of the below:",
+            StringKey.NO_RESULTS_FOUND to "No results found",
+            StringKey.YESTERDAY to "Yesterday",
+            StringKey.START_CHATTING to "Start Chatting",
+            StringKey.EMPOWERING_FARMERS_WITH_AI to "Empowering Farmers with AI",
+            StringKey.COPYRIGHT to "© 2024 Digital Green",
+            StringKey.ALL to "All",
+            StringKey.SELECTED_WITH_CHECK to "Selected",
+            StringKey.CROPS_SELECTED to "crops selected",
+            StringKey.ANIMALS_SELECTED to "animals selected"
         ),
         
         // Hindi
         "hi" to mapOf(
-            StringKey.APP_NAME to "किसान चैट",
+            StringKey.APP_NAME to "FarmerChat", // Brand name - DO NOT TRANSLATE
             StringKey.CHOOSE_LANGUAGE to "अपनी पसंदीदा भाषा चुनें",
             StringKey.LANGUAGE_SUBTITLE to "वह भाषा चुनें जिसमें आप सबसे सहज हैं",
             StringKey.WHERE_LOCATED to "आप कहाँ स्थित हैं?",
@@ -293,7 +317,7 @@ object StringsManager {
         
         // Swahili
         "sw" to mapOf(
-            StringKey.APP_NAME to "MkulimaChat",
+            StringKey.APP_NAME to "FarmerChat", // Brand name - DO NOT TRANSLATE
             StringKey.CHOOSE_LANGUAGE to "Chagua lugha unayopendelea",
             StringKey.LANGUAGE_SUBTITLE to "Chagua lugha unayoijua zaidi",
             StringKey.WHERE_LOCATED to "Uko wapi?",

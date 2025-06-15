@@ -7,19 +7,20 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.ViewModelProvider
 import com.digitalgreen.farmerchat.ui.components.localizedString
 import com.digitalgreen.farmerchat.ui.components.currentLanguage
+import com.digitalgreen.farmerchat.ui.components.FarmerChatAppBar
+import com.digitalgreen.farmerchat.ui.theme.DesignSystem
 import com.digitalgreen.farmerchat.utils.StringsManager.StringKey
 import com.digitalgreen.farmerchat.data.FarmerChatRepository
 import com.digitalgreen.farmerchat.utils.PreferencesManager
@@ -64,16 +65,9 @@ fun SettingsScreen(
     
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text(localizedString(StringKey.SETTINGS)) },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer
-                )
+            FarmerChatAppBar(
+                title = localizedString(StringKey.SETTINGS),
+                onBackClick = onNavigateBack
             )
         }
     ) { paddingValues ->
@@ -81,7 +75,7 @@ fun SettingsScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues),
-            contentPadding = PaddingValues(vertical = 8.dp)
+            contentPadding = PaddingValues(vertical = DesignSystem.Spacing.sm)
         ) {
             // Profile Section
             item {
@@ -165,7 +159,7 @@ fun SettingsScreen(
                     )
                     
                     SettingsSwitchItem(
-                        icon = Icons.Default.FormatListBulleted,
+                        icon = Icons.AutoMirrored.Filled.FormatListBulleted,
                         title = localizedString(StringKey.FORMATTED_RESPONSES),
                         subtitle = localizedString(StringKey.FORMATTED_RESPONSES_DESC),
                         checked = settingsState.formattedResponsesEnabled,
@@ -209,7 +203,7 @@ fun SettingsScreen(
                     )
                     
                     SettingsItem(
-                        icon = Icons.Default.Help,
+                        icon = Icons.AutoMirrored.Filled.Help,
                         title = localizedString(StringKey.HELP_FEEDBACK),
                         subtitle = localizedString(StringKey.HELP_FEEDBACK_DESC),
                         onClick = { /* TODO: Open help/feedback */ }
@@ -332,7 +326,7 @@ fun SettingsScreen(
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth()
                     )
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(DesignSystem.Spacing.sm))
                     TextButton(
                         onClick = {
                             // TODO: Implement GPS location detection
@@ -340,7 +334,7 @@ fun SettingsScreen(
                         }
                     ) {
                         Icon(Icons.Default.LocationOn, contentDescription = null)
-                        Spacer(modifier = Modifier.width(4.dp))
+                        Spacer(modifier = Modifier.width(DesignSystem.Spacing.xs))
                         Text(localizedString(StringKey.DETECT_MY_LOCATION))
                     }
                 }
@@ -378,7 +372,7 @@ fun SettingsScreen(
                                     viewModel.updateResponseLength(length)
                                     showResponseLengthDialog = false
                                 }
-                                .padding(vertical = 12.dp),
+                                .padding(vertical = DesignSystem.Spacing.md),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             RadioButton(
@@ -388,7 +382,7 @@ fun SettingsScreen(
                                     showResponseLengthDialog = false
                                 }
                             )
-                            Spacer(modifier = Modifier.width(8.dp))
+                            Spacer(modifier = Modifier.width(DesignSystem.Spacing.sm))
                             Text(
                                 text = when(length) {
                                     ResponseLength.CONCISE -> localizedString(StringKey.CONCISE)
@@ -418,15 +412,22 @@ fun SettingsSection(
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
             text = title,
-            style = MaterialTheme.typography.labelLarge,
+            fontSize = DesignSystem.Typography.labelLarge,
+            fontWeight = DesignSystem.Typography.Weight.Medium,
             color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+            modifier = Modifier.padding(
+                horizontal = DesignSystem.Spacing.md, 
+                vertical = DesignSystem.Spacing.sm
+            )
         )
         
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 4.dp),
+                .padding(
+                    horizontal = DesignSystem.Spacing.md, 
+                    vertical = DesignSystem.Spacing.xs
+                ),
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.surface
             )
@@ -455,29 +456,30 @@ fun SettingsItem(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(DesignSystem.Spacing.md),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
                 imageVector = icon,
                 contentDescription = null,
                 tint = if (textColor == MaterialTheme.colorScheme.error) textColor else MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(24.dp)
+                modifier = Modifier.size(DesignSystem.IconSize.medium)
             )
             
-            Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.width(DesignSystem.Spacing.md))
             
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = title,
-                    style = MaterialTheme.typography.bodyLarge,
+                    fontSize = DesignSystem.Typography.bodyLarge,
+                    fontWeight = DesignSystem.Typography.Weight.Normal,
                     color = textColor
                 )
                 if (subtitle != null) {
                     Text(
                         text = subtitle,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = textColor.copy(alpha = 0.7f)
+                        fontSize = DesignSystem.Typography.bodyMedium,
+                        color = textColor.copy(alpha = DesignSystem.Opacity.high)
                     )
                 }
             }
@@ -506,27 +508,28 @@ fun SettingsSwitchItem(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(DesignSystem.Spacing.md),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
                 imageVector = icon,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(24.dp)
+                modifier = Modifier.size(DesignSystem.IconSize.medium)
             )
             
-            Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.width(DesignSystem.Spacing.md))
             
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = title,
-                    style = MaterialTheme.typography.bodyLarge
+                    fontSize = DesignSystem.Typography.bodyLarge,
+                    fontWeight = DesignSystem.Typography.Weight.Normal
                 )
                 if (subtitle != null) {
                     Text(
                         text = subtitle,
-                        style = MaterialTheme.typography.bodyMedium,
+                        fontSize = DesignSystem.Typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
@@ -559,11 +562,11 @@ fun LanguageSelectionDialog(
                     onValueChange = { searchQuery = it },
                     label = { Text(localizedString(StringKey.SEARCH)) },
                     leadingIcon = {
-                        Icon(Icons.Default.Search, contentDescription = "Search")
+                        Icon(Icons.Default.Search, contentDescription = localizedString(StringKey.SEARCH))
                     },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(bottom = 16.dp),
+                        .padding(bottom = DesignSystem.Spacing.md),
                     singleLine = true
                 )
                 
@@ -591,19 +594,19 @@ fun LanguageSelectionDialog(
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(16.dp),
+                                    .padding(DesignSystem.Spacing.md),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Column(modifier = Modifier.weight(1f)) {
                                     Text(
                                         text = language.name,
-                                        style = MaterialTheme.typography.bodyLarge,
-                                        fontWeight = if (language.code == currentLanguage) FontWeight.Bold else FontWeight.Normal
+                                        fontSize = DesignSystem.Typography.bodyLarge,
+                                        fontWeight = if (language.code == currentLanguage) DesignSystem.Typography.Weight.Bold else DesignSystem.Typography.Weight.Normal
                                     )
                                     if (language.name != language.englishName) {
                                         Text(
                                             text = language.englishName,
-                                            style = MaterialTheme.typography.bodyMedium,
+                                            fontSize = DesignSystem.Typography.bodyMedium,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
                                     }
@@ -612,7 +615,7 @@ fun LanguageSelectionDialog(
                                 if (language.code == currentLanguage) {
                                     Icon(
                                         imageVector = Icons.Default.Check,
-                                        contentDescription = "Selected",
+                                        contentDescription = localizedString(StringKey.SELECTED),
                                         tint = MaterialTheme.colorScheme.primary
                                     )
                                 }
@@ -620,7 +623,7 @@ fun LanguageSelectionDialog(
                         }
                         
                         if (index < languages.size - 1) {
-                            Divider()
+                            HorizontalDivider()
                         }
                     }
                 }
@@ -646,10 +649,10 @@ fun AboutDialog(
                 imageVector = Icons.Default.Agriculture,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(48.dp)
+                modifier = Modifier.size(DesignSystem.IconSize.xlarge)
             )
         },
-        title = { Text("FarmerChat") },
+        title = { Text(localizedString(StringKey.APP_NAME)) },
         text = {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -657,21 +660,21 @@ fun AboutDialog(
             ) {
                 Text(
                     text = localizedString(StringKey.APP_DESCRIPTION),
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(vertical = 8.dp)
+                    fontSize = DesignSystem.Typography.bodyMedium,
+                    modifier = Modifier.padding(vertical = DesignSystem.Spacing.sm)
                 )
                 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(DesignSystem.Spacing.md))
                 
                 Text(
                     text = "${localizedString(StringKey.VERSION)}: $appVersion",
-                    style = MaterialTheme.typography.bodySmall,
+                    fontSize = DesignSystem.Typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 
                 Text(
-                    text = "© 2024 Digital Green",
-                    style = MaterialTheme.typography.bodySmall,
+                    text = localizedString(StringKey.COPYRIGHT),
+                    fontSize = DesignSystem.Typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }

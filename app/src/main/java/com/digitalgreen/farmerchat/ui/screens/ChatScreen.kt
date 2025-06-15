@@ -23,11 +23,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.digitalgreen.farmerchat.data.ChatMessage
 import com.digitalgreen.farmerchat.data.StarterQuestion
@@ -36,8 +34,12 @@ import com.digitalgreen.farmerchat.ui.components.MessageBubble
 import com.digitalgreen.farmerchat.ui.components.QuestionChip
 import com.digitalgreen.farmerchat.ui.components.CompactQuestionChip
 import com.digitalgreen.farmerchat.ui.components.VoiceRecordingButton
+import com.digitalgreen.farmerchat.ui.components.FarmerChatAppBar
 import com.digitalgreen.farmerchat.ui.components.localizedString
 import com.digitalgreen.farmerchat.utils.StringsManager.StringKey
+import com.digitalgreen.farmerchat.ui.theme.DesignSystem
+import com.digitalgreen.farmerchat.ui.theme.primaryTextColor
+import com.digitalgreen.farmerchat.ui.theme.secondaryTextColor
 import com.digitalgreen.farmerchat.utils.SpeechRecognitionManager
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
@@ -66,7 +68,7 @@ fun ChatScreen(
     val voiceConfidenceScore by viewModel.voiceConfidenceScore.collectAsState()
     val voiceConfidenceLevel = viewModel.voiceConfidenceLevel
     
-    val conversationTitle = conversationTitles[conversationId] ?: "New Conversation"
+    val conversationTitle = conversationTitles[conversationId] ?: localizedString(StringKey.NEW_CONVERSATION)
     
     var textInput by remember { mutableStateOf("") }
     var showFeedbackDialog by remember { mutableStateOf(false) }
@@ -124,35 +126,14 @@ fun ChatScreen(
     
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = conversationTitle,
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = Color.White,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(
-                            Icons.Default.ArrowBack,
-                            contentDescription = "Back",
-                            tint = Color.White
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF075E54),
-                    titleContentColor = Color.White
-                ),
+            FarmerChatAppBar(
+                title = conversationTitle,
+                onBackClick = onNavigateBack,
                 actions = {
                     IconButton(onClick = { /* TODO: More options */ }) {
                         Icon(
                             Icons.Default.MoreVert,
-                            contentDescription = "More",
+                            contentDescription = localizedString(StringKey.MORE),
                             tint = Color.White
                         )
                     }
@@ -176,8 +157,8 @@ fun ChatScreen(
                 LazyColumn(
                     state = scrollState,
                     modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
-                    contentPadding = PaddingValues(vertical = 16.dp)
+                    verticalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.xs),
+                    contentPadding = PaddingValues(vertical = DesignSystem.Spacing.md)
                 ) {
                     // Show starter questions if no messages
                     if (messages.isEmpty() && starterQuestions.isNotEmpty()) {
@@ -185,19 +166,19 @@ fun ChatScreen(
                             Column(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(horizontal = 20.dp),
+                                    .padding(horizontal = DesignSystem.Spacing.md + DesignSystem.Spacing.xs),
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
-                                Spacer(modifier = Modifier.height(60.dp))
+                                Spacer(modifier = Modifier.height(DesignSystem.Spacing.xxxl - DesignSystem.Spacing.xs))
                                 
                                 Text(
-                                    text = "Ask me anything or try one of the below:",
-                                    fontSize = 16.sp,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    text = localizedString(StringKey.ASK_ME_ANYTHING),
+                                    fontSize = DesignSystem.Typography.bodyLarge,
+                                    color = secondaryTextColor(),
                                     textAlign = TextAlign.Center
                                 )
                                 
-                                Spacer(modifier = Modifier.height(24.dp))
+                                Spacer(modifier = Modifier.height(DesignSystem.Spacing.lg))
                             }
                         }
                         
@@ -208,7 +189,7 @@ fun ChatScreen(
                                 onClick = {
                                     viewModel.sendMessage(question.question)
                                 },
-                                modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp)
+                                modifier = Modifier.padding(horizontal = DesignSystem.Spacing.md + DesignSystem.Spacing.xs, vertical = DesignSystem.Spacing.xs)
                             )
                         }
                 } else {
@@ -235,7 +216,7 @@ fun ChatScreen(
                     if (isLoading) {
                         item {
                             Row(
-                                modifier = Modifier.padding(8.dp),
+                                modifier = Modifier.padding(DesignSystem.Spacing.sm),
                                 horizontalArrangement = Arrangement.Start
                             ) {
                                 Card(
@@ -244,15 +225,15 @@ fun ChatScreen(
                                     )
                                 ) {
                                     Row(
-                                        modifier = Modifier.padding(12.dp),
-                                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                        modifier = Modifier.padding(DesignSystem.Spacing.sm + DesignSystem.Spacing.xs),
+                                        horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.xs)
                                     ) {
                                         repeat(3) {
                                             Box(
                                                 modifier = Modifier
-                                                    .size(8.dp)
+                                                    .size(DesignSystem.Spacing.sm)
                                                     .background(
-                                                        Color.Gray,
+                                                        MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = DesignSystem.Opacity.medium),
                                                         shape = CircleShape
                                                     )
                                             )
@@ -273,8 +254,8 @@ fun ChatScreen(
                 LazyRow(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        .padding(DesignSystem.Spacing.sm),
+                    horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.sm)
                 ) {
                     items(followUpQuestions) { question ->
                         CompactQuestionChip(
@@ -296,10 +277,10 @@ fun ChatScreen(
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
                     color = MaterialTheme.colorScheme.primaryContainer,
-                    shadowElevation = 4.dp
+                    shadowElevation = DesignSystem.Elevation.medium
                 ) {
                     Column(
-                        modifier = Modifier.padding(16.dp),
+                        modifier = Modifier.padding(DesignSystem.Spacing.md),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Row(
@@ -310,31 +291,31 @@ fun ChatScreen(
                                 imageVector = Icons.Default.Mic,
                                 contentDescription = null,
                                 tint = if (isRecording) Color.Red else MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(24.dp)
+                                modifier = Modifier.size(DesignSystem.IconSize.medium)
                             )
-                            Spacer(modifier = Modifier.width(8.dp))
+                            Spacer(modifier = Modifier.width(DesignSystem.Spacing.sm))
                             Text(
                                 text = if (isRecording) {
                                     localizedString(StringKey.LISTENING)
                                 } else {
                                     localizedString(StringKey.PROCESSING)
                                 },
-                                fontWeight = FontWeight.Medium
+                                fontWeight = DesignSystem.Typography.Weight.Medium
                             )
                         }
                         
                         if (recognizedText.isNotEmpty() && isRecording) {
-                            Spacer(modifier = Modifier.height(8.dp))
+                            Spacer(modifier = Modifier.height(DesignSystem.Spacing.sm))
                             Text(
                                 text = recognizedText,
-                                fontSize = 14.sp,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f),
+                                fontSize = DesignSystem.Typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = DesignSystem.Opacity.high - 0.17f),
                                 textAlign = TextAlign.Center
                             )
                             
                             // Confidence indicator
                             if (voiceConfidenceScore > 0) {
-                                Spacer(modifier = Modifier.height(4.dp))
+                                Spacer(modifier = Modifier.height(DesignSystem.Spacing.xs))
                                 Row(
                                     horizontalArrangement = Arrangement.Center,
                                     verticalAlignment = Alignment.CenterVertically
@@ -343,38 +324,38 @@ fun ChatScreen(
                                         progress = voiceConfidenceScore,
                                         modifier = Modifier
                                             .width(100.dp)
-                                            .height(4.dp)
-                                            .clip(RoundedCornerShape(2.dp)),
+                                            .height(DesignSystem.Spacing.xs)
+                                            .clip(RoundedCornerShape(DesignSystem.Spacing.xxs)),
                                         color = when (voiceConfidenceLevel) {
-                                            SpeechRecognitionManager.ConfidenceLevel.HIGH -> Color(0xFF4CAF50)
-                                            SpeechRecognitionManager.ConfidenceLevel.MEDIUM -> Color(0xFFFFA726)
-                                            SpeechRecognitionManager.ConfidenceLevel.LOW -> Color(0xFFEF5350)
+                                            SpeechRecognitionManager.ConfidenceLevel.HIGH -> DesignSystem.Colors.Success
+                                            SpeechRecognitionManager.ConfidenceLevel.MEDIUM -> DesignSystem.Colors.Warning
+                                            SpeechRecognitionManager.ConfidenceLevel.LOW -> DesignSystem.Colors.Error
                                         }
                                     )
-                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Spacer(modifier = Modifier.width(DesignSystem.Spacing.sm))
                                     Text(
                                         text = when (voiceConfidenceLevel) {
                                             SpeechRecognitionManager.ConfidenceLevel.HIGH -> localizedString(StringKey.CONFIDENCE_HIGH)
                                             SpeechRecognitionManager.ConfidenceLevel.MEDIUM -> localizedString(StringKey.CONFIDENCE_MEDIUM)
                                             SpeechRecognitionManager.ConfidenceLevel.LOW -> localizedString(StringKey.CONFIDENCE_LOW)
                                         },
-                                        fontSize = 12.sp,
+                                        fontSize = DesignSystem.Typography.bodySmall,
                                         color = when (voiceConfidenceLevel) {
-                                            SpeechRecognitionManager.ConfidenceLevel.HIGH -> Color(0xFF4CAF50)
-                                            SpeechRecognitionManager.ConfidenceLevel.MEDIUM -> Color(0xFFFFA726)
-                                            SpeechRecognitionManager.ConfidenceLevel.LOW -> Color(0xFFEF5350)
+                                            SpeechRecognitionManager.ConfidenceLevel.HIGH -> DesignSystem.Colors.Success
+                                            SpeechRecognitionManager.ConfidenceLevel.MEDIUM -> DesignSystem.Colors.Warning
+                                            SpeechRecognitionManager.ConfidenceLevel.LOW -> DesignSystem.Colors.Error
                                         },
-                                        fontWeight = FontWeight.Medium
+                                        fontWeight = DesignSystem.Typography.Weight.Medium
                                     )
                                 }
                             }
                         }
                         
                         speechError?.let { error ->
-                            Spacer(modifier = Modifier.height(8.dp))
+                            Spacer(modifier = Modifier.height(DesignSystem.Spacing.sm))
                             Text(
                                 text = error,
-                                fontSize = 12.sp,
+                                fontSize = DesignSystem.Typography.bodySmall,
                                 color = MaterialTheme.colorScheme.error,
                                 textAlign = TextAlign.Center
                             )
@@ -386,7 +367,7 @@ fun ChatScreen(
             // Input area
             Surface(
                 modifier = Modifier.fillMaxWidth(),
-                shadowElevation = 8.dp,
+                shadowElevation = DesignSystem.Elevation.large,
                 color = MaterialTheme.colorScheme.surface
             ) {
                 Column {
@@ -395,7 +376,7 @@ fun ChatScreen(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                            .padding(horizontal = DesignSystem.Spacing.md, vertical = DesignSystem.Spacing.sm),
                         verticalAlignment = Alignment.Bottom
                     ) {
                         // Text input field
@@ -404,11 +385,11 @@ fun ChatScreen(
                             onValueChange = { textInput = it },
                             modifier = Modifier
                                 .weight(1f)
-                                .clip(RoundedCornerShape(24.dp)),
+                                .clip(RoundedCornerShape(DesignSystem.Spacing.lg)),
                             placeholder = { 
                                 Text(
                                     localizedString(StringKey.TYPE_MESSAGE),
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = DesignSystem.Opacity.medium)
                                 ) 
                             },
                             colors = TextFieldDefaults.colors(
@@ -421,7 +402,7 @@ fun ChatScreen(
                             enabled = !isRecording
                         )
                         
-                        Spacer(modifier = Modifier.width(8.dp))
+                        Spacer(modifier = Modifier.width(DesignSystem.Spacing.sm))
                         
                         // Voice recording button
                         VoiceRecordingButton(

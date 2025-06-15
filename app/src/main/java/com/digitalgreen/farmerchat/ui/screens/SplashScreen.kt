@@ -16,6 +16,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.digitalgreen.farmerchat.R
+import com.digitalgreen.farmerchat.ui.components.localizedString
+import com.digitalgreen.farmerchat.ui.theme.DesignSystem
+import com.digitalgreen.farmerchat.utils.StringsManager.StringKey
 import kotlinx.coroutines.delay
 
 @Composable
@@ -38,7 +41,7 @@ fun SplashScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF4CAF50)), // Green background
+            .background(DesignSystem.Colors.Primary),
         contentAlignment = Alignment.Center
     ) {
         Column(
@@ -48,31 +51,31 @@ fun SplashScreen(
             // App logo placeholder
             Box(
                 modifier = Modifier
-                    .size(120.dp)
+                    .size(DesignSystem.IconSize.splash)
                     .background(Color.White, shape = MaterialTheme.shapes.medium),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
                     text = "🌾",
-                    fontSize = 60.sp
+                    fontSize = DesignSystem.Typography.displayLarge
                 )
             }
             
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(DesignSystem.Spacing.lg))
             
             Text(
-                text = "FarmerChat",
-                fontSize = 32.sp,
-                fontWeight = FontWeight.Bold,
+                text = localizedString(StringKey.APP_NAME),
+                fontSize = DesignSystem.Typography.headlineLarge,
+                fontWeight = DesignSystem.Typography.Weight.Bold,
                 color = Color.White
             )
             
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(DesignSystem.Spacing.sm))
             
             Text(
-                text = "Empowering Farmers with AI",
-                fontSize = 16.sp,
-                color = Color.White.copy(alpha = 0.8f),
+                text = localizedString(StringKey.EMPOWERING_FARMERS_WITH_AI),
+                fontSize = DesignSystem.Typography.bodyLarge,
+                color = Color.White.copy(alpha = DesignSystem.Opacity.high),
                 textAlign = TextAlign.Center
             )
         }
