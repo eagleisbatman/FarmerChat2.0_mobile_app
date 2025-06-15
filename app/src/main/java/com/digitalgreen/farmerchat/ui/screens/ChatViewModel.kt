@@ -45,6 +45,12 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
     private val _starterQuestions = MutableStateFlow<List<StarterQuestion>>(emptyList())
     val starterQuestions: StateFlow<List<StarterQuestion>> = _starterQuestions
     
+    private val _starterQuestionsLoading = MutableStateFlow(false)
+    val starterQuestionsLoading: StateFlow<Boolean> = _starterQuestionsLoading
+    
+    private val _starterQuestionsError = MutableStateFlow<String?>(null)
+    val starterQuestionsError: StateFlow<String?> = _starterQuestionsError
+    
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
     
@@ -437,9 +443,17 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
     
     private fun generateDynamicStarterQuestions(userProfile: UserProfile) {
         viewModelScope.launch {
+            _starterQuestionsLoading.value = true
+            _starterQuestionsError.value = null
+            
             try {
                 // Generate context-aware questions using AI
                 val prompt = PromptManager.generateStarterQuestionPrompt(userProfile)
+                
+                android.util.Log.d("ChatViewModel", "Generating starter questions for language: ${userProfile.language}")
+                android.util.Log.d("ChatViewModel", "User crops: ${userProfile.crops}")
+                android.util.Log.d("ChatViewModel", "User livestock: ${userProfile.livestock}")
+                android.util.Log.d("ChatViewModel", "Generated prompt: $prompt")
                 
                 val response = generativeModel.generateContent(
                     content { text(prompt) }
@@ -447,15 +461,19 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                 
                 val generatedQuestions = response.text?.lines()
                     ?.filter { it.isNotBlank() }
+                    ?.map { it.trim() }
+                    ?.filter { it.length <= 80 } // Filter out questions that are too long
                     ?.take(5) // Take up to 5 questions
                     ?: emptyList()
+                
+                android.util.Log.d("ChatViewModel", "Generated ${generatedQuestions.size} starter questions")
                 
                 if (generatedQuestions.isNotEmpty()) {
                     // Convert to StarterQuestion objects
                     val starterQuestions = generatedQuestions.mapIndexed { index, question ->
                         StarterQuestion(
                             id = UUID.randomUUID().toString(),
-                            question = question.trim(),
+                            question = question,
                             category = when {
                                 userProfile.crops.isNotEmpty() && index < 2 -> "crops"
                                 userProfile.livestock.isNotEmpty() && index < 4 -> "livestock"
@@ -470,12 +488,15 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                         )
                     }
                     _starterQuestions.value = starterQuestions
+                    _starterQuestionsLoading.value = false
                 } else {
                     // Fallback to repository questions if generation fails
+                    android.util.Log.w("ChatViewModel", "No valid questions generated, falling back to repository")
                     loadFallbackStarterQuestions(userProfile)
                 }
             } catch (e: Exception) {
                 android.util.Log.e("ChatViewModel", "Error generating dynamic starter questions", e)
+                _starterQuestionsError.value = stringProvider.getString(StringKey.ERROR_GENERIC)
                 // Fallback to repository questions
                 loadFallbackStarterQuestions(userProfile)
             }
@@ -489,6 +510,10 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
             livestock = userProfile.livestock
         ).onSuccess { questions ->
             _starterQuestions.value = questions
+            _starterQuestionsLoading.value = false
+        }.onFailure { 
+            _starterQuestionsError.value = stringProvider.getString(StringKey.ERROR_GENERIC)
+            _starterQuestionsLoading.value = false
         }
     }
     

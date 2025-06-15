@@ -51,6 +51,7 @@ object StringsManager {
         START_FIRST_CONVERSATION,
         DELETE_CONVERSATION,
         SEARCH_CONVERSATIONS,
+        START_A_CONVERSATION,
         
         // Chat Screen
         TYPE_MESSAGE,
@@ -249,6 +250,7 @@ object StringsManager {
             StringKey.START_FIRST_CONVERSATION to "Start your first conversation",
             StringKey.DELETE_CONVERSATION to "Delete Conversation",
             StringKey.SEARCH_CONVERSATIONS to "Search conversations",
+            StringKey.START_A_CONVERSATION to "Start a conversation...",
             StringKey.TYPE_MESSAGE to "Type a message",
             StringKey.ASK_QUESTION to "Ask a question...",
             StringKey.STARTER_QUESTIONS to "Here are some questions to get you started:",
@@ -425,6 +427,7 @@ object StringsManager {
             StringKey.NEW_CONVERSATION to "नई बातचीत",
             StringKey.NO_CONVERSATIONS to "अभी तक कोई बातचीत नहीं",
             StringKey.START_FIRST_CONVERSATION to "अपनी पहली बातचीत शुरू करें",
+            StringKey.START_A_CONVERSATION to "बातचीत शुरू करें...",
             StringKey.TYPE_MESSAGE to "संदेश टाइप करें",
             StringKey.ASK_QUESTION to "प्रश्न पूछें...",
             StringKey.STARTER_QUESTIONS to "शुरू करने के लिए कुछ प्रश्न:",
@@ -608,6 +611,7 @@ object StringsManager {
             StringKey.NEW_CONVERSATION to "Mazungumzo Mapya",
             StringKey.NO_CONVERSATIONS to "Hakuna mazungumzo bado",
             StringKey.START_FIRST_CONVERSATION to "Anza mazungumzo yako ya kwanza",
+            StringKey.START_A_CONVERSATION to "Anza mazungumzo...",
             StringKey.TYPE_MESSAGE to "Andika ujumbe",
             StringKey.ASK_QUESTION to "Uliza swali...",
             StringKey.STARTER_QUESTIONS to "Hapa kuna maswali ya kuanza:",

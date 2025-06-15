@@ -3,6 +3,8 @@ package com.digitalgreen.farmerchat.utils
 import com.digitalgreen.farmerchat.data.LocationInfo
 import com.digitalgreen.farmerchat.data.UserProfile
 import com.digitalgreen.farmerchat.data.LanguageManager
+import com.digitalgreen.farmerchat.data.CropsManager
+import com.digitalgreen.farmerchat.data.LivestockManager
 
 object PromptManager {
     
@@ -179,15 +181,27 @@ object PromptManager {
     }
     
     fun generateStarterQuestionPrompt(userProfile: UserProfile?): String {
+        val language = userProfile?.language?.let { LanguageManager.getLanguageByCode(it) }
+        val currentMonth = java.time.LocalDate.now().month.name
+        
         return buildString {
             appendLine("Generate relevant agricultural questions for a farmer with this profile:")
             
             if (!userProfile?.crops.isNullOrEmpty()) {
-                appendLine("Crops: ${userProfile.crops.joinToString(", ")}")
+                // Get localized crop names
+                val localizedCrops = userProfile.crops.mapNotNull { cropId ->
+                    CropsManager.getCropById(cropId)?.getLocalizedName(userProfile.language)
+                }
+                appendLine("Crops grown: ${localizedCrops.joinToString(", ")}")
+                appendLine("Crop IDs: ${userProfile.crops.joinToString(", ")}")
             }
             
             if (!userProfile?.livestock.isNullOrEmpty()) {
-                appendLine("Livestock: ${userProfile.livestock.joinToString(", ")}")
+                // Get localized livestock names
+                val localizedLivestock = userProfile.livestock.mapNotNull { livestockId ->
+                    LivestockManager.getLivestockById(livestockId)?.getLocalizedName(userProfile.language)
+                }
+                appendLine("Livestock raised: ${localizedLivestock.joinToString(", ")}")
             }
             
             userProfile?.locationInfo?.let { location ->
@@ -195,14 +209,40 @@ object PromptManager {
                 appendLine("Climate zone: ${getClimateZone(location)}")
             }
             
+            appendLine("Current month: $currentMonth")
+            
             appendLine()
-            appendLine("Generate 5 practical questions this farmer might have based on:")
-            appendLine("1. Current season and timing")
-            appendLine("2. Common challenges in their region")
-            appendLine("3. Their specific crops/livestock")
-            appendLine("4. Sustainable farming practices")
+            appendLine("IMPORTANT REQUIREMENTS:")
+            appendLine("1. Generate questions in ${language?.englishName ?: "English"} language ONLY")
+            appendLine("2. Each question must be SHORT and CONCISE (maximum 60 characters)")
+            appendLine("3. Questions MUST be specific to the farmer's crops/livestock listed above")
+            appendLine("4. Questions should be seasonally relevant for $currentMonth")
+            appendLine("5. Use crop/livestock names in ${language?.englishName ?: "English"}")
             appendLine()
-            appendLine("Format: Return only the questions, one per line, no numbering or bullets.")
+            appendLine("Generate 5 practical questions this farmer might have. Examples:")
+            if (!userProfile?.crops.isNullOrEmpty()) {
+                val firstCrop = userProfile.crops.firstOrNull()?.let { 
+                    CropsManager.getCropById(it)?.getLocalizedName(userProfile.language) 
+                }
+                if (firstCrop != null) {
+                    when (language?.code) {
+                        "hi" -> {
+                            appendLine("- $firstCrop में कीट नियंत्रण कैसे करें?")
+                            appendLine("- $firstCrop के लिए सबसे अच्छी खाद कौन सी है?")
+                        }
+                        "sw" -> {
+                            appendLine("- Jinsi ya kudhibiti wadudu katika $firstCrop?")
+                            appendLine("- Mbolea bora zaidi kwa $firstCrop ni ipi?")
+                        }
+                        else -> {
+                            appendLine("- How to control pests in $firstCrop?")
+                            appendLine("- Best fertilizer for $firstCrop?")
+                        }
+                    }
+                }
+            }
+            appendLine()
+            appendLine("Format: Return only the questions in ${language?.englishName ?: "English"}, one per line, no numbering or bullets.")
         }
     }
     

@@ -67,6 +67,8 @@ fun ChatScreen(
     val userProfile by viewModel.userProfile.collectAsState()
     val voiceConfidenceScore by viewModel.voiceConfidenceScore.collectAsState()
     val voiceConfidenceLevel = viewModel.voiceConfidenceLevel
+    val starterQuestionsLoading by viewModel.starterQuestionsLoading.collectAsState()
+    val starterQuestionsError by viewModel.starterQuestionsError.collectAsState()
     
     val conversationTitle = conversationTitles[conversationId] ?: localizedString(StringKey.NEW_CONVERSATION)
     
@@ -160,8 +162,8 @@ fun ChatScreen(
                     verticalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.xs),
                     contentPadding = PaddingValues(vertical = DesignSystem.Spacing.md)
                 ) {
-                    // Show starter questions if no messages
-                    if (messages.isEmpty() && starterQuestions.isNotEmpty()) {
+                    // Show starter questions section if no messages
+                    if (messages.isEmpty()) {
                         item {
                             Column(
                                 modifier = Modifier
@@ -179,20 +181,39 @@ fun ChatScreen(
                                 )
                                 
                                 Spacer(modifier = Modifier.height(DesignSystem.Spacing.lg))
+                                
+                                // Show loading indicator for starter questions
+                                if (starterQuestionsLoading) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(DesignSystem.IconSize.medium),
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                    Spacer(modifier = Modifier.height(DesignSystem.Spacing.md))
+                                } else if (starterQuestionsError != null) {
+                                    Text(
+                                        text = starterQuestionsError ?: "",
+                                        fontSize = DesignSystem.Typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.error,
+                                        textAlign = TextAlign.Center
+                                    )
+                                    Spacer(modifier = Modifier.height(DesignSystem.Spacing.md))
+                                }
                             }
                         }
                         
-                        items(starterQuestions) { question ->
-                            QuestionChip(
-                                text = question.question,
-                                category = question.category,
-                                onClick = {
-                                    viewModel.sendMessage(question.question)
-                                },
-                                modifier = Modifier.padding(horizontal = DesignSystem.Spacing.md + DesignSystem.Spacing.xs, vertical = DesignSystem.Spacing.xs)
-                            )
+                        if (!starterQuestionsLoading && starterQuestions.isNotEmpty()) {
+                            items(starterQuestions) { question ->
+                                QuestionChip(
+                                    text = question.question,
+                                    category = question.category,
+                                    onClick = {
+                                        viewModel.sendMessage(question.question)
+                                    },
+                                    modifier = Modifier.padding(horizontal = DesignSystem.Spacing.md + DesignSystem.Spacing.xs, vertical = DesignSystem.Spacing.xs)
+                                )
+                            }
                         }
-                } else {
+                    } else {
                     // Show chat messages
                     items(messages) { message ->
                         MessageBubbleV2(
@@ -209,7 +230,7 @@ fun ChatScreen(
                                 feedbackMessageId = message.id
                                 showFeedbackDialog = true
                             },
-                            currentLanguageCode = currentLanguage()
+                            currentLanguageCode = userProfile?.language ?: "en"
                         )
                     }
                     
