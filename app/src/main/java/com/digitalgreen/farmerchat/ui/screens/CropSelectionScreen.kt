@@ -21,12 +21,15 @@ import com.digitalgreen.farmerchat.data.FarmerChatRepository
 import com.digitalgreen.farmerchat.data.CropsManager
 import com.digitalgreen.farmerchat.ui.components.localizedString
 import com.digitalgreen.farmerchat.ui.components.currentLanguage
+import com.digitalgreen.farmerchat.ui.components.FarmerChatAppBar
+import com.digitalgreen.farmerchat.ui.theme.DesignSystem
 import com.digitalgreen.farmerchat.utils.StringsManager.StringKey
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import androidx.compose.ui.graphics.Color
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -60,13 +63,9 @@ fun CropSelectionScreen(
     
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text(localizedString(StringKey.SELECT_CROPS)) },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-                    }
-                },
+            FarmerChatAppBar(
+                title = localizedString(StringKey.SELECT_CROPS),
+                onBackClick = onNavigateBack,
                 actions = {
                     TextButton(
                         onClick = {
@@ -75,12 +74,12 @@ fun CropSelectionScreen(
                         },
                         enabled = selectedCrops.isNotEmpty()
                     ) {
-                        Text(localizedString(StringKey.SAVE))
+                        Text(
+                            text = localizedString(StringKey.SAVE),
+                            color = Color.White
+                        )
                     }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer
-                )
+                }
             )
         }
     ) { paddingValues ->
@@ -96,7 +95,7 @@ fun CropSelectionScreen(
                 label = { Text(localizedString(StringKey.SEARCH_CROPS)) },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp),
+                    .padding(DesignSystem.Spacing.md),
                 singleLine = true
             )
             
@@ -104,7 +103,10 @@ fun CropSelectionScreen(
             Text(
                 text = "${selectedCrops.size} ${localizedString(StringKey.SELECTED)}",
                 style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                modifier = Modifier.padding(
+                    horizontal = DesignSystem.Spacing.md, 
+                    vertical = DesignSystem.Spacing.sm
+                )
             )
             
             if (isLoading) {
@@ -118,9 +120,9 @@ fun CropSelectionScreen(
                 // Crops grid
                 LazyVerticalGrid(
                     columns = GridCells.Adaptive(120.dp),
-                    contentPadding = PaddingValues(16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                    contentPadding = PaddingValues(DesignSystem.Spacing.md),
+                    horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.sm),
+                    verticalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.sm)
                 ) {
                     items(filteredCrops) { crop ->
                         val currentLanguage = currentLanguage()
@@ -138,8 +140,8 @@ fun CropSelectionScreen(
                                 {
                                     Icon(
                                         Icons.Default.Check,
-                                        contentDescription = "Selected",
-                                        modifier = Modifier.size(18.dp)
+                                        contentDescription = localizedString(StringKey.SELECTED),
+                                        modifier = Modifier.size(DesignSystem.IconSize.small)
                                     )
                                 }
                             } else null,

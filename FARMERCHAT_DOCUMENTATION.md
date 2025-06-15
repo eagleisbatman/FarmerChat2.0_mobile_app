@@ -47,6 +47,7 @@ FarmerChat/
 │       │   └── Navigation.kt
 │       ├── ui/
 │       │   ├── components/
+│       │   │   ├── FarmerChatAppBar.kt
 │       │   │   ├── FeedbackDialog.kt
 │       │   │   ├── MessageBubble.kt
 │       │   │   ├── VoiceRecordingButton.kt
@@ -55,8 +56,15 @@ FarmerChat/
 │       │   │   ├── SplashScreen.kt
 │       │   │   ├── OnboardingScreen.kt
 │       │   │   ├── ConversationsScreen.kt
-│       │   │   └── ChatScreen.kt
+│       │   │   ├── ChatScreen.kt
+│       │   │   ├── CropSelectionScreen.kt
+│       │   │   ├── LivestockSelectionScreen.kt
+│       │   │   └── SettingsScreen.kt
 │       │   └── theme/
+│       │       ├── Color.kt
+│       │       ├── Theme.kt
+│       │       ├── Type.kt
+│       │       └── DesignSystem.kt
 │       └── utils/
 │           ├── PreferencesManager.kt
 │           ├── TextToSpeechManager.kt
@@ -70,10 +78,67 @@ FarmerChat/
 └── seed-database.js
 ```
 
+## Design System
+
+### Overview
+FarmerChat implements a comprehensive design system for consistent UI/UX across all screens. The design system provides standardized colors, typography, spacing, and components.
+
+### Core Design Principles
+1. **Brand Consistency**: Green color palette reflecting agricultural theme
+2. **Material Design 3**: Following latest Material Design guidelines
+3. **Accessibility**: High contrast colors and proper text sizing
+4. **Scalability**: Flexible spacing and typography scales
+
+### Design System Components
+
+#### 1. Color Palette
+- **Primary**: Material Green (#4CAF50)
+- **Primary Dark**: Dark Green (#388E3C)
+- **App Bar**: Darker Green (#2E7D32)
+- **Secondary**: Light Green (#66BB6A)
+- **Error**: Red (#D32F2F)
+- **Success**: Green (#388E3C)
+- **Warning**: Orange (#F57C00)
+
+#### 2. Typography Scale
+- **Display**: 57sp, 45sp, 36sp
+- **Headline**: 32sp, 28sp, 24sp
+- **Title**: 22sp, 20sp, 18sp
+- **Body**: 16sp, 14sp, 12sp
+- **Label**: 14sp, 12sp, 11sp
+
+#### 3. Spacing System
+- **xxs**: 2dp
+- **xs**: 4dp
+- **sm**: 8dp
+- **md**: 16dp
+- **lg**: 24dp
+- **xl**: 32dp
+- **xxl**: 48dp
+- **xxxl**: 64dp
+
+#### 4. Icon Sizes
+- **Small**: 16dp
+- **Medium**: 24dp (default)
+- **Large**: 32dp
+- **XLarge**: 48dp
+- **XXLarge**: 64dp
+- **Splash**: 120dp
+
+#### 5. Standardized Components
+- **FarmerChatAppBar**: Consistent app bar across all screens
+- **FarmerChatLargeAppBar**: Large variant for main screens
+- **ChatScreenAppBar**: Specialized variant for chat interface
+
+### Theme Configuration
+- **Dynamic Colors**: Disabled by default for brand consistency
+- **Light/Dark Themes**: Properly configured color schemes
+- **Material You**: Optional support for Android 12+
+
 ## User Interface
 
 ### 1. Splash Screen
-- Shows app logo and name
+- Shows app logo and name with consistent branding
 - Checks authentication status
 - Routes to appropriate screen
 
@@ -544,31 +609,67 @@ Title:
 
 ## Recent Improvements (Latest Update)
 
-### Language System Overhaul
+### Design System Implementation
+- Created comprehensive `DesignSystem.kt` with standardized constants
+- Implemented consistent color palette across all screens
+- Standardized typography scale and font weights
+- Created reusable `FarmerChatAppBar` component
+- Disabled dynamic colors for brand consistency
+- Fixed theme inconsistencies between screens
+
+### Theme Consistency Improvements
+- Updated color scheme to use green branding colors
+- Removed hardcoded colors in favor of theme colors
+- Fixed AppBar color consistency issues
+- Implemented proper light/dark theme support
+- Added proper color contrast for accessibility
+
+### UI Component Updates
+- Replaced deprecated `Icons.Default.ArrowBack` with `Icons.AutoMirrored.Filled.ArrowBack`
+- Updated deprecated `Divider()` to `HorizontalDivider()`
+- Standardized icon sizes across the app
+- Improved spacing consistency using design system scales
+- Added proper content descriptions for accessibility
+
+### Brand Consistency
+- Ensured "FarmerChat" naming consistency (not "Farmer Chat")
+- Standardized app bar titles and styling
+- Consistent use of brand colors
+- Unified visual identity across all screens
+
+### Code Quality Improvements
+- Removed hardcoded strings (moved to StringsManager)
+- Eliminated magic numbers for spacing and sizing
+- Centralized theme configuration
+- Improved component reusability
+
+### Previous Major Updates
+
+#### Language System Overhaul
 - Migrated from 4 hardcoded languages to 50+ global languages
 - Added comprehensive language search functionality
 - Implemented agricultural priority sorting
 - Full UI localization support
 
-### Location System Enhancement
+#### Location System Enhancement
 - Replaced city dropdown with GPS-based detection
 - Added reverse geocoding for address hierarchy
 - Implemented permission handling with fallbacks
 - Captures precise lat/long for weather integration
 
-### Voice Features Upgrade
+#### Voice Features Upgrade
 - Enhanced speech recognition with visual feedback
 - Improved TTS voice selection algorithm
 - Added language-specific voice mapping
 - Real-time transcription display
 
-### Crop/Livestock Management
+#### Crop/Livestock Management
 - Expanded from 8 crops to 50+ categorized crops
 - Added 20+ livestock with purpose classification
 - Implemented multilingual search across all names
 - Added scientific names and visual emojis
 
-### AI Response Improvements
+#### AI Response Improvements
 - Enhanced prompt engineering with better context
 - Added formatting support (bullets, bold text)
 - Improved follow-up question generation

@@ -1,10 +1,12 @@
 
 package com.digitalgreen.farmerchat.ui.screens
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -20,6 +22,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.digitalgreen.farmerchat.ui.theme.DesignSystem
+import com.digitalgreen.farmerchat.ui.theme.secondaryTextColor
 import com.digitalgreen.farmerchat.data.LanguageManager
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
@@ -101,20 +105,20 @@ fun LanguageSelectionStep(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
+            .padding(DesignSystem.Spacing.md)
     ) {
         Text(
             text = localizedString(StringKey.CHOOSE_LANGUAGE),
-            fontSize = 28.sp,
+            fontSize = DesignSystem.Typography.headlineMedium,
             fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(vertical = 16.dp)
+            modifier = Modifier.padding(vertical = DesignSystem.Spacing.md)
         )
         
         Text(
             text = localizedString(StringKey.LANGUAGE_SUBTITLE),
-            fontSize = 18.sp,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(bottom = 16.dp)
+            fontSize = DesignSystem.Typography.titleSmall,
+            color = secondaryTextColor(),
+            modifier = Modifier.padding(bottom = DesignSystem.Spacing.md)
         )
         
         // Search field
@@ -134,13 +138,13 @@ fun LanguageSelectionStep(
             },
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 16.dp),
+                .padding(bottom = DesignSystem.Spacing.md),
             singleLine = true
         )
         
         LazyColumn(
             modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            verticalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.sm + DesignSystem.Spacing.xs)
         ) {
             items(filteredLanguages) { language ->
                 Card(
@@ -149,42 +153,65 @@ fun LanguageSelectionStep(
                         .clickable { onLanguageSelected(language.code) },
                     colors = CardDefaults.cardColors(
                         containerColor = if (selectedLanguage == language.code) {
-                            Color(0xFF4CAF50).copy(alpha = 0.2f)
+                            MaterialTheme.colorScheme.primaryContainer
                         } else {
                             MaterialTheme.colorScheme.surface
                         }
                     ),
                     elevation = CardDefaults.cardElevation(
-                        defaultElevation = if (selectedLanguage == language.code) 4.dp else 1.dp
-                    )
+                        defaultElevation = if (selectedLanguage == language.code) DesignSystem.Spacing.xs else 1.dp
+                    ),
+                    border = if (selectedLanguage == language.code) {
+                        BorderStroke(2.dp, MaterialTheme.colorScheme.primary)
+                    } else {
+                        null
+                    }
                 ) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(16.dp),
+                            .padding(DesignSystem.Spacing.md),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
                                 text = language.name,
-                                fontSize = 18.sp,
-                                fontWeight = if (selectedLanguage == language.code) FontWeight.Bold else FontWeight.Normal
+                                fontSize = DesignSystem.Typography.titleSmall,
+                                fontWeight = if (selectedLanguage == language.code) FontWeight.Bold else FontWeight.Normal,
+                                color = if (selectedLanguage == language.code) {
+                                    MaterialTheme.colorScheme.onPrimaryContainer
+                                } else {
+                                    MaterialTheme.colorScheme.onSurface
+                                }
                             )
                             if (language.name != language.englishName) {
                                 Text(
                                     text = language.englishName,
-                                    fontSize = 14.sp,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    fontSize = DesignSystem.Typography.bodyMedium,
+                                    color = if (selectedLanguage == language.code) {
+                                        MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                                    } else {
+                                        MaterialTheme.colorScheme.onSurfaceVariant
+                                    }
                                 )
                             }
                         }
                         if (selectedLanguage == language.code) {
-                            Icon(
-                                imageVector = Icons.Default.Check,
-                                contentDescription = "Selected",
-                                tint = Color(0xFF4CAF50)
-                            )
+                            Surface(
+                                shape = CircleShape,
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(DesignSystem.IconSize.medium)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Check,
+                                    contentDescription = "Selected",
+                                    tint = MaterialTheme.colorScheme.onPrimary,
+                                    modifier = Modifier
+                                        .padding(2.dp)
+                                        .fillMaxSize()
+                                )
+                            }
                         }
                     }
                 }
@@ -195,9 +222,9 @@ fun LanguageSelectionStep(
             onClick = onNext,
             modifier = Modifier.fillMaxWidth(),
             enabled = selectedLanguage.isNotEmpty(),
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50))
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
         ) {
-            Text(localizedString(StringKey.CONTINUE), modifier = Modifier.padding(vertical = 8.dp))
+            Text(localizedString(StringKey.CONTINUE), modifier = Modifier.padding(vertical = DesignSystem.Spacing.sm))
         }
     }
 }
@@ -273,23 +300,23 @@ fun LocationSelectionStep(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
+            .padding(DesignSystem.Spacing.md)
     ) {
         Text(
             text = localizedString(StringKey.WHERE_LOCATED),
-            fontSize = 28.sp,
+            fontSize = DesignSystem.Typography.headlineMedium,
             fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(vertical = 16.dp)
+            modifier = Modifier.padding(vertical = DesignSystem.Spacing.md)
         )
         
         Text(
             text = localizedString(StringKey.LOCATION_SUBTITLE),
-            fontSize = 18.sp,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(bottom = 24.dp)
+            fontSize = DesignSystem.Typography.titleSmall,
+            color = secondaryTextColor(),
+            modifier = Modifier.padding(bottom = DesignSystem.Spacing.lg)
         )
         
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(DesignSystem.Spacing.xl))
         
         // Location detection card
         Card(
@@ -301,34 +328,34 @@ fun LocationSelectionStep(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(24.dp),
+                    .padding(DesignSystem.Spacing.lg),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Icon(
                     imageVector = Icons.Default.LocationOn,
                     contentDescription = "Location",
-                    modifier = Modifier.size(48.dp),
+                    modifier = Modifier.size(DesignSystem.IconSize.xlarge),
                     tint = MaterialTheme.colorScheme.primary
                 )
                 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(DesignSystem.Spacing.md))
                 
                 when {
                     isLoadingLocation -> {
                         CircularProgressIndicator()
-                        Spacer(modifier = Modifier.height(16.dp))
+                        Spacer(modifier = Modifier.height(DesignSystem.Spacing.md))
                         Text(localizedString(StringKey.GETTING_LOCATION))
                     }
                     detectedLocation != null -> {
                         Text(
                             text = localizedString(StringKey.LOCATION_DETECTED),
                             fontWeight = FontWeight.Bold,
-                            fontSize = 18.sp
+                            fontSize = DesignSystem.Typography.titleSmall
                         )
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.height(DesignSystem.Spacing.sm))
                         Text(
                             text = locationManager.getFormattedLocationString(detectedLocation!!),
-                            fontSize = 16.sp,
+                            fontSize = DesignSystem.Typography.bodyLarge,
                             textAlign = TextAlign.Center,
                             color = MaterialTheme.colorScheme.onPrimaryContainer
                         )
@@ -339,7 +366,7 @@ fun LocationSelectionStep(
                             color = MaterialTheme.colorScheme.error,
                             textAlign = TextAlign.Center
                         )
-                        Spacer(modifier = Modifier.height(16.dp))
+                        Spacer(modifier = Modifier.height(DesignSystem.Spacing.md))
                         Button(
                             onClick = { getLocation() },
                             colors = ButtonDefaults.buttonColors(
@@ -355,16 +382,16 @@ fun LocationSelectionStep(
                             textAlign = TextAlign.Center,
                             fontSize = 16.sp
                         )
-                        Spacer(modifier = Modifier.height(16.dp))
+                        Spacer(modifier = Modifier.height(DesignSystem.Spacing.md))
                         Button(
                             onClick = { locationPermissionState.launchMultiplePermissionRequest() }
                         ) {
                             Icon(
                                 Icons.Default.MyLocation,
                                 contentDescription = null,
-                                modifier = Modifier.size(20.dp)
+                                modifier = Modifier.size(DesignSystem.IconSize.medium - DesignSystem.Spacing.xs)
                             )
-                            Spacer(modifier = Modifier.width(8.dp))
+                            Spacer(modifier = Modifier.width(DesignSystem.Spacing.sm))
                             Text(localizedString(StringKey.ENABLE_LOCATION))
                         }
                     }
@@ -375,9 +402,9 @@ fun LocationSelectionStep(
                             Icon(
                                 Icons.Default.MyLocation,
                                 contentDescription = null,
-                                modifier = Modifier.size(20.dp)
+                                modifier = Modifier.size(DesignSystem.IconSize.medium - DesignSystem.Spacing.xs)
                             )
-                            Spacer(modifier = Modifier.width(8.dp))
+                            Spacer(modifier = Modifier.width(DesignSystem.Spacing.sm))
                             Text(localizedString(StringKey.DETECT_MY_LOCATION))
                         }
                     }
@@ -387,7 +414,7 @@ fun LocationSelectionStep(
         
         // Manual location entry option
         if (!isLoadingLocation) {
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(DesignSystem.Spacing.lg))
             
             OutlinedTextField(
                 value = if (detectedLocation == null) selectedLocation else "",
@@ -409,22 +436,22 @@ fun LocationSelectionStep(
         
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.sm)
         ) {
             OutlinedButton(
                 onClick = onBack,
                 modifier = Modifier.weight(1f)
             ) {
-                Text(localizedString(StringKey.BACK), modifier = Modifier.padding(vertical = 8.dp))
+                Text(localizedString(StringKey.BACK), modifier = Modifier.padding(vertical = DesignSystem.Spacing.sm))
             }
             
             Button(
                 onClick = onNext,
                 modifier = Modifier.weight(1f),
                 enabled = selectedLocation.isNotEmpty() || detectedLocation != null,
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50))
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
             ) {
-                Text(localizedString(StringKey.CONTINUE), modifier = Modifier.padding(vertical = 8.dp))
+                Text(localizedString(StringKey.CONTINUE), modifier = Modifier.padding(vertical = DesignSystem.Spacing.sm))
             }
         }
     }
@@ -455,20 +482,20 @@ fun CropSelectionStep(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
+            .padding(DesignSystem.Spacing.md)
     ) {
         Text(
             text = localizedString(StringKey.SELECT_CROPS),
-            fontSize = 28.sp,
+            fontSize = DesignSystem.Typography.headlineMedium,
             fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(vertical = 16.dp)
+            modifier = Modifier.padding(vertical = DesignSystem.Spacing.md)
         )
         
         Text(
             text = localizedString(StringKey.CROPS_SUBTITLE),
-            fontSize = 18.sp,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(bottom = 16.dp)
+            fontSize = DesignSystem.Typography.titleSmall,
+            color = secondaryTextColor(),
+            modifier = Modifier.padding(bottom = DesignSystem.Spacing.md)
         )
         
         // Search field
@@ -494,7 +521,7 @@ fun CropSelectionStep(
             },
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 8.dp),
+                .padding(bottom = DesignSystem.Spacing.sm),
             singleLine = true
         )
         
@@ -502,8 +529,8 @@ fun CropSelectionStep(
         LazyRow(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                .padding(bottom = DesignSystem.Spacing.md),
+            horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.sm)
         ) {
             item {
                 FilterChip(
@@ -532,17 +559,17 @@ fun CropSelectionStep(
         if (selectedCrops.isNotEmpty()) {
             Text(
                 text = "${selectedCrops.size} crops selected",
-                fontSize = 14.sp,
+                fontSize = DesignSystem.Typography.bodyMedium,
                 color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.padding(bottom = 8.dp)
+                modifier = Modifier.padding(bottom = DesignSystem.Spacing.sm)
             )
         }
         
         LazyVerticalGrid(
             columns = GridCells.Fixed(2),
             modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+            verticalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.sm + DesignSystem.Spacing.xs),
+            horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.sm + DesignSystem.Spacing.xs)
         ) {
             items(filteredCrops) { crop ->
                 Card(
@@ -552,7 +579,7 @@ fun CropSelectionStep(
                         .clickable { onCropToggled(crop.id) },
                     colors = CardDefaults.cardColors(
                         containerColor = if (crop.id in selectedCrops) {
-                            Color(0xFF4CAF50).copy(alpha = 0.2f)
+                            DesignSystem.Colors.Primary.copy(alpha = 0.2f)
                         } else {
                             MaterialTheme.colorScheme.surface
                         }
@@ -564,18 +591,18 @@ fun CropSelectionStep(
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(16.dp),
+                            .padding(DesignSystem.Spacing.md),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center
                     ) {
                         Text(
                             text = crop.emoji,
-                            fontSize = 32.sp
+                            fontSize = DesignSystem.Spacing.xl.value.sp
                         )
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.height(DesignSystem.Spacing.sm))
                         Text(
                             text = crop.getLocalizedName(currentLanguage),
-                            fontSize = 14.sp,
+                            fontSize = DesignSystem.Typography.bodyMedium,
                             fontWeight = FontWeight.Medium,
                             textAlign = TextAlign.Center
                         )
@@ -595,21 +622,21 @@ fun CropSelectionStep(
         
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.sm)
         ) {
             OutlinedButton(
                 onClick = onBack,
                 modifier = Modifier.weight(1f)
             ) {
-                Text(localizedString(StringKey.BACK), modifier = Modifier.padding(vertical = 8.dp))
+                Text(localizedString(StringKey.BACK), modifier = Modifier.padding(vertical = DesignSystem.Spacing.sm))
             }
             
             Button(
                 onClick = onNext,
                 modifier = Modifier.weight(1f),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50))
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
             ) {
-                Text(localizedString(StringKey.CONTINUE), modifier = Modifier.padding(vertical = 8.dp))
+                Text(localizedString(StringKey.CONTINUE), modifier = Modifier.padding(vertical = DesignSystem.Spacing.sm))
             }
         }
     }
@@ -642,20 +669,20 @@ fun LivestockSelectionStep(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
+            .padding(DesignSystem.Spacing.md)
     ) {
         Text(
             text = localizedString(StringKey.SELECT_LIVESTOCK),
-            fontSize = 28.sp,
+            fontSize = DesignSystem.Typography.headlineMedium,
             fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(vertical = 16.dp)
+            modifier = Modifier.padding(vertical = DesignSystem.Spacing.md)
         )
         
         Text(
             text = localizedString(StringKey.LIVESTOCK_SUBTITLE),
-            fontSize = 18.sp,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(bottom = 16.dp)
+            fontSize = DesignSystem.Typography.titleSmall,
+            color = secondaryTextColor(),
+            modifier = Modifier.padding(bottom = DesignSystem.Spacing.md)
         )
         
         // Search field
@@ -683,7 +710,7 @@ fun LivestockSelectionStep(
             },
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 8.dp),
+                .padding(bottom = DesignSystem.Spacing.sm),
             singleLine = true
         )
         
@@ -691,8 +718,8 @@ fun LivestockSelectionStep(
         LazyRow(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                .padding(bottom = DesignSystem.Spacing.md),
+            horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.sm)
         ) {
             item {
                 FilterChip(
@@ -723,17 +750,17 @@ fun LivestockSelectionStep(
         if (selectedLivestock.isNotEmpty()) {
             Text(
                 text = "${selectedLivestock.size} animals selected",
-                fontSize = 14.sp,
+                fontSize = DesignSystem.Typography.bodyMedium,
                 color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.padding(bottom = 8.dp)
+                modifier = Modifier.padding(bottom = DesignSystem.Spacing.sm)
             )
         }
         
         LazyVerticalGrid(
             columns = GridCells.Fixed(2),
             modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+            verticalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.sm + DesignSystem.Spacing.xs),
+            horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.sm + DesignSystem.Spacing.xs)
         ) {
             items(filteredLivestock) { animal ->
                 Card(
@@ -743,7 +770,7 @@ fun LivestockSelectionStep(
                         .clickable { onLivestockToggled(animal.id) },
                     colors = CardDefaults.cardColors(
                         containerColor = if (animal.id in selectedLivestock) {
-                            Color(0xFF4CAF50).copy(alpha = 0.2f)
+                            DesignSystem.Colors.Primary.copy(alpha = 0.2f)
                         } else {
                             MaterialTheme.colorScheme.surface
                         }
@@ -755,18 +782,18 @@ fun LivestockSelectionStep(
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(12.dp),
+                            .padding(DesignSystem.Spacing.sm + DesignSystem.Spacing.xs),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center
                     ) {
                         Text(
                             text = animal.emoji,
-                            fontSize = 32.sp
+                            fontSize = DesignSystem.Spacing.xl.value.sp
                         )
-                        Spacer(modifier = Modifier.height(4.dp))
+                        Spacer(modifier = Modifier.height(DesignSystem.Spacing.xs))
                         Text(
                             text = animal.getLocalizedName(currentLanguage),
-                            fontSize = 14.sp,
+                            fontSize = DesignSystem.Typography.bodyMedium,
                             fontWeight = FontWeight.Medium,
                             textAlign = TextAlign.Center
                         )
@@ -786,13 +813,13 @@ fun LivestockSelectionStep(
         
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.sm)
         ) {
             OutlinedButton(
                 onClick = onBack,
                 modifier = Modifier.weight(1f)
             ) {
-                Text(localizedString(StringKey.BACK), modifier = Modifier.padding(vertical = 8.dp))
+                Text(localizedString(StringKey.BACK), modifier = Modifier.padding(vertical = DesignSystem.Spacing.sm))
             }
             
             Button(
@@ -800,7 +827,7 @@ fun LivestockSelectionStep(
                 modifier = Modifier.weight(1f),
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50))
             ) {
-                Text("Start Chatting", modifier = Modifier.padding(vertical = 8.dp))
+                Text("Start Chatting", modifier = Modifier.padding(vertical = DesignSystem.Spacing.sm))
             }
         }
     }

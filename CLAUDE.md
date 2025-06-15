@@ -151,6 +151,21 @@ The app follows **MVVM (Model-View-ViewModel)** architecture with:
 
 ## Recent Feature Enhancements
 
+### Design System Implementation
+- **Comprehensive Design System** in `ui/theme/DesignSystem.kt`
+- **Standardized Colors** with primary green palette and proper dark/light theme support
+- **Typography Scale** with consistent font sizes and weights across the app
+- **Spacing System** using predefined scales (xxs to xxxl)
+- **Icon Sizing** standardized for small (16dp), medium (24dp), large (32dp) contexts
+- **Reusable Components** like `FarmerChatAppBar` for consistency
+
+### Theme Consistency
+- **Disabled Dynamic Colors** by default to maintain brand identity
+- **Green Color Scheme** replacing default Material purple colors
+- **Consistent AppBar** styling using `appBarColor()` helper function
+- **Proper Theme Colors** for all UI elements (no more hardcoded colors)
+- **Dark Theme Support** with appropriate color mappings
+
 ### Voice Confidence Scoring
 - **Real-time confidence tracking** in `SpeechRecognitionManager`
 - **Visual feedback** with color-coded progress bars (High/Medium/Low confidence)
@@ -177,3 +192,92 @@ The app follows **MVVM (Model-View-ViewModel)** architecture with:
 - **Enhanced error handling** across all ViewModels
 - **Improved state synchronization** between UI and data layers
 - **Cleaner separation** between onboarding and settings flows
+- **Deprecated API Updates** (Icons.AutoMirrored, HorizontalDivider)
+- **Accessibility Improvements** with proper content descriptions
+
+## Development Best Practices
+
+### UI/UX Guidelines
+1. **Use Design System Constants** - Always use values from `DesignSystem.kt` instead of hardcoding
+   - Colors: `DesignSystem.Colors.Primary` instead of `Color(0xFF4CAF50)`
+   - Spacing: `DesignSystem.Spacing.md` instead of `16.dp`
+   - Typography: `DesignSystem.Typography.titleMedium` instead of `20.sp`
+
+2. **Consistent AppBars** - Use `FarmerChatAppBar` composable for all screens
+   ```kotlin
+   FarmerChatAppBar(
+       title = "Screen Title",
+       onBackClick = { /* navigation */ }
+   )
+   ```
+
+3. **Theme Colors** - Always use Material theme colors
+   ```kotlin
+   // Good
+   color = MaterialTheme.colorScheme.primary
+   
+   // Bad
+   color = Color(0xFF4CAF50)
+   ```
+
+4. **Localization** - All user-facing strings must be in `StringsManager`
+   ```kotlin
+   // Good
+   text = stringResource(StringKey.Settings)
+   
+   // Bad
+   text = "Settings"
+   ```
+
+5. **Modern Icons** - Use AutoMirrored icons for directional icons
+   ```kotlin
+   // Good
+   Icons.AutoMirrored.Filled.ArrowBack
+   
+   // Bad
+   Icons.Default.ArrowBack
+   ```
+
+### Code Quality Standards
+1. **No Magic Numbers** - Use constants from DesignSystem
+2. **Consistent Naming** - "FarmerChat" (not "Farmer Chat")
+3. **Accessibility** - All icons need `contentDescription`
+4. **State Management** - Use `StateFlow` and proper ViewModel patterns
+5. **Error Handling** - Wrap Firebase calls in try-catch blocks
+
+### Testing Guidelines
+- Test on both light and dark themes
+- Verify all languages display correctly
+- Check voice features with different locales
+- Ensure offline functionality works properly
+
+### Component Usage
+1. **Standardized Components** - Prefer design system components
+   ```kotlin
+   // Use predefined spacing
+   Spacer(modifier = Modifier.height(DesignSystem.Spacing.md))
+   
+   // Use predefined icon sizes
+   Icon(
+       modifier = Modifier.size(DesignSystem.IconSize.medium),
+       // ...
+   )
+   ```
+
+2. **Consistent Padding** - Use design system spacing values
+   ```kotlin
+   // Good
+   modifier = Modifier.padding(DesignSystem.Spacing.md)
+   
+   // Bad
+   modifier = Modifier.padding(16.dp)
+   ```
+
+3. **Typography Consistency** - Use design system text styles
+   ```kotlin
+   Text(
+       text = "Title",
+       fontSize = DesignSystem.Typography.titleLarge,
+       fontWeight = DesignSystem.Typography.Weight.Bold
+   )
+   ```

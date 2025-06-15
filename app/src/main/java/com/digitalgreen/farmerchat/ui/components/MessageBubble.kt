@@ -8,6 +8,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -126,7 +127,7 @@ fun MessageBubble(
                                         modifier = Modifier.size(28.dp)
                                     ) {
                                         Icon(
-                                            imageVector = if (isSpeaking) Icons.Default.Stop else Icons.Default.VolumeUp,
+                                            imageVector = if (isSpeaking) Icons.Default.Stop else Icons.AutoMirrored.Filled.VolumeUp,
                                             contentDescription = if (isSpeaking) "Stop" else "Play",
                                             modifier = Modifier.size(18.dp),
                                             tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
