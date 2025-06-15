@@ -195,6 +195,132 @@ The app follows **MVVM (Model-View-ViewModel)** architecture with:
 - **Deprecated API Updates** (Icons.AutoMirrored, HorizontalDivider)
 - **Accessibility Improvements** with proper content descriptions
 
+## Backend Architecture (Node.js + Supabase)
+
+### Project Structure
+```
+FarmerChat/
+├── backend/                      # Node.js backend
+│   ├── src/
+│   │   ├── config/              # Environment configuration
+│   │   ├── controllers/         # Request handlers
+│   │   ├── services/            # Business logic
+│   │   ├── models/              # Data models
+│   │   ├── routes/              # API routes
+│   │   ├── middleware/          # Express middleware
+│   │   ├── utils/               # Utility functions
+│   │   ├── types/               # TypeScript types
+│   │   └── database/            # Database utilities
+│   ├── database/
+│   │   └── schema.sql           # Complete database schema
+│   ├── package.json
+│   ├── tsconfig.json
+│   └── README.md
+├── app/                         # Android app
+└── FarmerChat-Translation-Tools/ # Translation utilities
+
+### Backend Features
+- **Multi-AI Provider Support**: Seamlessly switch between Gemini, OpenAI, and Anthropic
+- **Neon PostgreSQL**: Serverless PostgreSQL database (replaced Supabase)
+- **WebSocket Support**: Real-time streaming of AI responses via Socket.IO
+- **Redis Caching**: High-performance caching for translations and responses  
+- **Firebase Auth Integration**: Phone OTP authentication with JWT tokens
+- **Hybrid Architecture**: Gradual migration from Firebase to Node.js backend
+- **Rate Limiting**: Configurable limits per endpoint
+- **Admin APIs**: For translation and prompt management
+
+### Running the Backend
+```bash
+cd backend
+npm install
+cp .env.example .env  # Configure your environment
+npm run dev           # Start development server
+```
+
+### Key Backend Services
+1. **AIService**: Handles multiple AI providers with streaming support
+2. **CacheService**: Redis-based caching with TTL support
+3. **TranslationService**: Dynamic translation management
+4. **AuthService**: Firebase Auth integration with JWT tokens
+5. **ConversationService**: Chat session management
+6. **WebSocket Handler**: Real-time streaming via Socket.IO
+7. **NotificationService**: FCM push notifications
+
+### Android Integration
+- **ApiRepository**: New repository using Retrofit for API communication
+- **HybridViewModels**: Support both Firebase and API backends during migration
+- **MigrationManager**: Handles gradual transition from Firebase to API
+- **WebSocket Client**: Real-time chat streaming with Socket.IO
+- **Model Adapters**: Seamless conversion between Firebase and API data structures
+
+### API Endpoints
+- **Auth**: `/api/v1/auth/*` - Authentication endpoints
+- **Chat**: `/api/v1/chat/*` - Chat and AI interaction
+- **Conversations**: `/api/v1/conversations/*` - Conversation management
+- **Translations**: `/api/v1/translations/*` - Translation APIs
+- **Admin**: `/api/v1/admin/*` - Admin management endpoints
+
+## Latest Chat Interface Improvements
+
+### Language-Aware Message Bubbles
+- **RTL Support** - Message bubbles automatically align based on language direction
+- **MessageBubbleV2 Component** - New component with built-in RTL support
+- **Intelligent Alignment** - LTR languages (English, Spanish) align left, RTL languages (Arabic, Hebrew) align right
+- **Space Optimization** - Reduced bubble width to 80% for better space utilization
+
+### Enhanced Starter Questions
+- **Dynamic Generation** - AI-powered generation based on user's crops and livestock
+- **Context-Aware** - Questions specific to user's agricultural interests
+- **Seasonally Relevant** - Questions consider current month for seasonal advice
+- **Character Limits** - Questions limited to 60 characters for better readability
+- **Loading States** - Visual feedback while questions are being generated
+- **Error Handling** - Graceful fallback to repository questions if generation fails
+
+### Navigation Flow Improvements
+- **Direct to Chat** - After onboarding, users go directly to chat screen
+- **Skip Empty List** - No more empty conversations screen after setup
+- **Immediate Conversation Creation** - New conversation created automatically
+- **Parameter Passing** - Navigation supports `startNewChat` parameter
+
+### Localization Enhancements
+- **Display-Time Localization** - Placeholder text localized when displayed, not stored
+- **New String Keys** - Added START_A_CONVERSATION, RESET, RESET_ONBOARDING_CONFIRM
+- **AndroidViewModel Pattern** - ConversationsViewModel uses AndroidViewModel for context access
+- **StringProvider** - Non-composable string access for ViewModels
+
+### User Experience Updates
+- **Reset Confirmation** - Onboarding reset now shows confirmation dialog
+- **Always Visible Follow-ups** - Follow-up questions always displayed after AI response
+- **Shorter Follow-ups** - Follow-up questions limited to 40 characters
+- **Localized Placeholders** - "Start a conversation..." text properly localized
+
+### Implementation Patterns
+- **RTL Language Detection**:
+  ```kotlin
+  val isRtlLanguage = LanguageManager.getLanguageByCode(currentLanguageCode)?.isRTL ?: false
+  CompositionLocalProvider(
+      LocalLayoutDirection provides if (isRtlLanguage) LayoutDirection.Rtl else LayoutDirection.Ltr
+  )
+  ```
+
+- **Dynamic Localization**:
+  ```kotlin
+  // Check for placeholder text at display time
+  if (conversation.lastMessage == "Start a conversation..." || 
+      conversation.lastMessage == "बातचीत शुरू करें..." ||
+      conversation.lastMessage == "Anza mazungumzo...") {
+      localizedString(StringKey.START_A_CONVERSATION)
+  }
+  ```
+
+- **Context-Aware Prompts**:
+  ```kotlin
+  appendLine("1. Generate questions in ${language?.englishName ?: "English"} language ONLY")
+  appendLine("2. Each question must be SHORT and CONCISE (maximum 60 characters)")
+  appendLine("3. Questions MUST be specific to the farmer's crops/livestock listed above")
+  appendLine("4. Questions should be seasonally relevant for $currentMonth")
+  ```
+
 ## Development Best Practices
 
 ### UI/UX Guidelines
@@ -281,3 +407,222 @@ The app follows **MVVM (Model-View-ViewModel)** architecture with:
        fontWeight = DesignSystem.Typography.Weight.Bold
    )
    ```
+
+## Backend Migration to Node.js + Supabase
+
+### Migration Overview
+The app is being migrated from direct Firebase integration to a Node.js backend with Supabase database. This provides:
+- Complete control over business logic
+- Flexible AI model configuration
+- Centralized translation management
+- Better security and scalability
+
+### New Architecture
+```
+Android App (Kotlin)
+    ↓ REST API + WebSocket
+Backend (Node.js + TypeScript)
+    ├── Supabase (Database + Auth)
+    ├── AI Service (Multi-provider)
+    └── Translation System
+```
+
+### Backend Technology Stack
+```json
+{
+  "dependencies": {
+    // Core
+    "express": "^4.18",
+    "typescript": "^5.0",
+    
+    // Database & Auth
+    "@supabase/supabase-js": "^2.0",
+    "twilio": "^4.0",  // For SMS OTP
+    
+    // AI Providers
+    "@anthropic-ai/sdk": "^0.20",
+    "openai": "^4.0",
+    "@google/generative-ai": "^0.1",
+    
+    // Utilities
+    "zod": "^3.0",
+    "winston": "^3.0",
+    "bull": "^4.0",
+    "redis": "^4.0",
+    "socket.io": "^4.0"
+  }
+}
+```
+
+### Latest AI Models Configuration (2025)
+
+#### OpenAI Models
+```env
+# GPT-4.1 Family (Newest - 1M context, June 2024 knowledge)
+OPENAI_MODEL_GPT41=gpt-4.1
+OPENAI_MODEL_GPT41_MINI=gpt-4.1-mini
+OPENAI_MODEL_GPT41_NANO=gpt-4.1-nano
+
+# GPT-4o Family (Multimodal)
+OPENAI_MODEL_GPT4O=gpt-4o
+OPENAI_MODEL_GPT4O_MINI=gpt-4o-mini
+OPENAI_MODEL_GPT4O_REALTIME=gpt-4o-realtime
+
+# Reasoning Models
+OPENAI_MODEL_O1_PREVIEW=o1-preview
+OPENAI_MODEL_O1_MINI=o1-mini
+OPENAI_MODEL_O3_MINI=o3-mini
+
+# API Pricing (per million tokens)
+# GPT-4o: $3 input / $10 output
+# GPT-4o-mini: $0.15 input / $0.60 output
+# GPT-4o-realtime: $5 input / $20 output (text)
+```
+
+#### Google Gemini Models
+```env
+# Gemini 2.5 Family (Latest - 2025)
+GOOGLE_MODEL_GEMINI_25_PRO=gemini-2.5-pro
+GOOGLE_MODEL_GEMINI_25_FLASH=gemini-2.5-flash-preview
+
+# Gemini 2.0 Family
+GOOGLE_MODEL_GEMINI_20_FLASH=gemini-2.0-flash
+
+# API Pricing (per million tokens)
+# Gemini 2.5 Pro: $1.25 input / $10 output (up to 200k tokens)
+# Gemini 2.5 Pro: $2.50 input / $15 output (over 200k tokens)
+# Gemini 2.0 Flash: $0.10 input / $0.40 output
+```
+
+#### Anthropic Claude Models
+```env
+# Claude 4 Family (Latest - May 2025)
+ANTHROPIC_MODEL_CLAUDE4_OPUS=claude-4-opus
+ANTHROPIC_MODEL_CLAUDE4_SONNET=claude-4-sonnet
+
+# Features: 200K context, hybrid modes (instant/extended thinking)
+# API Pricing (per million tokens)
+# Claude 4 Opus: $15 input / $75 output
+# Claude 4 Sonnet: $3 input / $15 output
+```
+
+### Environment Configuration Template
+```env
+# Default AI Configuration
+DEFAULT_AI_PROVIDER=anthropic
+DEFAULT_AI_MODEL=claude-4-sonnet
+FALLBACK_AI_PROVIDER=google
+FALLBACK_AI_MODEL=gemini-2.0-flash
+
+# Model Selection Strategy
+MODEL_SELECTION_STRATEGY=cost-optimized
+# Options: primary-fallback, round-robin, cost-optimized, performance-based
+
+# AI Provider Keys
+ANTHROPIC_API_KEY=your_key_here
+OPENAI_API_KEY=your_key_here
+GOOGLE_AI_API_KEY=your_key_here
+
+# Model Parameters
+AI_MAX_TOKENS=4000
+AI_TEMPERATURE=0.7
+AI_STREAMING_ENABLED=true
+
+# Rate Limiting
+RATE_LIMIT_PER_USER_HOUR=100
+RATE_LIMIT_AI_PER_DAY=1000
+```
+
+### Prompt Management System
+
+#### Database Schema
+```sql
+-- Flexible prompt templates
+CREATE TABLE prompt_templates (
+    id UUID PRIMARY KEY,
+    key TEXT UNIQUE NOT NULL,
+    name TEXT NOT NULL,
+    template TEXT NOT NULL,
+    variables JSONB DEFAULT '[]',
+    version INTEGER DEFAULT 1,
+    is_active BOOLEAN DEFAULT true,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Model-specific overrides
+CREATE TABLE model_prompt_overrides (
+    id UUID PRIMARY KEY,
+    template_id UUID REFERENCES prompt_templates(id),
+    model_provider TEXT NOT NULL,
+    model_name TEXT NOT NULL,
+    override_template TEXT NOT NULL
+);
+```
+
+### Android Migration Changes
+
+#### Remove Firebase Dependencies
+```kotlin
+// Remove from build.gradle.kts
+implementation("com.google.firebase:firebase-auth")
+implementation("com.google.firebase:firebase-firestore")
+
+// Keep only for push notifications
+implementation("com.google.firebase:firebase-messaging")
+```
+
+#### New API Client Structure
+```kotlin
+interface FarmerChatAPI {
+    // Auth endpoints
+    @POST("auth/send-otp")
+    suspend fun sendOTP(@Body request: OTPRequest): Response<OTPResponse>
+    
+    @POST("auth/verify-otp")
+    suspend fun verifyOTP(@Body request: VerifyOTPRequest): Response<AuthToken>
+    
+    // Conversation endpoints
+    @GET("conversations")
+    suspend fun getConversations(): Response<List<Conversation>>
+    
+    @POST("conversations")
+    suspend fun createConversation(): Response<Conversation>
+    
+    // Message endpoints with streaming
+    @POST("messages/stream")
+    @Streaming
+    suspend fun streamMessage(@Body request: MessageRequest): Response<ResponseBody>
+    
+    // Translation endpoints
+    @GET("translations/{language}")
+    suspend fun getTranslations(@Path("language") language: String): Response<TranslationBundle>
+}
+```
+
+### Migration Timeline
+1. **Backend Setup** (Week 1-2)
+   - Node.js project structure
+   - Supabase integration
+   - Authentication system
+   
+2. **Core Features** (Week 2-3)
+   - AI provider integration
+   - Prompt management
+   - Translation APIs
+   
+3. **Android Updates** (Week 3-4)
+   - Remove Firebase code
+   - Implement API client
+   - Update ViewModels
+   
+4. **Testing & Deployment** (Week 4-5)
+   - End-to-end testing
+   - Performance optimization
+   - Production deployment
+
+### Key Benefits
+- **AI Flexibility**: Switch between models based on cost/performance
+- **Prompt A/B Testing**: Test different prompts and track performance
+- **Centralized Translations**: Manage all translations from backend
+- **Better Error Handling**: Consistent error responses across platforms
+- **Cost Optimization**: Route queries to appropriate models based on complexity

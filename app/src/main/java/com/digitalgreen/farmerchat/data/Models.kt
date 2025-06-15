@@ -47,9 +47,11 @@ data class ChatMessage(
     @field:JvmField
     val user: Boolean = true,
     @field:JvmField
-    val voiceMessage: Boolean = false
+    val voiceMessage: Boolean = false,
+    // Follow-up questions for AI messages
+    val followUpQuestions: List<String> = emptyList()
 ) {
-    constructor() : this("", "", true, Date(), null, false, true, false)
+    constructor() : this("", "", true, Date(), null, false, true, false, emptyList())
 }
 
 // Chat session data model
@@ -102,7 +104,9 @@ data class Conversation(
     val hasUnreadMessages: Boolean = false,
     val userId: String = "",
     val createdAt: Date = Date(),
-    val tags: List<String> = emptyList()
+    val tags: List<String> = emptyList(),
+    val englishTags: List<String> = emptyList(), // Tags stored in English for analytics
+    val summary: String? = null // AI-generated conversation summary
 ) {
     /**
      * Get the conversation title in the specified language
