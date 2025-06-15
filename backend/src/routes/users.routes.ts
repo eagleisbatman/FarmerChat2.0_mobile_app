@@ -13,7 +13,7 @@ router.get('/profile', authenticate, async (req: AuthRequest, res) => {
   try {
     const result = await query(
       `SELECT id, email, phone, name, language, location, location_info, 
-              crops, livestock, preferences, created_at, updated_at
+              crops, livestock, preferences, role, gender, created_at, updated_at
        FROM users WHERE id = $1`,
       [req.userId]
     );
@@ -54,7 +54,9 @@ router.put('/profile', authenticate, async (req: AuthRequest, res) => {
       location, 
       location_info, 
       crops, 
-      livestock 
+      livestock,
+      role,
+      gender
     } = req.body;
 
     const setClauses = [];
@@ -89,6 +91,16 @@ router.put('/profile', authenticate, async (req: AuthRequest, res) => {
     if (livestock !== undefined) {
       setClauses.push(`livestock = $${paramIndex++}`);
       values.push(Array.isArray(livestock) ? livestock : []);
+    }
+
+    if (role !== undefined) {
+      setClauses.push(`role = $${paramIndex++}`);
+      values.push(role);
+    }
+
+    if (gender !== undefined) {
+      setClauses.push(`gender = $${paramIndex++}`);
+      values.push(gender);
     }
 
     if (setClauses.length === 0) {
@@ -205,7 +217,7 @@ router.get('/export', authenticate, async (req: AuthRequest, res) => {
     // Get user profile
     const userResult = await query(
       `SELECT id, email, phone, name, language, location, location_info, 
-              crops, livestock, preferences, created_at
+              crops, livestock, preferences, role, gender, created_at
        FROM users WHERE id = $1`,
       [req.userId]
     );

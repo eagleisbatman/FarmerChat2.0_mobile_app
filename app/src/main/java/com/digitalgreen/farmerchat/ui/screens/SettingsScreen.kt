@@ -33,21 +33,12 @@ fun SettingsScreen(
     onNavigateBack: () -> Unit,
     onNavigateToOnboarding: () -> Unit,
     onNavigateToCropSelection: () -> Unit,
-    onNavigateToLivestockSelection: () -> Unit
+    onNavigateToLivestockSelection: () -> Unit,
+    viewModel: ApiSettingsViewModel = viewModel(
+        factory = ViewModelProvider.AndroidViewModelFactory.getInstance(LocalContext.current.applicationContext as android.app.Application)
+    )
 ) {
     val context = LocalContext.current
-    val viewModel: SettingsViewModel = viewModel(
-        factory = object : ViewModelProvider.Factory {
-            override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
-                @Suppress("UNCHECKED_CAST")
-                return SettingsViewModel(
-                    repository = FarmerChatRepository(),
-                    preferencesManager = PreferencesManager(context.applicationContext),
-                    stringProvider = StringProvider.create(context)
-                ) as T
-            }
-        }
-    )
     val settingsState by viewModel.settingsState.collectAsState()
     var showLanguageDialog by remember { mutableStateOf(false) }
     var showAboutDialog by remember { mutableStateOf(false) }
@@ -56,6 +47,8 @@ fun SettingsScreen(
     var showLocationDialog by remember { mutableStateOf(false) }
     var showResponseLengthDialog by remember { mutableStateOf(false) }
     var showResetOnboardingDialog by remember { mutableStateOf(false) }
+    var showRoleDialog by remember { mutableStateOf(false) }
+    var showGenderDialog by remember { mutableStateOf(false) }
     var editableName by remember { mutableStateOf("") }
     var editableLocation by remember { mutableStateOf("") }
     
@@ -101,6 +94,29 @@ fun SettingsScreen(
                             editableLocation = settingsState.userLocation
                             showLocationDialog = true 
                         }
+                    )
+                    
+                    SettingsItem(
+                        icon = Icons.Default.Work,
+                        title = localizedString(StringKey.SELECT_ROLE),
+                        subtitle = when(settingsState.userRole) {
+                            "farmer" -> localizedString(StringKey.FARMER)
+                            "extension_worker" -> localizedString(StringKey.EXTENSION_WORKER)
+                            else -> ""
+                        },
+                        onClick = { showRoleDialog = true }
+                    )
+                    
+                    SettingsItem(
+                        icon = Icons.Default.Person,
+                        title = localizedString(StringKey.SELECT_GENDER),
+                        subtitle = when(settingsState.userGender) {
+                            "male" -> localizedString(StringKey.MALE)
+                            "female" -> localizedString(StringKey.FEMALE)
+                            "other" -> localizedString(StringKey.OTHER)
+                            else -> ""
+                        },
+                        onClick = { showGenderDialog = true }
                     )
                     
                     SettingsItem(
@@ -220,6 +236,16 @@ fun SettingsScreen(
                             showResetOnboardingDialog = true
                         }
                     )
+                    
+                    SettingsItem(
+                        icon = Icons.AutoMirrored.Filled.Logout,
+                        title = localizedString(StringKey.LOGOUT),
+                        subtitle = localizedString(StringKey.LOGOUT_DESC),
+                        onClick = {
+                            viewModel.logout()
+                            onNavigateToOnboarding()
+                        }
+                    )
                 }
             }
         }
@@ -261,11 +287,8 @@ fun SettingsScreen(
             confirmButton = {
                 TextButton(
                     onClick = {
-                        coroutineScope.launch {
-                            viewModel.deleteAllUserData()
-                            showDeleteDataDialog = false
-                            onNavigateToOnboarding()
-                        }
+                        // TODO: Implement delete all data
+                        showDeleteDataDialog = false
                     },
                     colors = ButtonDefaults.textButtonColors(
                         contentColor = MaterialTheme.colorScheme.error
@@ -434,6 +457,93 @@ fun SettingsScreen(
             dismissButton = {
                 TextButton(onClick = { showResetOnboardingDialog = false }) {
                     Text(localizedString(StringKey.CANCEL))
+                }
+            }
+        )
+    }
+    
+    // Role Selection Dialog
+    if (showRoleDialog) {
+        AlertDialog(
+            onDismissRequest = { showRoleDialog = false },
+            title = { Text(localizedString(StringKey.SELECT_ROLE)) },
+            text = {
+                Column {
+                    listOf(
+                        "farmer" to StringKey.FARMER,
+                        "extension_worker" to StringKey.EXTENSION_WORKER
+                    ).forEach { (value, stringKey) ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    viewModel.updateUserRole(value)
+                                    showRoleDialog = false
+                                }
+                                .padding(vertical = DesignSystem.Spacing.md),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            RadioButton(
+                                selected = settingsState.userRole == value,
+                                onClick = {
+                                    viewModel.updateUserRole(value)
+                                    showRoleDialog = false
+                                }
+                            )
+                            Spacer(modifier = Modifier.width(DesignSystem.Spacing.sm))
+                            Text(text = localizedString(stringKey))
+                        }
+                    }
+                }
+            },
+            confirmButton = {},
+            dismissButton = {
+                TextButton(onClick = { showRoleDialog = false }) {
+                    Text(localizedString(StringKey.CLOSE))
+                }
+            }
+        )
+    }
+    
+    // Gender Selection Dialog
+    if (showGenderDialog) {
+        AlertDialog(
+            onDismissRequest = { showGenderDialog = false },
+            title = { Text(localizedString(StringKey.SELECT_GENDER)) },
+            text = {
+                Column {
+                    listOf(
+                        "male" to StringKey.MALE,
+                        "female" to StringKey.FEMALE,
+                        "other" to StringKey.OTHER
+                    ).forEach { (value, stringKey) ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    viewModel.updateUserGender(value)
+                                    showGenderDialog = false
+                                }
+                                .padding(vertical = DesignSystem.Spacing.md),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            RadioButton(
+                                selected = settingsState.userGender == value,
+                                onClick = {
+                                    viewModel.updateUserGender(value)
+                                    showGenderDialog = false
+                                }
+                            )
+                            Spacer(modifier = Modifier.width(DesignSystem.Spacing.sm))
+                            Text(text = localizedString(stringKey))
+                        }
+                    }
+                }
+            },
+            confirmButton = {},
+            dismissButton = {
+                TextButton(onClick = { showGenderDialog = false }) {
+                    Text(localizedString(StringKey.CLOSE))
                 }
             }
         )

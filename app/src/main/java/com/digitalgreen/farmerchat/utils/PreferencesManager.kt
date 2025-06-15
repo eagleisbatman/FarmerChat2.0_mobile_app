@@ -26,6 +26,9 @@ class PreferencesManager(private val context: Context) {
         val RESPONSE_LENGTH = stringPreferencesKey("response_length")
         val FORMATTED_RESPONSES_ENABLED = booleanPreferencesKey("formatted_responses_enabled")
         val USER_NAME = stringPreferencesKey("user_name")
+        val JWT_TOKEN = stringPreferencesKey("jwt_token")
+        val REFRESH_TOKEN = stringPreferencesKey("refresh_token")
+        val TOKEN_EXPIRES_AT = longPreferencesKey("token_expires_at")
     }
     
     val hasCompletedOnboarding: Flow<Boolean> = context.dataStore.data
@@ -150,6 +153,47 @@ class PreferencesManager(private val context: Context) {
     suspend fun saveUserName(name: String) {
         context.dataStore.edit { preferences ->
             preferences[USER_NAME] = name
+        }
+    }
+    
+    // JWT Token management methods
+    suspend fun saveAuthTokens(jwtToken: String, refreshToken: String, expiresIn: Long) {
+        val expiresAt = System.currentTimeMillis() + (expiresIn * 1000) // Convert seconds to milliseconds
+        context.dataStore.edit { preferences ->
+            preferences[JWT_TOKEN] = jwtToken
+            preferences[REFRESH_TOKEN] = refreshToken
+            preferences[TOKEN_EXPIRES_AT] = expiresAt
+        }
+    }
+    
+    fun getJwtToken(): String? {
+        return runBlocking {
+            context.dataStore.data.first()[JWT_TOKEN]
+        }
+    }
+    
+    fun getRefreshToken(): String? {
+        return runBlocking {
+            context.dataStore.data.first()[REFRESH_TOKEN]
+        }
+    }
+    
+    fun getTokenExpiresAt(): Long {
+        return runBlocking {
+            context.dataStore.data.first()[TOKEN_EXPIRES_AT] ?: 0L
+        }
+    }
+    
+    fun isTokenExpired(): Boolean {
+        val expiresAt = getTokenExpiresAt()
+        return if (expiresAt == 0L) true else System.currentTimeMillis() >= expiresAt
+    }
+    
+    suspend fun clearAuthTokens() {
+        context.dataStore.edit { preferences ->
+            preferences.remove(JWT_TOKEN)
+            preferences.remove(REFRESH_TOKEN)
+            preferences.remove(TOKEN_EXPIRES_AT)
         }
     }
 }

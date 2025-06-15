@@ -5,6 +5,7 @@ import com.digitalgreen.farmerchat.data.UserProfile
 import com.digitalgreen.farmerchat.data.LanguageManager
 import com.digitalgreen.farmerchat.data.CropsManager
 import com.digitalgreen.farmerchat.data.LivestockManager
+import com.digitalgreen.farmerchat.data.ChatMessage
 
 object PromptManager {
     
@@ -119,6 +120,19 @@ object PromptManager {
             appendLine("1. Be in ${language?.englishName ?: "English"}")
             appendLine("2. Be SHORT and CONCISE (maximum 40 characters each)")
             appendLine("3. Be practical and actionable")
+            appendLine("4. Be IMMEDIATELY relevant to the current topic (not future stages)")
+            appendLine("5. Focus on the NEXT logical step or current concern")
+            appendLine("6. Consider the farming stage/timeline appropriately")
+            appendLine()
+            appendLine("Examples of good follow-up questions:")
+            appendLine("- If discussing seed varieties → ask about seed treatment, planting depth, spacing")
+            appendLine("- If discussing pests → ask about identification, organic controls, prevention")
+            appendLine("- If discussing fertilizer → ask about application rates, timing, mixing")
+            appendLine()
+            appendLine("AVOID questions about:")
+            appendLine("- Future stages (e.g., harvest/storage when discussing planting)")
+            appendLine("- Unrelated topics")
+            appendLine("- Generic questions")
             appendLine()
             appendLine("Format the follow-up questions section EXACTLY like this:")
             appendLine("---")
@@ -291,6 +305,57 @@ object PromptManager {
             lines.take(separatorIndex).joinToString("\n").trim()
         } else {
             response.trim()
+        }
+    }
+    
+    fun generateDynamicFollowUpQuestionsPrompt(
+        conversationHistory: List<ChatMessage>,
+        userProfile: UserProfile?
+    ): String {
+        val language = userProfile?.language?.let { LanguageManager.getLanguageByCode(it) }
+        val lastMessages = conversationHistory.takeLast(4) // Last 2 exchanges
+        
+        return buildString {
+            appendLine("Based on this farming conversation, generate 3 immediate follow-up questions.")
+            appendLine()
+            
+            // Include recent conversation context
+            appendLine("RECENT CONVERSATION:")
+            lastMessages.forEach { msg ->
+                val role = if (msg.isUser) "Farmer" else "Assistant"
+                appendLine("$role: ${msg.content.take(200)}")
+            }
+            appendLine()
+            
+            // User context
+            if (!userProfile?.crops.isNullOrEmpty()) {
+                val localizedCrops = userProfile.crops.mapNotNull { cropId ->
+                    CropsManager.getCropById(cropId)?.getLocalizedName(userProfile.language)
+                }
+                appendLine("Farmer's crops: ${localizedCrops.joinToString(", ")}")
+            }
+            
+            if (!userProfile?.livestock.isNullOrEmpty()) {
+                val localizedLivestock = userProfile.livestock.mapNotNull { livestockId ->
+                    LivestockManager.getLivestockById(livestockId)?.getLocalizedName(userProfile.language)
+                }
+                appendLine("Farmer's livestock: ${localizedLivestock.joinToString(", ")}")
+            }
+            
+            appendLine()
+            appendLine("Generate 3 follow-up questions that:")
+            appendLine("1. Are in ${language?.englishName ?: "English"} language")
+            appendLine("2. Are SHORT (maximum 40 characters)")
+            appendLine("3. Directly relate to the CURRENT topic being discussed")
+            appendLine("4. Focus on immediate next steps or clarifications")
+            appendLine("5. Are practical and actionable NOW")
+            appendLine()
+            appendLine("DO NOT generate questions about:")
+            appendLine("- Future farming stages")
+            appendLine("- Unrelated topics")
+            appendLine("- General farming advice")
+            appendLine()
+            appendLine("Format: Return only the 3 questions in ${language?.englishName ?: "English"}, one per line.")
         }
     }
 }

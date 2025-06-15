@@ -7,8 +7,14 @@ export class CacheService {
   private connected: boolean = false;
   
   constructor() {
-    this.redis = new Redis({
-      host: config.redis.url,
+    // Skip Redis if URL not provided
+    if (!config.redis.url) {
+      logger.info('Redis URL not provided, cache service will run in memory-only mode');
+      this.redis = null as any;
+      return;
+    }
+    
+    this.redis = new Redis(config.redis.url, {
       password: config.redis.password,
       db: config.redis.db,
       lazyConnect: true,
@@ -30,6 +36,11 @@ export class CacheService {
   }
   
   async connect(): Promise<void> {
+    if (!this.redis) {
+      logger.info('Cache service running in memory-only mode');
+      return;
+    }
+    
     try {
       await this.redis.connect();
       this.connected = true;

@@ -26,8 +26,10 @@ class ApiChatViewModel(application: Application) : AndroidViewModel(application)
     private val _messages = MutableStateFlow<List<ChatMessage>>(emptyList())
     val messages: StateFlow<List<ChatMessage>> = _messages
     
-    private val _starterQuestions = MutableStateFlow<List<String>>(emptyList())
-    val starterQuestions: StateFlow<List<String>> = _starterQuestions
+    private val _starterQuestions = MutableStateFlow<List<StarterQuestion>>(emptyList())
+    val starterQuestions: StateFlow<List<String>> = _starterQuestions.map { questions ->
+        questions.map { it.question }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(), emptyList())
     
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
@@ -47,6 +49,9 @@ class ApiChatViewModel(application: Application) : AndroidViewModel(application)
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error
     
+    private val _currentMessage = MutableStateFlow("")
+    val currentMessage: StateFlow<String> = _currentMessage
+    
     // Voice recognition state
     val isRecording: StateFlow<Boolean> = speechRecognitionManager.isListening
     val isSpeaking: StateFlow<Boolean> = ttsManager.isSpeaking
@@ -55,6 +60,13 @@ class ApiChatViewModel(application: Application) : AndroidViewModel(application)
     val voiceConfidenceScore: StateFlow<Float> = speechRecognitionManager.confidenceScore
     val voiceConfidenceLevel: SpeechRecognitionManager.ConfidenceLevel 
         get() = speechRecognitionManager.getConfidenceLevel()
+    
+    // Starter questions loading state
+    private val _starterQuestionsLoading = MutableStateFlow(false)
+    val starterQuestionsLoading: StateFlow<Boolean> = _starterQuestionsLoading
+    
+    private val _starterQuestionsError = MutableStateFlow<String?>(null)
+    val starterQuestionsError: StateFlow<String?> = _starterQuestionsError
     
     private var currentConversationId: String? = null
     private var isStreaming = false
@@ -104,15 +116,29 @@ class ApiChatViewModel(application: Application) : AndroidViewModel(application)
     }
     
     private suspend fun loadStarterQuestions() {
+        _starterQuestionsLoading.value = true
+        _starterQuestionsError.value = null
+        
         val profile = _userProfile.value
         repository.getStarterQuestions(
             crops = profile?.crops,
             livestock = profile?.livestock,
             language = profile?.language ?: "en"
         ).onSuccess { apiQuestions ->
-            _starterQuestions.value = apiQuestions.map { it.question }
+            // Convert FollowUpQuestion to StarterQuestion
+            _starterQuestions.value = apiQuestions.map { followUp ->
+                StarterQuestion(
+                    id = followUp.id,
+                    question = followUp.question,
+                    category = "General", // Default category since API doesn't provide it
+                    language = profile?.language ?: "en"
+                )
+            }
+            _starterQuestionsLoading.value = false
         }.onFailure { e ->
             android.util.Log.e("ApiChatViewModel", "Failed to load starter questions", e)
+            _starterQuestionsError.value = "Failed to load starter questions"
+            _starterQuestionsLoading.value = false
         }
     }
     
@@ -180,23 +206,36 @@ class ApiChatViewModel(application: Application) : AndroidViewModel(application)
         }
     }
     
-    fun rateMessage(messageId: String, rating: Int) {
+    fun submitFeedback(messageId: String, rating: Int, comment: String?) {
         viewModelScope.launch {
             repository.rateMessage(messageId, rating).onFailure { e ->
-                android.util.Log.e("ApiChatViewModel", "Failed to rate message", e)
-                _error.value = "Failed to rate message: ${e.message}"
+                android.util.Log.e("ApiChatViewModel", "Failed to submit feedback", e)
+                _error.value = "Failed to submit feedback: ${e.message}"
             }
         }
     }
     
     // Voice recognition methods
-    fun startVoiceRecognition() {
+    fun startRecording() {
         val profile = _userProfile.value
-        speechRecognitionManager.startListening(profile?.language ?: "en")
+        speechRecognitionManager.startListening(
+            languageCode = profile?.language ?: "en",
+            onResult = { text ->
+                _currentMessage.value = text
+            }
+        )
     }
     
-    fun stopVoiceRecognition() {
+    fun stopRecording() {
         speechRecognitionManager.stopListening()
+    }
+    
+    fun clearRecognizedText() {
+        speechRecognitionManager.clearRecognizedText()
+    }
+    
+    fun clearSpeechError() {
+        speechRecognitionManager.clearError()
     }
     
     fun speakMessage(message: String) {
@@ -217,7 +256,7 @@ class ApiChatViewModel(application: Application) : AndroidViewModel(application)
         currentConversationId?.let { conversationId ->
             repository.leaveConversation(conversationId)
         }
-        ttsManager.cleanup()
-        speechRecognitionManager.cleanup()
+        ttsManager.shutdown()
+        speechRecognitionManager.destroy()
     }
 }

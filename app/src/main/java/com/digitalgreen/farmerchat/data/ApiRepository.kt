@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.tasks.await
 
 class ApiRepository(private val context: Context) {
     private val firebaseAuth = FirebaseAuth.getInstance()
@@ -47,7 +48,12 @@ class ApiRepository(private val context: Context) {
             
             result.onSuccess { response ->
                 if (response.success && response.data != null) {
-                    NetworkConfig.setAuthToken(response.data.token)
+                    // Use the new persistent token storage method
+                    NetworkConfig.setAuthTokens(
+                        jwtToken = response.data.token,
+                        refreshToken = response.data.refreshToken,
+                        expiresIn = response.data.expiresIn
+                    )
                     _currentUser.value = response.data.user
                     
                     // Connect WebSocket
@@ -242,7 +248,7 @@ class ApiRepository(private val context: Context) {
         return safeApiCall { NetworkConfig.translationApi.getSupportedLanguages() }
             .mapCatching { response ->
                 if (response.success && response.data != null) {
-                    response.data
+                    response.data.map { it.toDataLanguage() }
                 } else {
                     throw Exception(response.error ?: "Failed to get supported languages")
                 }
@@ -275,7 +281,7 @@ class ApiRepository(private val context: Context) {
     
     // Utility functions
     fun signOut() {
-        NetworkConfig.setAuthToken(null)
+        NetworkConfig.clearAuthTokens()
         _currentUser.value = null
         _conversations.value = emptyList()
         webSocketClient.disconnect()
@@ -287,14 +293,9 @@ class ApiRepository(private val context: Context) {
     private fun getAppVersion(): String {
         return try {
             val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
-            packageInfo.versionName
+            packageInfo.versionName ?: "1.0"
         } catch (e: Exception) {
             "1.0"
         }
     }
-}
-
-// Extension function for Firebase Task to Kotlin coroutines
-suspend fun <T> com.google.android.gms.tasks.Task<T>.await(): T {
-    return kotlinx.coroutines.tasks.await(this)
 }

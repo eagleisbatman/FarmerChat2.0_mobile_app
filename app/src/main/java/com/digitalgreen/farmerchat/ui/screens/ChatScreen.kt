@@ -27,6 +27,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.ViewModelProvider
 import com.digitalgreen.farmerchat.data.ChatMessage
 import com.digitalgreen.farmerchat.data.StarterQuestion
 import com.digitalgreen.farmerchat.ui.components.FeedbackDialog
@@ -52,7 +53,9 @@ import kotlinx.coroutines.launch
 fun ChatScreen(
     conversationId: String,
     onNavigateBack: () -> Unit,
-    viewModel: ChatViewModel = viewModel()
+    viewModel: ApiChatViewModel = viewModel(
+        factory = ViewModelProvider.AndroidViewModelFactory.getInstance(LocalContext.current.applicationContext as android.app.Application)
+    )
 ) {
     val context = LocalContext.current
     val messages by viewModel.messages.collectAsState()
@@ -62,15 +65,16 @@ fun ChatScreen(
     val isRecording by viewModel.isRecording.collectAsState()
     val speechError by viewModel.speechError.collectAsState()
     val followUpQuestions by viewModel.followUpQuestions.collectAsState()
-    val conversationTitles by viewModel.conversationTitles.collectAsState()
     val recognizedText by viewModel.recognizedText.collectAsState()
     val userProfile by viewModel.userProfile.collectAsState()
     val voiceConfidenceScore by viewModel.voiceConfidenceScore.collectAsState()
     val voiceConfidenceLevel = viewModel.voiceConfidenceLevel
     val starterQuestionsLoading by viewModel.starterQuestionsLoading.collectAsState()
     val starterQuestionsError by viewModel.starterQuestionsError.collectAsState()
+    val currentConversation by viewModel.currentConversation.collectAsState()
     
-    val conversationTitle = conversationTitles[conversationId] ?: localizedString(StringKey.NEW_CONVERSATION)
+    val conversationTitle = currentConversation?.getLocalizedTitle(userProfile?.language ?: "en") 
+        ?: localizedString(StringKey.NEW_CONVERSATION)
     
     var textInput by remember { mutableStateOf("") }
     var showFeedbackDialog by remember { mutableStateOf(false) }
@@ -204,10 +208,10 @@ fun ChatScreen(
                         if (!starterQuestionsLoading && starterQuestions.isNotEmpty()) {
                             items(starterQuestions) { question ->
                                 QuestionChip(
-                                    text = question.question,
-                                    category = question.category,
+                                    text = question,
+                                    category = "General", // Default category for API questions
                                     onClick = {
-                                        viewModel.sendMessage(question.question)
+                                        viewModel.sendMessage(question)
                                     },
                                     modifier = Modifier.padding(horizontal = DesignSystem.Spacing.md + DesignSystem.Spacing.xs, vertical = DesignSystem.Spacing.xs)
                                 )

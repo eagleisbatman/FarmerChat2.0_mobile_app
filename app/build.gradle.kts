@@ -63,6 +63,7 @@ dependencies {
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.firebase:firebase-messaging")
     implementation("com.google.firebase:firebase-analytics")
+    implementation("com.google.firebase:firebase-firestore")  // Temporarily needed for existing code
     
     // Network & API
     implementation("com.squareup.retrofit2:retrofit:2.11.0")

@@ -1,4 +1,3 @@
-
 package com.digitalgreen.farmerchat.ui.screens
 
 import androidx.compose.foundation.BorderStroke
@@ -31,6 +30,7 @@ import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Person
 import com.digitalgreen.farmerchat.data.LocationInfo
 import com.digitalgreen.farmerchat.utils.LocationManager
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
@@ -73,6 +73,24 @@ fun OnboardingScreen(
         3 -> LivestockSelectionStep(
             selectedLivestock = state.selectedLivestock,
             onLivestockToggled = viewModel::toggleLivestock,
+            onNext = viewModel::nextStep,
+            onBack = viewModel::previousStep
+        )
+        4 -> RoleSelectionStep(
+            selectedRole = state.role,
+            onRoleSelected = viewModel::updateRole,
+            onNext = viewModel::nextStep,
+            onBack = viewModel::previousStep
+        )
+        5 -> GenderSelectionStep(
+            selectedGender = state.gender,
+            onGenderSelected = viewModel::updateGender,
+            onNext = viewModel::nextStep,
+            onBack = viewModel::previousStep
+        )
+        6 -> NameInputStep(
+            name = state.name,
+            onNameChanged = viewModel::updateName,
             onComplete = {
                 viewModel.completeOnboarding()
                 onOnboardingComplete()
@@ -646,7 +664,7 @@ fun CropSelectionStep(
 fun LivestockSelectionStep(
     selectedLivestock: List<String>,
     onLivestockToggled: (String) -> Unit,
-    onComplete: () -> Unit,
+    onNext: () -> Unit,
     onBack: () -> Unit
 ) {
     var searchQuery by remember { mutableStateOf("") }
@@ -823,11 +841,377 @@ fun LivestockSelectionStep(
             }
             
             Button(
+                onClick = onNext,
+                modifier = Modifier.weight(1f),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+            ) {
+                Text(localizedString(StringKey.CONTINUE), modifier = Modifier.padding(vertical = DesignSystem.Spacing.sm))
+            }
+        }
+    }
+}
+
+@Composable
+fun NameInputStep(
+    name: String,
+    onNameChanged: (String) -> Unit,
+    onComplete: () -> Unit,
+    onBack: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(DesignSystem.Spacing.md)
+    ) {
+        Text(
+            text = localizedString(StringKey.ENTER_YOUR_NAME),
+            fontSize = DesignSystem.Typography.headlineMedium,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(vertical = DesignSystem.Spacing.md)
+        )
+        
+        Text(
+            text = localizedString(StringKey.NAME),
+            fontSize = DesignSystem.Typography.titleSmall,
+            color = secondaryTextColor(),
+            modifier = Modifier.padding(bottom = DesignSystem.Spacing.lg)
+        )
+        
+        Spacer(modifier = Modifier.height(DesignSystem.Spacing.xl))
+        
+        // Name input field
+        OutlinedTextField(
+            value = name,
+            onValueChange = onNameChanged,
+            label = { Text(localizedString(StringKey.NAME)) },
+            placeholder = { Text(localizedString(StringKey.ENTER_YOUR_NAME)) },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true,
+            leadingIcon = {
+                Icon(
+                    imageVector = Icons.Default.Person,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
+        )
+        
+        Spacer(modifier = Modifier.weight(1f))
+        
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.sm)
+        ) {
+            OutlinedButton(
+                onClick = onBack,
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(localizedString(StringKey.BACK), modifier = Modifier.padding(vertical = DesignSystem.Spacing.sm))
+            }
+            
+            Button(
                 onClick = onComplete,
                 modifier = Modifier.weight(1f),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50))
+                enabled = name.isNotBlank(), // Enable only when name is not empty
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
             ) {
-                Text("Start Chatting", modifier = Modifier.padding(vertical = DesignSystem.Spacing.sm))
+                Text(localizedString(StringKey.START_CHATTING), modifier = Modifier.padding(vertical = DesignSystem.Spacing.sm))
+            }
+        }
+    }
+}
+
+@Composable
+fun RoleSelectionStep(
+    selectedRole: String,
+    onRoleSelected: (String) -> Unit,
+    onNext: () -> Unit,
+    onBack: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(DesignSystem.Spacing.md)
+    ) {
+        Text(
+            text = localizedString(StringKey.SELECT_ROLE),
+            fontSize = DesignSystem.Typography.headlineMedium,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(vertical = DesignSystem.Spacing.md)
+        )
+        
+        Text(
+            text = localizedString(StringKey.ROLE_SUBTITLE),
+            fontSize = DesignSystem.Typography.titleSmall,
+            color = secondaryTextColor(),
+            modifier = Modifier.padding(bottom = DesignSystem.Spacing.lg)
+        )
+        
+        Spacer(modifier = Modifier.height(DesignSystem.Spacing.xl))
+        
+        // Role options
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { onRoleSelected("farmer") },
+            colors = CardDefaults.cardColors(
+                containerColor = if (selectedRole == "farmer") {
+                    MaterialTheme.colorScheme.primaryContainer
+                } else {
+                    MaterialTheme.colorScheme.surface
+                }
+            ),
+            elevation = CardDefaults.cardElevation(
+                defaultElevation = if (selectedRole == "farmer") DesignSystem.Spacing.xs else 1.dp
+            ),
+            border = if (selectedRole == "farmer") {
+                BorderStroke(2.dp, MaterialTheme.colorScheme.primary)
+            } else {
+                null
+            }
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(DesignSystem.Spacing.lg),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = localizedString(StringKey.FARMER),
+                        fontSize = DesignSystem.Typography.titleMedium,
+                        fontWeight = if (selectedRole == "farmer") FontWeight.Bold else FontWeight.Normal,
+                        color = if (selectedRole == "farmer") {
+                            MaterialTheme.colorScheme.onPrimaryContainer
+                        } else {
+                            MaterialTheme.colorScheme.onSurface
+                        }
+                    )
+                }
+                if (selectedRole == "farmer") {
+                    Surface(
+                        shape = CircleShape,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(DesignSystem.IconSize.medium)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Check,
+                            contentDescription = "Selected",
+                            tint = MaterialTheme.colorScheme.onPrimary,
+                            modifier = Modifier
+                                .padding(2.dp)
+                                .fillMaxSize()
+                        )
+                    }
+                }
+            }
+        }
+        
+        Spacer(modifier = Modifier.height(DesignSystem.Spacing.md))
+        
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { onRoleSelected("extension_worker") },
+            colors = CardDefaults.cardColors(
+                containerColor = if (selectedRole == "extension_worker") {
+                    MaterialTheme.colorScheme.primaryContainer
+                } else {
+                    MaterialTheme.colorScheme.surface
+                }
+            ),
+            elevation = CardDefaults.cardElevation(
+                defaultElevation = if (selectedRole == "extension_worker") DesignSystem.Spacing.xs else 1.dp
+            ),
+            border = if (selectedRole == "extension_worker") {
+                BorderStroke(2.dp, MaterialTheme.colorScheme.primary)
+            } else {
+                null
+            }
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(DesignSystem.Spacing.lg),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = localizedString(StringKey.EXTENSION_WORKER),
+                        fontSize = DesignSystem.Typography.titleMedium,
+                        fontWeight = if (selectedRole == "extension_worker") FontWeight.Bold else FontWeight.Normal,
+                        color = if (selectedRole == "extension_worker") {
+                            MaterialTheme.colorScheme.onPrimaryContainer
+                        } else {
+                            MaterialTheme.colorScheme.onSurface
+                        }
+                    )
+                }
+                if (selectedRole == "extension_worker") {
+                    Surface(
+                        shape = CircleShape,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(DesignSystem.IconSize.medium)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Check,
+                            contentDescription = "Selected",
+                            tint = MaterialTheme.colorScheme.onPrimary,
+                            modifier = Modifier
+                                .padding(2.dp)
+                                .fillMaxSize()
+                        )
+                    }
+                }
+            }
+        }
+        
+        Spacer(modifier = Modifier.weight(1f))
+        
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.sm)
+        ) {
+            OutlinedButton(
+                onClick = onBack,
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(localizedString(StringKey.BACK), modifier = Modifier.padding(vertical = DesignSystem.Spacing.sm))
+            }
+            
+            Button(
+                onClick = onNext,
+                modifier = Modifier.weight(1f),
+                enabled = selectedRole.isNotEmpty(),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+            ) {
+                Text(localizedString(StringKey.CONTINUE), modifier = Modifier.padding(vertical = DesignSystem.Spacing.sm))
+            }
+        }
+    }
+}
+
+@Composable
+fun GenderSelectionStep(
+    selectedGender: String,
+    onGenderSelected: (String) -> Unit,
+    onNext: () -> Unit,
+    onBack: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(DesignSystem.Spacing.md)
+    ) {
+        Text(
+            text = localizedString(StringKey.SELECT_GENDER),
+            fontSize = DesignSystem.Typography.headlineMedium,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(vertical = DesignSystem.Spacing.md)
+        )
+        
+        Text(
+            text = localizedString(StringKey.GENDER_SUBTITLE),
+            fontSize = DesignSystem.Typography.titleSmall,
+            color = secondaryTextColor(),
+            modifier = Modifier.padding(bottom = DesignSystem.Spacing.lg)
+        )
+        
+        Spacer(modifier = Modifier.height(DesignSystem.Spacing.xl))
+        
+        // Gender options
+        val genderOptions = listOf(
+            "male" to StringKey.MALE,
+            "female" to StringKey.FEMALE,
+            "other" to StringKey.OTHER
+        )
+        
+        genderOptions.forEach { (value, stringKey) ->
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onGenderSelected(value) },
+                colors = CardDefaults.cardColors(
+                    containerColor = if (selectedGender == value) {
+                        MaterialTheme.colorScheme.primaryContainer
+                    } else {
+                        MaterialTheme.colorScheme.surface
+                    }
+                ),
+                elevation = CardDefaults.cardElevation(
+                    defaultElevation = if (selectedGender == value) DesignSystem.Spacing.xs else 1.dp
+                ),
+                border = if (selectedGender == value) {
+                    BorderStroke(2.dp, MaterialTheme.colorScheme.primary)
+                } else {
+                    null
+                }
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(DesignSystem.Spacing.lg),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = localizedString(stringKey),
+                            fontSize = DesignSystem.Typography.titleMedium,
+                            fontWeight = if (selectedGender == value) FontWeight.Bold else FontWeight.Normal,
+                            color = if (selectedGender == value) {
+                                MaterialTheme.colorScheme.onPrimaryContainer
+                            } else {
+                                MaterialTheme.colorScheme.onSurface
+                            }
+                        )
+                    }
+                    if (selectedGender == value) {
+                        Surface(
+                            shape = CircleShape,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(DesignSystem.IconSize.medium)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Check,
+                                contentDescription = "Selected",
+                                tint = MaterialTheme.colorScheme.onPrimary,
+                                modifier = Modifier
+                                    .padding(2.dp)
+                                    .fillMaxSize()
+                            )
+                        }
+                    }
+                }
+            }
+            
+            if (value != "other") {
+                Spacer(modifier = Modifier.height(DesignSystem.Spacing.md))
+            }
+        }
+        
+        Spacer(modifier = Modifier.weight(1f))
+        
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.sm)
+        ) {
+            OutlinedButton(
+                onClick = onBack,
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(localizedString(StringKey.BACK), modifier = Modifier.padding(vertical = DesignSystem.Spacing.sm))
+            }
+            
+            Button(
+                onClick = onNext,
+                modifier = Modifier.weight(1f),
+                enabled = selectedGender.isNotEmpty(),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+            ) {
+                Text(localizedString(StringKey.CONTINUE), modifier = Modifier.padding(vertical = DesignSystem.Spacing.sm))
             }
         }
     }
