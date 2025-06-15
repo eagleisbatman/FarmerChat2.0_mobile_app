@@ -198,7 +198,17 @@ object StringsManager {
         
         // Conversation Management
         DELETE_CONVERSATION_CONFIRM,
-        CONVERSATION_DELETED
+        CONVERSATION_DELETED,
+        
+        // Chat UI
+        YOU,
+        PLAY,
+        STOP,
+        RATE,
+        
+        // Additional actions
+        RESET,
+        RESET_ONBOARDING_CONFIRM
     }
     
     private val translations = mapOf(
@@ -370,7 +380,17 @@ object StringsManager {
             
             // Conversation Management
             StringKey.DELETE_CONVERSATION_CONFIRM to "Are you sure you want to delete this conversation?",
-            StringKey.CONVERSATION_DELETED to "Conversation deleted"
+            StringKey.CONVERSATION_DELETED to "Conversation deleted",
+            
+            // Chat UI
+            StringKey.YOU to "You",
+            StringKey.PLAY to "Play",
+            StringKey.STOP to "Stop",
+            StringKey.RATE to "Rate",
+            
+            // Additional actions
+            StringKey.RESET to "Reset",
+            StringKey.RESET_ONBOARDING_CONFIRM to "Are you sure you want to reset the onboarding process? You will need to set up your preferences again."
         ),
         
         // Hindi
@@ -543,7 +563,17 @@ object StringsManager {
             
             // Conversation Management
             StringKey.DELETE_CONVERSATION_CONFIRM to "क्या आप वाकई इस बातचीत को हटाना चाहते हैं?",
-            StringKey.CONVERSATION_DELETED to "बातचीत हटा दी गई"
+            StringKey.CONVERSATION_DELETED to "बातचीत हटा दी गई",
+            
+            // Chat UI
+            StringKey.YOU to "आप",
+            StringKey.PLAY to "चलाएं",
+            StringKey.STOP to "रोकें",
+            StringKey.RATE to "रेटिंग",
+            
+            // Additional actions
+            StringKey.RESET to "रीसेट करें",
+            StringKey.RESET_ONBOARDING_CONFIRM to "क्या आप वाकई ऑनबोर्डिंग प्रक्रिया को रीसेट करना चाहते हैं? आपको अपनी प्राथमिकताएं फिर से सेट करनी होंगी।"
         ),
         
         // Swahili
@@ -716,7 +746,17 @@ object StringsManager {
             
             // Conversation Management
             StringKey.DELETE_CONVERSATION_CONFIRM to "Je, una uhakika unataka kufuta mazungumzo haya?",
-            StringKey.CONVERSATION_DELETED to "Mazungumzo yamefutwa"
+            StringKey.CONVERSATION_DELETED to "Mazungumzo yamefutwa",
+            
+            // Chat UI
+            StringKey.YOU to "Wewe",
+            StringKey.PLAY to "Cheza",
+            StringKey.STOP to "Simamisha",
+            StringKey.RATE to "Kadiria",
+            
+            // Additional actions
+            StringKey.RESET to "Weka upya",
+            StringKey.RESET_ONBOARDING_CONFIRM to "Je, una uhakika unataka kuweka upya mchakato wa kuanza? Utahitaji kuweka mapendekezo yako tena."
         )
     )
     

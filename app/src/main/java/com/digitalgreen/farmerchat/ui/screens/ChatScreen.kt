@@ -30,7 +30,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.digitalgreen.farmerchat.data.ChatMessage
 import com.digitalgreen.farmerchat.data.StarterQuestion
 import com.digitalgreen.farmerchat.ui.components.FeedbackDialog
-import com.digitalgreen.farmerchat.ui.components.MessageBubble
+import com.digitalgreen.farmerchat.ui.components.MessageBubbleV2
 import com.digitalgreen.farmerchat.ui.components.QuestionChip
 import com.digitalgreen.farmerchat.ui.components.CompactQuestionChip
 import com.digitalgreen.farmerchat.ui.components.VoiceRecordingButton
@@ -195,7 +195,7 @@ fun ChatScreen(
                 } else {
                     // Show chat messages
                     items(messages) { message ->
-                        MessageBubble(
+                        MessageBubbleV2(
                             message = message,
                             onPlayAudio = {
                                 if (isSpeaking) {
@@ -208,7 +208,8 @@ fun ChatScreen(
                             onFeedback = {
                                 feedbackMessageId = message.id
                                 showFeedbackDialog = true
-                            }
+                            },
+                            currentLanguageCode = currentLanguage()
                         )
                     }
                     
@@ -247,9 +248,9 @@ fun ChatScreen(
             }
         }
             
-            // Follow-up questions
+            // Follow-up questions - always visible when available
             AnimatedVisibility(
-                visible = followUpQuestions.isNotEmpty() && !isLoading
+                visible = followUpQuestions.isNotEmpty()
             ) {
                 LazyRow(
                     modifier = Modifier

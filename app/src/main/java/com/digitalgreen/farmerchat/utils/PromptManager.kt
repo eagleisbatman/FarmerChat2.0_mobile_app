@@ -113,14 +113,17 @@ object PromptManager {
             appendLine("Please provide a helpful response following all the guidelines.")
             appendLine()
             appendLine("IMPORTANT: After your main response, you must provide exactly 3 relevant follow-up questions that the farmer might want to ask next.")
-            appendLine("The follow-up questions MUST also be in ${language?.englishName ?: "English"}.")
+            appendLine("The follow-up questions MUST:")
+            appendLine("1. Be in ${language?.englishName ?: "English"}")
+            appendLine("2. Be SHORT and CONCISE (maximum 40 characters each)")
+            appendLine("3. Be practical and actionable")
             appendLine()
             appendLine("Format the follow-up questions section EXACTLY like this:")
             appendLine("---")
             appendLine("**${getFollowUpQuestionHeader(language?.code ?: "en")}**")
-            appendLine("• [Question 1 in ${language?.englishName ?: "English"}]")
-            appendLine("• [Question 2 in ${language?.englishName ?: "English"}]")
-            appendLine("• [Question 3 in ${language?.englishName ?: "English"}]")
+            appendLine("• [Short question 1, max 40 chars]")
+            appendLine("• [Short question 2, max 40 chars]")
+            appendLine("• [Short question 3, max 40 chars]")
         }
     }
     

@@ -86,15 +86,9 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                     ttsManager.setLanguageByCode(languageCode)
                 }
                 
-                // Load starter questions based on user preferences
+                // Generate dynamic starter questions based on user preferences
                 if (profile != null) {
-                    repository.getStarterQuestions(
-                        language = profile.language,
-                        crops = profile.crops,
-                        livestock = profile.livestock
-                    ).onSuccess { questions ->
-                        _starterQuestions.value = questions
-                    }
+                    generateDynamicStarterQuestions(profile)
                 }
                 
                 // Listen to messages for this session
@@ -438,6 +432,63 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
         } catch (e: Exception) {
             android.util.Log.e("ChatViewModel", "Error generating localized title for $languageCode", e)
             ""
+        }
+    }
+    
+    private fun generateDynamicStarterQuestions(userProfile: UserProfile) {
+        viewModelScope.launch {
+            try {
+                // Generate context-aware questions using AI
+                val prompt = PromptManager.generateStarterQuestionPrompt(userProfile)
+                
+                val response = generativeModel.generateContent(
+                    content { text(prompt) }
+                )
+                
+                val generatedQuestions = response.text?.lines()
+                    ?.filter { it.isNotBlank() }
+                    ?.take(5) // Take up to 5 questions
+                    ?: emptyList()
+                
+                if (generatedQuestions.isNotEmpty()) {
+                    // Convert to StarterQuestion objects
+                    val starterQuestions = generatedQuestions.mapIndexed { index, question ->
+                        StarterQuestion(
+                            id = UUID.randomUUID().toString(),
+                            question = question.trim(),
+                            category = when {
+                                userProfile.crops.isNotEmpty() && index < 2 -> "crops"
+                                userProfile.livestock.isNotEmpty() && index < 4 -> "livestock"
+                                else -> "general"
+                            },
+                            language = userProfile.language,
+                            tags = when {
+                                userProfile.crops.isNotEmpty() && index < 2 -> userProfile.crops.take(3)
+                                userProfile.livestock.isNotEmpty() && index < 4 -> userProfile.livestock.take(3)
+                                else -> emptyList()
+                            }
+                        )
+                    }
+                    _starterQuestions.value = starterQuestions
+                } else {
+                    // Fallback to repository questions if generation fails
+                    loadFallbackStarterQuestions(userProfile)
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("ChatViewModel", "Error generating dynamic starter questions", e)
+                // Fallback to repository questions
+                loadFallbackStarterQuestions(userProfile)
+            }
+        }
+    }
+    
+    private suspend fun loadFallbackStarterQuestions(userProfile: UserProfile) {
+        repository.getStarterQuestions(
+            language = userProfile.language,
+            crops = userProfile.crops,
+            livestock = userProfile.livestock
+        ).onSuccess { questions ->
+            _starterQuestions.value = questions
         }
     }
     

@@ -18,7 +18,9 @@ import com.digitalgreen.farmerchat.ui.screens.LivestockSelectionScreen
 sealed class Screen(val route: String) {
     object Splash : Screen("splash")
     object Onboarding : Screen("onboarding")
-    object Conversations : Screen("conversations")
+    object Conversations : Screen("conversations") {
+        fun createRoute(startNewChat: Boolean = false) = if (startNewChat) "conversations?startNewChat=true" else "conversations"
+    }
     object Chat : Screen("chat/{conversationId}") {
         fun createRoute(conversationId: String) = "chat/$conversationId"
     }
@@ -53,21 +55,30 @@ fun FarmerChatNavigation(
         composable(Screen.Onboarding.route) {
             OnboardingScreen(
                 onOnboardingComplete = {
-                    navController.navigate(Screen.Conversations.route) {
+                    // Create new conversation and navigate directly to chat
+                    navController.navigate(Screen.Conversations.createRoute(startNewChat = true)) {
                         popUpTo(Screen.Onboarding.route) { inclusive = true }
                     }
                 }
             )
         }
         
-        composable(Screen.Conversations.route) {
+        composable(
+            Screen.Conversations.route + "?startNewChat={startNewChat}",
+            arguments = listOf(navArgument("startNewChat") { 
+                type = NavType.BoolType
+                defaultValue = false
+            })
+        ) { backStackEntry ->
+            val startNewChat = backStackEntry.arguments?.getBoolean("startNewChat") ?: false
             ConversationsScreen(
                 onNavigateToChat = { conversationId ->
                     navController.navigate(Screen.Chat.createRoute(conversationId))
                 },
                 onNavigateToSettings = {
                     navController.navigate(Screen.Settings.route)
-                }
+                },
+                startNewChat = startNewChat
             )
         }
         

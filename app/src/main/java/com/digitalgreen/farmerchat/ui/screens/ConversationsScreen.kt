@@ -44,6 +44,7 @@ import java.util.*
 fun ConversationsScreen(
     onNavigateToChat: (String) -> Unit,
     onNavigateToSettings: () -> Unit,
+    startNewChat: Boolean = false,
     viewModel: ConversationsViewModel = viewModel()
 ) {
     val conversations by viewModel.conversations.collectAsState()
@@ -71,6 +72,15 @@ fun ConversationsScreen(
                 selectedTags.any { tag -> conversation.tags.contains(tag) }
             
             matchesSearch && matchesTags
+        }
+    }
+    
+    // Handle startNewChat navigation
+    LaunchedEffect(startNewChat) {
+        if (startNewChat) {
+            viewModel.createNewConversation { conversationId ->
+                onNavigateToChat(conversationId)
+            }
         }
     }
     

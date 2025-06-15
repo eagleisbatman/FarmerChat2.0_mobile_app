@@ -55,6 +55,7 @@ fun SettingsScreen(
     var showNameDialog by remember { mutableStateOf(false) }
     var showLocationDialog by remember { mutableStateOf(false) }
     var showResponseLengthDialog by remember { mutableStateOf(false) }
+    var showResetOnboardingDialog by remember { mutableStateOf(false) }
     var editableName by remember { mutableStateOf("") }
     var editableLocation by remember { mutableStateOf("") }
     
@@ -216,10 +217,7 @@ fun SettingsScreen(
                         title = localizedString(StringKey.RESET_ONBOARDING),
                         subtitle = localizedString(StringKey.RESET_ONBOARDING_DESC),
                         onClick = {
-                            coroutineScope.launch {
-                                viewModel.resetOnboarding()
-                                onNavigateToOnboarding()
-                            }
+                            showResetOnboardingDialog = true
                         }
                     )
                 }
@@ -402,6 +400,40 @@ fun SettingsScreen(
             dismissButton = {
                 TextButton(onClick = { showResponseLengthDialog = false }) {
                     Text(localizedString(StringKey.CLOSE))
+                }
+            }
+        )
+    }
+    
+    // Reset Onboarding Confirmation Dialog
+    if (showResetOnboardingDialog) {
+        AlertDialog(
+            onDismissRequest = { showResetOnboardingDialog = false },
+            icon = {
+                Icon(
+                    Icons.Default.RestartAlt,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            },
+            title = { Text(localizedString(StringKey.RESET_ONBOARDING)) },
+            text = { Text(localizedString(StringKey.RESET_ONBOARDING_CONFIRM)) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        coroutineScope.launch {
+                            viewModel.resetOnboarding()
+                            showResetOnboardingDialog = false
+                            onNavigateToOnboarding()
+                        }
+                    }
+                ) {
+                    Text(localizedString(StringKey.RESET))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showResetOnboardingDialog = false }) {
+                    Text(localizedString(StringKey.CANCEL))
                 }
             }
         )
