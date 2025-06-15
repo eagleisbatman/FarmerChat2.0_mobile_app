@@ -25,6 +25,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.compose.ui.platform.LocalContext
 import com.digitalgreen.farmerchat.data.Conversation
 import com.digitalgreen.farmerchat.data.LanguageManager
 import com.digitalgreen.farmerchat.ui.components.FarmerChatAppBar
@@ -45,7 +47,9 @@ fun ConversationsScreen(
     onNavigateToChat: (String) -> Unit,
     onNavigateToSettings: () -> Unit,
     startNewChat: Boolean = false,
-    viewModel: ConversationsViewModel = viewModel()
+    viewModel: ConversationsViewModel = viewModel(
+        factory = ViewModelProvider.AndroidViewModelFactory.getInstance(LocalContext.current.applicationContext as android.app.Application)
+    )
 ) {
     val conversations by viewModel.conversations.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
@@ -435,7 +439,14 @@ fun ConversationItem(
                     Spacer(modifier = Modifier.width(DesignSystem.Spacing.xs))
                 }
                 Text(
-                    conversation.lastMessage,
+                    // Check if this is the default message and localize it
+                    if (conversation.lastMessage == "Start a conversation..." || 
+                        conversation.lastMessage == "बातचीत शुरू करें..." ||
+                        conversation.lastMessage == "Anza mazungumzo...") {
+                        localizedString(StringKey.START_A_CONVERSATION)
+                    } else {
+                        conversation.lastMessage
+                    },
                     fontSize = DesignSystem.Typography.bodyMedium,
                     color = secondaryTextColor(),
                     maxLines = if (conversation.tags.isEmpty()) 2 else 1,
