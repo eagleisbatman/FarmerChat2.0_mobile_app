@@ -58,11 +58,23 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.generativeai)
     
-    // Firebase
+    // Firebase (only FCM and Auth)
     implementation(platform("com.google.firebase:firebase-bom:33.7.0"))
-    implementation("com.google.firebase:firebase-firestore")
     implementation("com.google.firebase:firebase-auth")
+    implementation("com.google.firebase:firebase-messaging")
     implementation("com.google.firebase:firebase-analytics")
+    
+    // Network & API
+    implementation("com.squareup.retrofit2:retrofit:2.11.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.11.0")
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
+    
+    // WebSocket for real-time chat
+    implementation("io.socket:socket.io-client:2.1.0")
+    
+    // JSON handling
+    implementation("com.google.code.gson:gson:2.10.1")
     
     // Navigation
     implementation("androidx.navigation:navigation-compose:2.8.5")

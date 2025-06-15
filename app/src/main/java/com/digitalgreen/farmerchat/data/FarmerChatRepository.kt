@@ -425,4 +425,21 @@ class FarmerChatRepository {
             Result.failure(e)
         }
     }
+    
+    suspend fun getConversation(conversationId: String): Result<Conversation?> {
+        return try {
+            val doc = firestore.collection("conversations")
+                .document(conversationId)
+                .get()
+                .await()
+            
+            if (doc.exists()) {
+                Result.success(doc.toObject(Conversation::class.java))
+            } else {
+                Result.success(null)
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 }

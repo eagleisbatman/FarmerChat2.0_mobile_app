@@ -675,14 +675,57 @@ Title:
 - Improved follow-up question generation
 - Better location-aware responses
 
+## Latest Updates (Chat Interface Improvements)
+
+### RTL Language Support
+- **MessageBubbleV2 Component**: New message bubble component with automatic RTL/LTR alignment
+- **Language-aware rendering**: Arabic, Hebrew, and other RTL languages now display messages right-aligned
+- **LocalLayoutDirection**: Proper RTL support using Compose's LocalLayoutDirection
+- **Space optimization**: Reduced message bubble width to 80% for better readability
+
+### Enhanced Starter Questions
+- **AI-powered generation**: Dynamic questions generated based on user's agricultural profile
+- **Context awareness**: Questions specific to selected crops and livestock
+- **Seasonal relevance**: Questions consider current month for timely advice
+- **Language consistency**: Questions generated in user's selected language
+- **Character limits**: Questions limited to 60 characters for conciseness
+- **Loading indicators**: Visual feedback during question generation
+- **Error handling**: Graceful fallback to database questions if AI generation fails
+
+### Navigation Flow Optimization
+- **Direct to chat**: Users navigate directly to chat after onboarding completion
+- **Skip empty states**: No more empty conversation list after initial setup
+- **Automatic conversation creation**: New conversation created immediately
+- **Navigation parameters**: Support for `startNewChat` parameter in navigation
+
+### Localization Improvements
+- **Display-time localization**: Placeholder text localized when displayed, not stored
+- **New translations**: Added START_A_CONVERSATION, RESET, RESET_ONBOARDING_CONFIRM
+- **AndroidViewModel usage**: ConversationsViewModel converted for context access
+- **StringProvider pattern**: Non-composable string access for ViewModels
+- **Consistent placeholders**: "Start a conversation..." properly localized in all languages
+
+### User Experience Enhancements
+- **Reset confirmation dialog**: Onboarding reset now requires user confirmation
+- **Always visible follow-ups**: Follow-up questions remain visible after AI responses
+- **Shorter follow-up questions**: Limited to 40 characters for better readability
+- **Improved onboarding flow**: Smoother transition from setup to first conversation
+
+### Technical Implementation Details
+- **RTL detection**: `LanguageManager.getLanguageByCode()` checks isRTL property
+- **Dynamic string replacement**: Runtime localization for Firestore-stored placeholders
+- **Prompt engineering**: Enhanced prompts for better starter question generation
+- **ViewModel patterns**: Proper AndroidViewModel usage for application context
+- **Navigation state**: Improved state management during navigation transitions
+
 ## Pending Features
-1. Settings screen for preference management
-2. Conversation search functionality
-3. Tagging system for conversations
-4. Language confidence scoring for voice input
-5. Offline support with local caching
-6. Image-based disease detection
-7. Weather integration
-8. Market price information
-9. Community features
-10. Expert consultation booking
+1. Offline support with local caching
+2. Image-based disease detection
+3. Weather integration
+4. Market price information
+5. Community features
+6. Expert consultation booking
+7. Export conversation history
+8. Voice message playback speed control
+9. Multi-device sync
+10. Push notifications for farming alerts
