@@ -154,7 +154,7 @@ fun ConversationsScreen(
                             IconButton(onClick = { showTagFilter = !showTagFilter }) {
                                 Icon(
                                     if (showTagFilter) Icons.Default.FilterListOff else Icons.Default.FilterList,
-                                    contentDescription = if (showTagFilter) "Hide filters" else "Show filters",
+                                    contentDescription = if (showTagFilter) localizedString(StringKey.HIDE_FILTERS) else localizedString(StringKey.SHOW_FILTERS),
                                     tint = if (selectedTags.isNotEmpty()) DesignSystem.Colors.Primary else Color.White
                                 )
                             }
@@ -289,7 +289,7 @@ fun ConversationsScreen(
                 Spacer(modifier = Modifier.height(DesignSystem.Spacing.sm))
                 Text(
                     if (searchQuery.isNotEmpty()) {
-                        "Try searching with different keywords"
+                        localizedString(StringKey.TRY_DIFFERENT_KEYWORDS)
                     } else {
                         localizedString(StringKey.START_FIRST_CONVERSATION)
                     },
@@ -341,7 +341,7 @@ fun ConversationItem(
         ) {
             // Title
             Text(
-                conversation.title,
+                conversation.getLocalizedTitle(languageCode),
                 fontSize = DesignSystem.Typography.titleSmall,
                 fontWeight = DesignSystem.Typography.Weight.Medium,
                 color = primaryTextColor(),

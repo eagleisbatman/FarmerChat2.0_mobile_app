@@ -44,6 +44,12 @@ object LivestockTranslations {
             "ar" to "جاموس"
         ),
         
+        "bull" to mapOf(
+            "en" to "Bull/Ox",
+            "hi" to "बैल",
+            "sw" to "Ng'ombe dume"
+        ),
+        
         // Goat
         "goat" to mapOf(
             "en" to "Goat",
@@ -156,9 +162,59 @@ object LivestockTranslations {
             "es" to "Pescado",
             "pt" to "Peixe",
             "ar" to "سمك"
-        )
+        ),
         
-        // Add more livestock translations as needed...
+        // Additional livestock
+        "turkey" to mapOf(
+            "en" to "Turkey",
+            "hi" to "टर्की",
+            "sw" to "Bata-mzinga"
+        ),
+        "quail" to mapOf(
+            "en" to "Quail",
+            "hi" to "बटेर",
+            "sw" to "Kware"
+        ),
+        "goose" to mapOf(
+            "en" to "Goose",
+            "hi" to "हंस",
+            "sw" to "Bata-bukini"
+        ),
+        "shrimp" to mapOf(
+            "en" to "Shrimp/Prawn",
+            "hi" to "झींगा",
+            "sw" to "Kamba"
+        ),
+        "rabbit" to mapOf(
+            "en" to "Rabbit",
+            "hi" to "खरगोश",
+            "sw" to "Sungura"
+        ),
+        "horse" to mapOf(
+            "en" to "Horse",
+            "hi" to "घोड़ा",
+            "sw" to "Farasi"
+        ),
+        "donkey" to mapOf(
+            "en" to "Donkey",
+            "hi" to "गधा",
+            "sw" to "Punda"
+        ),
+        "camel" to mapOf(
+            "en" to "Camel",
+            "hi" to "ऊंट",
+            "sw" to "Ngamia"
+        ),
+        "bee" to mapOf(
+            "en" to "Bee",
+            "hi" to "मधुमक्खी",
+            "sw" to "Nyuki"
+        ),
+        "silkworm" to mapOf(
+            "en" to "Silkworm",
+            "hi" to "रेशम कीट",
+            "sw" to "Minyoo ya hariri"
+        )
     )
     
     fun getLivestockName(livestockId: String, languageCode: String): String {

@@ -93,7 +93,8 @@ data class OnboardingState(
 // Conversation/Chat list item
 data class Conversation(
     val id: String = "",
-    val title: String = "",
+    val title: String = "",  // Default title (usually in English)
+    val localizedTitles: Map<String, String> = emptyMap(), // Language code -> Localized title
     val lastMessage: String = "",
     val lastMessageTime: Date = Date(),
     val lastMessageIsUser: Boolean = false,
@@ -102,4 +103,12 @@ data class Conversation(
     val userId: String = "",
     val createdAt: Date = Date(),
     val tags: List<String> = emptyList()
-)
+) {
+    /**
+     * Get the conversation title in the specified language
+     * Falls back to default title if translation not available
+     */
+    fun getLocalizedTitle(languageCode: String): String {
+        return localizedTitles[languageCode] ?: title
+    }
+}

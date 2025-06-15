@@ -1,0 +1,144 @@
+String Key,English,Hindi,Swahili,Context/Location,Status,Notes
+APP_NAME,FarmerChat,FarmerChat,FarmerChat,Brand name,DONE,DO NOT TRANSLATE - Brand name
+CHOOSE_LANGUAGE,Choose your preferred language,अपनी पसंदीदा भाषा चुनें,Chagua lugha unayopendelea,Onboarding,DONE,
+LANGUAGE_SUBTITLE,Select the language you're most comfortable with,वह भाषा चुनें जिसमें आप सबसे सहज हैं,Chagua lugha unayoijua zaidi,Onboarding,DONE,
+WHERE_LOCATED,Where are you located?,आप कहाँ स्थित हैं?,Uko wapi?,Onboarding,DONE,
+LOCATION_SUBTITLE,This helps us provide location-specific advice,यह हमें स्थान-विशिष्ट सलाह प्रदान करने में मदद करता है,Hii inatusaidia kutoa ushauri maalum wa eneo,Onboarding,DONE,
+LOCATION_PERMISSION_RATIONALE,We need location permission to provide accurate local agricultural advice,सटीक स्थानीय कृषि सलाह प्रदान करने के लिए हमें स्थान की अनुमति चाहिए,Tunahitaji ruhusa ya mahali kutoa ushauri sahihi wa kilimo cha eneo,Permission dialog,DONE,
+ENABLE_LOCATION,Enable Location,स्थान सक्षम करें,Wezesha Mahali,Button,DONE,
+DETECT_MY_LOCATION,Detect My Location,मेरा स्थान पता लगाएं,Tambua Mahali Pangu,Button,DONE,
+LOCATION_DETECTED,Location detected:,स्थान का पता चला:,Mahali pametambuliwa:,Status text,DONE,
+GETTING_LOCATION,Getting your location...,आपका स्थान प्राप्त कर रहे हैं...,Tunapata mahali pako...,Loading text,DONE,
+OR_ENTER_MANUALLY,Or enter location manually,या स्थान मैन्युअल रूप से दर्ज करें,Au weka mahali mwenyewe,Label,DONE,
+LOCATION_PLACEHOLDER,"e.g., Nairobi, Kenya","उदा., नई दिल्ली, भारत","mfano, Nairobi, Kenya",Input placeholder,DONE,
+SELECT_CROPS,Which crops do you grow?,आप कौन सी फसलें उगाते हैं?,Unapanda mazao gani?,Onboarding,DONE,
+CROPS_SUBTITLE,Select all that apply,जो लागू हों सभी चुनें,Chagua yote yanayotumika,Subtitle,DONE,
+SELECT_LIVESTOCK,Do you raise any livestock?,क्या आप कोई पशुधन पालते हैं?,Je, unafuga mifugo yoyote?,Onboarding,DONE,
+LIVESTOCK_SUBTITLE,Select all that apply,जो लागू हों सभी चुनें,Chagua yote yanayotumika,Subtitle,DONE,
+CONTINUE,Continue,जारी रखें,Endelea,Button,DONE,
+BACK,Back,वापस,Rudi,Button,DONE,
+NEXT,Next,आगे,Mbele,Button,DONE,
+SKIP,Skip,छोड़ें,Ruka,Button,DONE,
+DONE,Done,पूर्ण,Maliza,Button,DONE,
+CANCEL,Cancel,रद्द करें,Ghairi,Button,DONE,
+OK,OK,ठीक है,Sawa,Button,DONE,
+RETRY,Retry,पुनः प्रयास करें,Jaribu tena,Button,DONE,
+SEARCH,Search,खोजें,Tafuta,Button/Label,DONE,
+CLEAR,Clear,साफ़ करें,Futa,Button,DONE,
+SAVE,Save,सहेजें,Hifadhi,Button,PARTIAL,Missing translations
+SEARCH_CROPS,Search crops,फसलें खोजें,Tafuta mazao,Placeholder,PARTIAL,Missing Swahili
+SEARCH_LIVESTOCK,Search livestock,पशुधन खोजें,Tafuta mifugo,Placeholder,PARTIAL,Missing Swahili
+MY_CONVERSATIONS,My Conversations,मेरी बातचीत,Mazungumzo Yangu,Screen title,DONE,
+NEW_CONVERSATION,New Conversation,नई बातचीत,Mazungumzo Mapya,Button/FAB,DONE,
+NO_CONVERSATIONS,No conversations yet,अभी तक कोई बातचीत नहीं,Hakuna mazungumzo bado,Empty state,DONE,
+START_FIRST_CONVERSATION,Start your first conversation,अपनी पहली बातचीत शुरू करें,Anza mazungumzo yako ya kwanza,Empty state,DONE,
+DELETE_CONVERSATION,Delete Conversation,बातचीत हटाएं,Futa Mazungumzo,Action,PARTIAL,Missing translations
+SEARCH_CONVERSATIONS,Search conversations,बातचीत खोजें,Tafuta mazungumzo,Placeholder,PARTIAL,Missing translations
+TYPE_MESSAGE,Type a message,संदेश टाइप करें,Andika ujumbe,Placeholder,DONE,
+ASK_QUESTION,Ask a question...,प्रश्न पूछें...,Uliza swali...,Placeholder,DONE,
+STARTER_QUESTIONS,Here are some questions to get you started:,शुरू करने के लिए कुछ प्रश्न:,Hapa kuna maswali ya kuanza:,Label,DONE,
+WHAT_TO_KNOW_MORE,What would you like to know more about?,आप किस बारे में और जानना चाहेंगे?,Ungependa kujua zaidi kuhusu nini?,Prompt,DONE,
+LISTENING,Listening...,सुन रहे हैं...,Nasikiliza...,Voice status,DONE,
+TAP_TO_SPEAK,Tap to speak,बोलने के लिए टैप करें,Gusa ili uongee,Button hint,DONE,
+RATE_RESPONSE,Rate this response,इस प्रतिक्रिया को रेट करें,Kadiria jibu hili,Action,PARTIAL,Missing translations
+SPEAK_MESSAGE,Read aloud,जोर से पढ़ें,Soma kwa sauti,Action,PARTIAL,Missing translations
+STOP_SPEAKING,Stop reading,पढ़ना बंद करें,Acha kusoma,Action,PARTIAL,Missing translations
+SETTINGS,Settings,सेटिंग्स,Mipangilio,Screen title,PARTIAL,Missing translations
+PROFILE,Profile,प्रोफ़ाइल,Wasifu,Section title,PARTIAL,Missing translations
+NAME,Name,नाम,Jina,Label,PARTIAL,Missing translations
+LOCATION,Location,स्थान,Mahali,Label,PARTIAL,Missing translations
+CROPS,Crops,फसलें,Mazao,Label,PARTIAL,Missing translations
+LIVESTOCK,Livestock,पशुधन,Mifugo,Label,PARTIAL,Missing translations
+SELECTED,selected,चयनित,iliyochaguliwa,Suffix,PARTIAL,Missing translations
+PREFERENCES,Preferences,प्राथमिकताएं,Mapendeleo,Section title,PARTIAL,Missing translations
+LANGUAGE,Language,भाषा,Lugha,Label,PARTIAL,Missing translations
+VOICE_RESPONSES,Voice Responses,वॉयस प्रतिक्रियाएं,Majibu ya Sauti,Setting,PARTIAL,Missing translations
+VOICE_RESPONSES_DESC,Read AI responses aloud automatically,AI प्रतिक्रियाओं को स्वचालित रूप से जोर से पढ़ें,Soma majibu ya AI kwa sauti moja kwa moja,Description,PARTIAL,Missing translations
+VOICE_INPUT,Voice Input,वॉयस इनपुट,Kuingiza Sauti,Setting,PARTIAL,Missing translations
+VOICE_INPUT_DESC,Enable voice recording for questions,प्रश्नों के लिए वॉयस रिकॉर्डिंग सक्षम करें,Wezesha kurekodi sauti kwa maswali,Description,PARTIAL,Missing translations
+AI_SETTINGS,AI Settings,AI सेटिंग्स,Mipangilio ya AI,Section title,PARTIAL,Missing translations
+RESPONSE_LENGTH,Response Length,प्रतिक्रिया की लंबाई,Urefu wa Majibu,Setting,PARTIAL,Missing translations
+CONCISE,Concise,संक्षिप्त,Mafupi,Option,PARTIAL,Missing translations
+DETAILED,Detailed,विस्तृत,Kwa Kina,Option,PARTIAL,Missing translations
+COMPREHENSIVE,Comprehensive,व्यापक,Kamili,Option,PARTIAL,Missing translations
+FORMATTED_RESPONSES,Formatted Responses,स्वरूपित प्रतिक्रियाएं,Majibu Yaliyopangwa,Setting,PARTIAL,Missing translations
+FORMATTED_RESPONSES_DESC,Show responses with bullets and formatting,बुलेट और फॉर्मेटिंग के साथ प्रतिक्रियाएं दिखाएं,Onyesha majibu yenye alama na mpangilio,Description,PARTIAL,Missing translations
+DATA_PRIVACY,Data & Privacy,डेटा और गोपनीयता,Data na Faragha,Section title,PARTIAL,Missing translations
+EXPORT_DATA,Export My Data,मेरा डेटा निर्यात करें,Hamisha Data Yangu,Action,PARTIAL,Missing translations
+EXPORT_DATA_DESC,Download all your data as JSON,अपना सारा डेटा JSON के रूप में डाउनलोड करें,Pakua data yako yote kama JSON,Description,PARTIAL,Missing translations
+DELETE_ALL_DATA,Delete All Data,सभी डेटा हटाएं,Futa Data Yote,Action,PARTIAL,Missing translations
+DELETE_ALL_DATA_DESC,Permanently delete your account and data,अपना खाता और डेटा स्थायी रूप से हटाएं,Futa akaunti yako na data kabisa,Description,PARTIAL,Missing translations
+DELETE_DATA_CONFIRM,Are you sure you want to delete all your data? This action cannot be undone.,क्या आप वाकई अपना सारा डेटा हटाना चाहते हैं? यह क्रिया पूर्ववत नहीं की जा सकती।,Je una uhakika unataka kufuta data yako yote? Kitendo hiki hakiwezi kutengwa.,Confirmation,PARTIAL,Missing translations
+DELETE,Delete,हटाएं,Futa,Button,PARTIAL,Missing translations
+ABOUT,About,बारे में,Kuhusu,Section title,PARTIAL,Missing translations
+APP_VERSION,App Version,ऐप संस्करण,Toleo la Programu,Label,PARTIAL,Missing translations
+APP_DESCRIPTION,AI-powered agricultural assistant for smallholder farmers,छोटे किसानों के लिए AI-संचालित कृषि सहायक,Msaidizi wa kilimo wa AI kwa wakulima wadogo,Description,PARTIAL,Missing translations
+VERSION,Version,संस्करण,Toleo,Label,PARTIAL,Missing translations
+HELP_FEEDBACK,Help & Feedback,मदद और प्रतिक्रिया,Msaada na Maoni,Setting,PARTIAL,Missing translations
+HELP_FEEDBACK_DESC,Get help or send feedback,मदद प्राप्त करें या प्रतिक्रिया भेजें,Pata msaada au tuma maoni,Description,PARTIAL,Missing translations
+RESET_ONBOARDING,Reset Onboarding,ऑनबोर्डिंग रीसेट करें,Weka upya Uanzishaji,Setting,PARTIAL,Missing translations
+RESET_ONBOARDING_DESC,Go through the setup process again,सेटअप प्रक्रिया से फिर से गुजरें,Pitia mchakato wa kusanidi tena,Description,PARTIAL,Missing translations
+SELECT_LANGUAGE,Select Language,भाषा चुनें,Chagua Lugha,Dialog title,PARTIAL,Missing translations
+CLOSE,Close,बंद करें,Funga,Button,PARTIAL,Missing translations
+ERROR_GENERIC,Something went wrong. Please try again.,कुछ गलत हो गया। कृपया पुनः प्रयास करें।,Kuna kitu kimeenda vibaya. Tafadhali jaribu tena.,Error message,DONE,
+ERROR_NO_INTERNET,No internet connection,इंटरनेट कनेक्शन नहीं है,Hakuna muunganisho wa intaneti,Error message,PARTIAL,Missing translations
+ERROR_LOCATION,Unable to get location. Please check your device settings.,स्थान प्राप्त करने में असमर्थ। कृपया अपनी डिवाइस सेटिंग्स जांचें।,Imeshindwa kupata mahali. Tafadhali angalia mipangilio ya kifaa chako.,Error message,PARTIAL,Missing translations
+ERROR_VOICE_RECOGNITION,Voice recognition error,वॉयस पहचान त्रुटि,Kosa la kutambua sauti,Error message,PARTIAL,Missing translations
+ERROR_AI_RESPONSE,"I apologize, but I'm having trouble responding right now. Please try again.","मुझे खेद है, लेकिन मुझे अभी जवाब देने में परेशानी हो रही है। कृपया पुनः प्रयास करें।","Samahani, nina shida kujibu sasa hivi. Tafadhali jaribu tena.",Error message,DONE,
+VOICE_NOT_AVAILABLE,Voice recognition is not available on this device,इस डिवाइस पर वॉयस पहचान उपलब्ध नहीं है,Utambuzi wa sauti haupatikani kwenye kifaa hiki,Error message,PARTIAL,Missing translations
+MICROPHONE_PERMISSION_REQUIRED,Microphone permission is required for voice input,वॉयस इनपुट के लिए माइक्रोफ़ोन अनुमति आवश्यक है,Ruhusa ya kipaza sauti inahitajika kwa kuingiza sauti,Permission message,PARTIAL,Missing translations
+PROCESSING,Processing...,प्रसंस्करण...,Inachakata...,Status,PARTIAL,Missing translations
+SEND,Send,भेजें,Tuma,Button,PARTIAL,Missing translations
+HOW_HELPFUL,How helpful was this response?,यह प्रतिक्रिया कितनी सहायक थी?,Je jibu hili lilikuwa la kusaidia kiasi gani?,Feedback dialog,PARTIAL,Missing translations
+RATE_THIS_RESPONSE,Rate this response,इस प्रतिक्रिया को रेट करें,Kadiria jibu hili,Feedback dialog,PARTIAL,Missing translations
+ADD_COMMENT,Add a comment (optional),टिप्पणी जोड़ें (वैकल्पिक),Ongeza maoni (hiari),Feedback dialog,PARTIAL,Missing translations
+SUBMIT_FEEDBACK,Submit Feedback,प्रतिक्रिया जमा करें,Wasilisha Maoni,Button,PARTIAL,Missing translations
+THANK_YOU_FEEDBACK,Thank you for your feedback!,आपकी प्रतिक्रिया के लिए धन्यवाद!,Asante kwa maoni yako!,Success message,PARTIAL,Missing translations
+CHANGE,Change,बदलें,Badilisha,Button,PARTIAL,Missing translations
+DATA_EXPORTED,Data Exported,डेटा निर्यात किया गया,Data Imehamishwa,Success title,PARTIAL,Missing translations
+DATA_EXPORTED_MESSAGE,Your data has been exported successfully,आपका डेटा सफलतापूर्वक निर्यात किया गया है,Data yako imehamishwa kwa mafanikio,Success message,PARTIAL,Missing translations
+DATA_DELETED,Data Deleted,डेटा हटाया गया,Data Imefutwa,Success title,PARTIAL,Missing translations
+DATA_DELETED_MESSAGE,Your account and all data have been deleted,आपका खाता और सभी डेटा हटा दिए गए हैं,Akaunti yako na data yote zimefutwa,Success message,PARTIAL,Missing translations
+FAILED,Failed,असफल,Imeshindwa,Error title,PARTIAL,Missing translations
+EXPORT_DATA_ERROR,Failed to export data. Please try again.,डेटा निर्यात करने में विफल। कृपया पुनः प्रयास करें।,Imeshindwa kuhamisha data. Tafadhali jaribu tena.,Error message,PARTIAL,Missing translations
+DELETE_ACCOUNT_ERROR,Failed to delete account. Please try again.,खाता हटाने में विफल। कृपया पुनः प्रयास करें।,Imeshindwa kufuta akaunti. Tafadhali jaribu tena.,Error message,PARTIAL,Missing translations
+CONFIDENCE_HIGH,High,उच्च,Juu,Voice confidence,PARTIAL,Missing translations
+CONFIDENCE_MEDIUM,Medium,मध्यम,Kati,Voice confidence,PARTIAL,Missing translations
+CONFIDENCE_LOW,Low,कम,Chini,Voice confidence,PARTIAL,Missing translations
+MORE,More,अधिक,Zaidi,Button/Label,PARTIAL,Missing translations
+ASK_ME_ANYTHING,Ask me anything or try one of the below:,मुझसे कुछ भी पूछें या नीचे से एक प्रयास करें:,Niulize chochote au jaribu mojawapo ya zifuatazo:,Chat prompt,PARTIAL,Missing translations
+NO_RESULTS_FOUND,No results found,कोई परिणाम नहीं मिला,Hakuna matokeo yaliyopatikana,Search empty state,PARTIAL,Missing translations
+YESTERDAY,Yesterday,कल,Jana,Date label,DONE,
+START_CHATTING,Start Chatting,चैट शुरू करें,Anza Kuzungumza,Button,PARTIAL,Missing translations
+EMPOWERING_FARMERS_WITH_AI,Empowering Farmers with AI,AI के साथ किसानों को सशक्त बनाना,Kuwezesha Wakulima kwa AI,Tagline,PARTIAL,Missing translations
+COPYRIGHT,© 2024 Digital Green,© 2024 डिजिटल ग्रीन,© 2024 Digital Green,Copyright,PARTIAL,Missing translations
+ALL,All,सभी,Yote,Filter option,PARTIAL,Missing translations
+SELECTED_WITH_CHECK,Selected,चयनित,Iliyochaguliwa,Status with checkmark,PARTIAL,Missing translations
+CROPS_SELECTED,crops selected,फसलें चयनित,mazao yaliyochaguliwa,Count suffix,PARTIAL,Missing translations
+ANIMALS_SELECTED,animals selected,पशु चयनित,wanyama waliochaguliwa,Count suffix,PARTIAL,Missing translations
+SHOW_FILTERS,Show filters,फ़िल्टर दिखाएं,Onyesha vichujio,Button,NEW,Missing all translations
+HIDE_FILTERS,Hide filters,फ़िल्टर छुपाएं,Ficha vichujio,Button,NEW,Missing all translations
+TRY_DIFFERENT_KEYWORDS,Try searching with different keywords,अलग कीवर्ड्स के साथ खोजने का प्रयास करें,Jaribu kutafuta kwa maneno tofauti,Search hint,NEW,Missing all translations
+ADDITIONAL_FEEDBACK_OPTIONAL,Additional feedback (optional),अतिरिक्त प्रतिक्रिया (वैकल्पिक),Maoni ya ziada (hiari),Placeholder,NEW,Missing all translations
+TELL_US_MORE,Tell us more...,हमें और बताएं...,Tuambie zaidi...,Placeholder,NEW,Missing all translations
+STAR_RATING,Star {0},स्टार {0},Nyota {0},Accessibility label,NEW,Missing all translations
+DEFAULT_USER_NAME,Farmer {0},किसान {0},Mkulima {0},Default name pattern,NEW,Missing all translations
+EXPORT_FARMERCHAT_DATA,Export FarmerChat Data,FarmerChat डेटा निर्यात करें,Hamisha Data ya FarmerChat,Intent chooser title,NEW,Missing all translations
+FAILED_TO_EXPORT,Failed to export data: {0},डेटा निर्यात करने में विफल: {0},Imeshindwa kuhamisha data: {0},Error with reason,NEW,Missing all translations
+NO_PROFILE_DATA,No profile data,कोई प्रोफ़ाइल डेटा नहीं,Hakuna data ya wasifu,Empty state,NEW,Missing all translations
+USER_NOT_AUTHENTICATED,User not authenticated,उपयोगकर्ता प्रमाणित नहीं है,Mtumiaji hajathibitishwa,Error message,NEW,Missing all translations
+RESET_COMPLETE,Reset complete,रीसेट पूर्ण,Kuweka upya kumekamilika,Success message,NEW,Need to add
+SETTINGS_SAVED,Settings saved,सेटिंग्स सहेजी गईं,Mipangilio imehifadhiwa,Success message,NEW,Need to add
+EDIT_NAME,Edit Name,नाम संपादित करें,Hariri Jina,Dialog title,NEW,Need to add
+ENTER_YOUR_NAME,Enter your name,अपना नाम दर्ज करें,Weka jina lako,Input hint,NEW,Need to add
+EDIT_LOCATION,Edit Location,स्थान संपादित करें,Hariri Mahali,Dialog title,NEW,Need to add
+UPDATE_CROPS,Update Crops,फसलें अपडेट करें,Sasisha Mazao,Screen title,NEW,Need to add
+UPDATE_LIVESTOCK,Update Livestock,पशुधन अपडेट करें,Sasisha Mifugo,Screen title,NEW,Need to add
+PERMISSION_DENIED,Permission denied,अनुमति अस्वीकृत,Ruhusa imekataliwa,Error message,NEW,Need to add
+LOCATION_SERVICES_DISABLED,Location services are disabled,स्थान सेवाएं अक्षम हैं,Huduma za mahali zimezimwa,Error message,NEW,Need to add
+RECORDING_ERROR,Recording error,रिकॉर्डिंग त्रुटि,Kosa la kurekodi,Error message,NEW,Need to add
+NETWORK_ERROR,Network error,नेटवर्क त्रुटि,Kosa la mtandao,Error message,NEW,Need to add
+TIMEOUT_ERROR,Request timed out,अनुरोध समय समाप्त,Ombi limeisha muda,Error message,NEW,Need to add
+CONFIRM_DELETE,Confirm Delete,हटाना पुष्टि करें,Thibitisha Kufuta,Dialog title,NEW,Need to add
+ARE_YOU_SURE,Are you sure?,क्या आप निश्चित हैं?,Una uhakika?,Confirmation prompt,NEW,Need to add
+THIS_ACTION_CANNOT_BE_UNDONE,This action cannot be undone,यह क्रिया पूर्ववत नहीं की जा सकती,Kitendo hiki hakiwezi kutengwa,Warning message,NEW,Need to add

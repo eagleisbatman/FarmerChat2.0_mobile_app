@@ -10,8 +10,12 @@ import android.util.Log
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import java.util.Locale
+import com.digitalgreen.farmerchat.utils.StringsManager.StringKey
 
-class SpeechRecognitionManager(private val context: Context) {
+class SpeechRecognitionManager(
+    private val context: Context,
+    private val stringProvider: StringProvider? = null
+) {
     private var speechRecognizer: SpeechRecognizer? = null
     private var recognitionIntent: Intent? = null
     
@@ -38,7 +42,8 @@ class SpeechRecognitionManager(private val context: Context) {
             setupRecognitionIntent()
             setupRecognitionListener()
         } else {
-            _error.value = "Speech recognition is not available on this device"
+            _error.value = stringProvider?.getString(StringKey.SPEECH_NOT_AVAILABLE) 
+                ?: "Speech recognition is not available on this device"
         }
     }
     

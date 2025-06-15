@@ -10,6 +10,8 @@ import com.digitalgreen.farmerchat.BuildConfig
 import com.digitalgreen.farmerchat.data.FarmerChatRepository
 import com.digitalgreen.farmerchat.data.LanguageManager
 import com.digitalgreen.farmerchat.utils.PreferencesManager
+import com.digitalgreen.farmerchat.utils.StringProvider
+import com.digitalgreen.farmerchat.utils.StringsManager.StringKey
 import com.google.firebase.auth.FirebaseAuth
 // Remove Hilt imports as we're not using dependency injection
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -39,7 +41,8 @@ data class SettingsState(
 
 class SettingsViewModel(
     private val repository: FarmerChatRepository,
-    private val preferencesManager: PreferencesManager
+    private val preferencesManager: PreferencesManager,
+    private val stringProvider: StringProvider
 ) : ViewModel() {
     
     private val _settingsState = MutableStateFlow(SettingsState())
@@ -61,7 +64,7 @@ class SettingsViewModel(
                     userProfile?.let { profile ->
                         _settingsState.update { state ->
                             state.copy(
-                                userName = "Farmer ${userId.take(6)}", // Generate a default name
+                                userName = stringProvider.getString(StringKey.DEFAULT_USER_NAME, userId.take(6)),
                                 userLocation = profile.locationInfo?.formattedAddress ?: profile.location,
                                 selectedCrops = profile.crops,
                                 selectedLivestock = profile.livestock,
@@ -226,10 +229,10 @@ class SettingsViewModel(
                     addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 }
                 
-                context.startActivity(Intent.createChooser(shareIntent, "Export FarmerChat Data"))
+                context.startActivity(Intent.createChooser(shareIntent, stringProvider.getString(StringKey.EXPORT_FARMERCHAT_DATA)))
                 
             } catch (e: Exception) {
-                Toast.makeText(context, "Failed to export data: ${e.message}", Toast.LENGTH_LONG).show()
+                Toast.makeText(context, stringProvider.getString(StringKey.FAILED_TO_EXPORT, e.message ?: ""), Toast.LENGTH_LONG).show()
             }
         }
     }

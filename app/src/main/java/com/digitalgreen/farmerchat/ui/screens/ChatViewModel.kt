@@ -10,6 +10,8 @@ import com.digitalgreen.farmerchat.utils.SpeechRecognitionManager
 import com.digitalgreen.farmerchat.utils.TextToSpeechManager
 import com.digitalgreen.farmerchat.utils.PromptManager
 import com.digitalgreen.farmerchat.utils.TagManager
+import com.digitalgreen.farmerchat.utils.StringProvider
+import com.digitalgreen.farmerchat.utils.StringsManager.StringKey
 import com.google.ai.client.generativeai.GenerativeModel
 import com.google.ai.client.generativeai.type.content
 import kotlinx.coroutines.flow.*
@@ -19,8 +21,9 @@ import java.util.*
 class ChatViewModel(application: Application) : AndroidViewModel(application) {
     private val repository = FarmerChatRepository()
     private val preferencesManager = PreferencesManager(application)
+    private val stringProvider = StringProvider.create(application)
     private val ttsManager = TextToSpeechManager(application)
-    private val speechRecognitionManager = SpeechRecognitionManager(application)
+    private val speechRecognitionManager = SpeechRecognitionManager(application, stringProvider)
     
     // Generative AI model
     private val generativeModel = GenerativeModel(
@@ -196,7 +199,7 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                 android.util.Log.e("ChatViewModel", "Error generating AI response", e)
                 val errorMessage = ChatMessage(
                     id = UUID.randomUUID().toString(),
-                    content = "I apologize, but I'm having trouble responding right now. Please try again.",
+                    content = stringProvider.getString(StringKey.ERROR_AI_RESPONSE),
                     isUser = false,
                     timestamp = Date(),
                     audioUrl = null,
@@ -295,9 +298,10 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                 
                 // Check if we already have a generated title
                 val existingTitle = _conversationTitles.value[conversationId]
-                val shouldGenerateTitle = existingTitle == null || existingTitle == "New Conversation"
+                val defaultTitle = stringProvider.getString(StringKey.NEW_CONVERSATION)
+                val shouldGenerateTitle = existingTitle == null || existingTitle == defaultTitle
                 
-                var title = existingTitle ?: "New Conversation"
+                var title = existingTitle ?: defaultTitle
                 
                 // Generate intelligent title after first AI response
                 if (shouldGenerateTitle && userMessages.isNotEmpty() && aiMessages.isNotEmpty()) {
@@ -337,9 +341,33 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                 
                 android.util.Log.d("ChatViewModel", "Updating conversation: id=$conversationId, title=$title, userId=$userId, tags=$tags")
                 
+                // Generate titles in multiple languages
+                val localizedTitles = mutableMapOf<String, String>()
+                localizedTitles["en"] = title // English title is already generated
+                
+                // Generate titles for other priority languages
+                if (userMessages.isNotEmpty() && aiMessages.isNotEmpty()) {
+                    val firstUserQuery = userMessages.first().content
+                    val firstAiResponse = aiMessages.first().content.take(200)
+                    val priorityLanguages = listOf("hi", "sw", "es", "fr", "bn")
+                    for (lang in priorityLanguages) {
+                        if (lang != "en") {
+                            try {
+                                val localizedTitle = generateLocalizedTitle(firstUserQuery, firstAiResponse, lang)
+                                if (localizedTitle.isNotEmpty()) {
+                                    localizedTitles[lang] = localizedTitle
+                                }
+                            } catch (e: Exception) {
+                                android.util.Log.e("ChatViewModel", "Failed to generate title for language: $lang", e)
+                            }
+                        }
+                    }
+                }
+                
                 val conversation = Conversation(
                     id = conversationId,
                     title = title,
+                    localizedTitles = localizedTitles,
                     lastMessage = lastMessage.content.take(100),
                     lastMessageTime = lastMessage.timestamp,
                     lastMessageIsUser = lastMessage.isUser,
@@ -385,6 +413,31 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
             firstQuery.contains("goat", ignoreCase = true) || firstQuery.contains("sheep", ignoreCase = true) -> "Small Ruminants"
             firstQuery.length > 30 -> firstQuery.take(27) + "..."
             else -> firstQuery.take(30)
+        }
+    }
+    
+    private suspend fun generateLocalizedTitle(userQuery: String, aiResponse: String, languageCode: String): String {
+        return try {
+            val languageName = LanguageManager.getLanguageByCode(languageCode)?.englishName ?: "English"
+            val prompt = """
+                Based on this farming conversation, generate a concise title (2-4 words) in $languageName language:
+                
+                User Query: $userQuery
+                AI Response (excerpt): $aiResponse
+                
+                Generate ONLY the title in $languageName, nothing else.
+                
+                Title:
+            """.trimIndent()
+            
+            val response = generativeModel.generateContent(
+                content { text(prompt) }
+            )
+            
+            response.text?.trim()?.take(50) ?: ""
+        } catch (e: Exception) {
+            android.util.Log.e("ChatViewModel", "Error generating localized title for $languageCode", e)
+            ""
         }
     }
     
