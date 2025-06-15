@@ -80,7 +80,16 @@ router.post('/verify', async (req: Request, res: Response, next: NextFunction) =
     
     const result = await authService.verifyFirebaseToken(idToken);
     
-    res.json(result);
+    res.json({
+      success: true,
+      data: {
+        token: result.accessToken,
+        refreshToken: result.refreshToken,
+        expiresIn: result.expiresIn,
+        user: result.user
+      },
+      error: null
+    });
   } catch (error) {
     next(error);
   }
@@ -97,7 +106,16 @@ router.post('/refresh', async (req: Request, res: Response, next: NextFunction) 
     
     const result = await authService.refreshToken(refreshToken);
     
-    res.json(result);
+    res.json({
+      success: true,
+      data: {
+        token: result.accessToken,
+        refreshToken: result.refreshToken,
+        expiresIn: result.expiresIn,
+        user: result.user
+      },
+      error: null
+    });
   } catch (error) {
     next(error);
   }

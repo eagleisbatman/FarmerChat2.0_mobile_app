@@ -78,26 +78,22 @@ object NetworkConfig {
         val request = chain.request().newBuilder().apply {
             Log.d(TAG, "=== AUTH INTERCEPTOR DEBUG ===")
             Log.d(TAG, "Request URL: ${chain.request().url}")
-            Log.d(TAG, "PreferencesManager initialized: ${::preferencesManager.isInitialized}")
-            Log.d(TAG, "In-memory authToken: ${authToken?.take(10) ?: "null"}")
             
-            // Always try to get the latest token from storage
-            val currentToken = if (::preferencesManager.isInitialized) {
-                val storedToken = preferencesManager.getJwtToken()
-                val isExpired = preferencesManager.isTokenExpired()
-                Log.d(TAG, "Stored token: ${storedToken?.take(10) ?: "null"}")
-                Log.d(TAG, "Token expired: $isExpired")
-                
-                if (storedToken != null && !isExpired) {
-                    storedToken
-                } else {
-                    authToken // fallback to in-memory token
-                }
-            } else {
-                authToken // fallback to in-memory token
+            // Simple approach: use in-memory token first, then check storage
+            val currentToken = authToken ?: run {
+                if (::preferencesManager.isInitialized) {
+                    val storedToken = preferencesManager.getJwtToken()
+                    val isExpired = preferencesManager.isTokenExpired()
+                    Log.d(TAG, "Checking stored token - exists: ${storedToken != null}, expired: $isExpired")
+                    if (storedToken != null && !isExpired) {
+                        // Update in-memory token from storage
+                        authToken = storedToken
+                        storedToken
+                    } else null
+                } else null
             }
             
-            Log.d(TAG, "Final token to use: ${currentToken?.take(10) ?: "null"}")
+            Log.d(TAG, "Token to use: ${currentToken?.take(20) ?: "null"}...")
             
             currentToken?.let { token ->
                 addHeader("Authorization", "Bearer $token")

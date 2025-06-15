@@ -2,14 +2,25 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## 🚨 Important: No Existing Users - API-Only Mode
-**There are NO existing users in this application.** This is a new deployment, so:
-- ✅ Use API-based repositories (AppRepository, ApiRepository) directly
-- ❌ Remove Firebase Firestore functionality (except Auth)
-- ❌ Remove migration code (MigrationManager) 
-- ❌ Remove hybrid ViewModels (HybridChatViewModel, HybridConversationsViewModel)
-- ✅ Use ApiChatViewModel and ApiConversationsViewModel directly
-- ✅ Simplify architecture by removing backward compatibility
+## 🚨 Firebase to Node.js/Neon PostgreSQL Migration Status
+
+### Migration Complete ✅ with Outstanding Issue ❌
+
+**Architecture**: Successfully migrated from Firebase-only to **Node.js + Neon PostgreSQL** backend with Firebase Auth for phone OTP only.
+
+**Current Issue**: JWT tokens not being sent with API requests despite successful authentication.
+
+**Status**: 
+- ✅ Backend: Node.js + Express + TypeScript running on port 3002
+- ✅ Database: Neon PostgreSQL (Project: `spring-flower-04114371`) 
+- ✅ API Endpoints: Complete RESTful API with Swagger docs
+- ✅ Authentication: Firebase → Backend JWT exchange working
+- ❌ **Token Authorization**: JWT tokens not included in HTTP requests
+- ❌ **App Functionality**: Settings empty, chat inaccessible
+
+**Next Steps**: Debug token storage/retrieval in Android app's NetworkConfig auth interceptor.
+
+**Important**: No existing users - fresh deployment, API-only mode enabled.
 
 ## Common Development Commands
 
