@@ -19,7 +19,7 @@ import kotlinx.coroutines.launch
 import java.util.*
 
 class ChatViewModel(application: Application) : AndroidViewModel(application) {
-    private val repository = FarmerChatRepository()
+    private val repository = (application as com.digitalgreen.farmerchat.FarmerChatApplication).repository
     private val preferencesManager = PreferencesManager(application)
     private val stringProvider = StringProvider.create(application)
     private val ttsManager = TextToSpeechManager(application)
