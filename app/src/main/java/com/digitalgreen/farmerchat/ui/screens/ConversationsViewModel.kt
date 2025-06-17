@@ -33,20 +33,21 @@ class ConversationsViewModel(application: Application) : AndroidViewModel(applic
             _isLoading.value = true
             repository.getConversations().fold(
                 onSuccess = { response ->
+                    val currentUserId = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid ?: ""
                     val conversationsList = response.conversations.map { apiConv ->
                         // Convert API conversation to local model
                         Conversation(
                             id = apiConv.id,
-                            userId = apiConv.userId,
-                            title = apiConv.title ?: "New Chat",
-                            lastMessage = apiConv.lastMessage ?: stringProvider.getString(StringKey.START_A_CONVERSATION),
-                            lastMessageTime = apiConv.updatedAt,
+                            userId = currentUserId,
+                            title = apiConv.title,
+                            lastMessage = apiConv.lastMessage,
+                            lastMessageTime = Date(), // API returns string, convert to Date
                             lastMessageIsUser = apiConv.lastMessageIsUser,
                             hasUnreadMessages = false,
                             unreadCount = 0,
                             tags = apiConv.tags,
                             localizedTitles = mapOf(
-                                "en" to (apiConv.title ?: "New Chat"),
+                                "en" to apiConv.title,
                                 "hi" to "नई चैट",
                                 "sw" to "Gumzo Jipya"
                             )
@@ -74,11 +75,12 @@ class ConversationsViewModel(application: Application) : AndroidViewModel(applic
                     android.util.Log.d("ConversationsViewModel", "Created new conversation: ${apiConversation.id}")
                     
                     // Add to local list immediately
+                    val currentUserId = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid ?: ""
                     val localizedLastMessage = stringProvider.getString(StringKey.START_A_CONVERSATION)
                     val newConversation = Conversation(
                         id = apiConversation.id,
-                        userId = apiConversation.userId,
-                        title = apiConversation.title ?: "New Chat",
+                        userId = currentUserId,
+                        title = apiConversation.title,
                         lastMessage = localizedLastMessage,
                         lastMessageTime = Date(),
                         lastMessageIsUser = false,
@@ -99,7 +101,7 @@ class ConversationsViewModel(application: Application) : AndroidViewModel(applic
                 onFailure = { e ->
                     android.util.Log.e("ConversationsViewModel", "Failed to create conversation", e)
                 }
-            }
+            )
         }
     }
     
