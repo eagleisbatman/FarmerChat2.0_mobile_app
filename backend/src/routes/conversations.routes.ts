@@ -73,7 +73,7 @@ router.post('/', authenticate, async (req: AuthRequest, res) => {
       `INSERT INTO conversations (id, user_id, title, tags, created_at, updated_at)
        VALUES ($1, $2, $3, $4, NOW(), NOW())
        RETURNING *`,
-      [conversationId, req.userId, title, JSON.stringify(tags)]
+      [conversationId, req.userId, title, tags]
     );
 
     res.json({
@@ -150,7 +150,7 @@ router.put('/:id', authenticate, async (req: AuthRequest, res) => {
 
     if (tags !== undefined) {
       setClauses.push(`tags = $${paramIndex++}`);
-      values.push(JSON.stringify(tags));
+      values.push(tags);
     }
 
     setClauses.push(`updated_at = NOW()`);

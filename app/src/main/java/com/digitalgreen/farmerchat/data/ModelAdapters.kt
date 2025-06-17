@@ -24,6 +24,8 @@ fun ApiUser.toUserProfile(): UserProfile {
         location = this.location ?: "",
         crops = this.crops,
         livestock = this.livestock,
+        role = this.role ?: "",
+        gender = this.gender ?: "",
         hasCompletedOnboarding = true, // If they have an API profile, they've completed onboarding
         createdAt = parseApiDate(this.createdAt) ?: Date(),
         lastUpdated = parseApiDate(this.updatedAt) ?: Date()
