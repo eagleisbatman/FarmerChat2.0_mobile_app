@@ -182,16 +182,60 @@ class ApiChatViewModel(application: Application) : AndroidViewModel(application)
     }
     
     fun sendMessage(message: String) {
-        val conversationId = currentConversationId ?: return
+        android.util.Log.d("ApiChatViewModel", "sendMessage called with: $message")
+        android.util.Log.d("ApiChatViewModel", "currentConversationId: $currentConversationId")
+        
+        val conversationId = currentConversationId
+        if (conversationId == null) {
+            android.util.Log.e("ApiChatViewModel", "Cannot send message - no conversation ID")
+            _error.value = "No active conversation"
+            return
+        }
         
         viewModelScope.launch {
             _isLoading.value = true
             _error.value = null
             
-            // Use streaming for real-time response
-            isStreaming = true
-            _currentStreamingMessage.value = ""
-            repository.startStreamingMessage(message, conversationId)
+            // Add user message to the list immediately
+            val userMessage = ChatMessage(
+                id = UUID.randomUUID().toString(),
+                content = message,
+                isUser = true,
+                timestamp = Date(),
+                isVoiceMessage = false
+            )
+            _messages.value = _messages.value + userMessage
+            
+            android.util.Log.d("ApiChatViewModel", "Sending message via HTTP...")
+            
+            // Use HTTP endpoint for now instead of WebSocket
+            repository.sendMessage(message, conversationId).onSuccess { response ->
+                // Add AI response to messages
+                val aiMessage = ChatMessage(
+                    id = UUID.randomUUID().toString(),
+                    content = response.response,
+                    isUser = false,
+                    timestamp = Date(),
+                    isVoiceMessage = false
+                )
+                _messages.value = _messages.value + aiMessage
+                
+                // Update follow-up questions
+                _followUpQuestions.value = response.followUpQuestions.map { it.question }
+                
+                // Update conversation title if provided
+                response.title?.let { newTitle ->
+                    _currentConversation.value = _currentConversation.value?.copy(title = newTitle)
+                }
+                
+                _isLoading.value = false
+            }.onFailure { e ->
+                android.util.Log.e("ApiChatViewModel", "Failed to send message", e)
+                _error.value = "Failed to send message: ${e.message}"
+                _isLoading.value = false
+                // Remove the user message on failure
+                _messages.value = _messages.value.filter { it.id != userMessage.id }
+            }
         }
     }
     

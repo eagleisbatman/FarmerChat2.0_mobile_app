@@ -75,52 +75,56 @@ object NetworkConfig {
     }
     
     private val authInterceptor = Interceptor { chain ->
-        val request = chain.request().newBuilder().apply {
-            Log.d(TAG, "=== AUTH INTERCEPTOR DEBUG ===")
-            Log.d(TAG, "Request URL: ${chain.request().url}")
-            
-            // Simple approach: use in-memory token first, then check storage
-            val currentToken = authToken ?: run {
-                if (::preferencesManager.isInitialized) {
-                    val storedToken = preferencesManager.getJwtToken()
-                    val isExpired = preferencesManager.isTokenExpired()
-                    Log.d(TAG, "Checking stored token - exists: ${storedToken != null}, expired: $isExpired")
-                    if (storedToken != null && !isExpired) {
-                        // Update in-memory token from storage
-                        authToken = storedToken
-                        storedToken
-                    } else null
-                } else null
-            }
-            
-            Log.d(TAG, "Token to use: ${currentToken?.take(20) ?: "null"}...")
-            
-            currentToken?.let { token ->
-                addHeader("Authorization", "Bearer $token")
-                Log.d(TAG, "✅ Added Authorization header")
-            } ?: run {
-                Log.w(TAG, "❌ No auth token available - request will fail")
-            }
-            addHeader("Content-Type", "application/json")
-            addHeader("Accept", "application/json")
-            
-            // Add device info headers
-            if (::applicationContext.isInitialized) {
-                try {
-                    val packageInfo = applicationContext.packageManager.getPackageInfo(
-                        applicationContext.packageName, 0
-                    )
-                    addHeader("X-App-Version", packageInfo.versionName ?: "1.0")
-                    addHeader("X-Platform", "android")
-                } catch (e: PackageManager.NameNotFoundException) {
-                    Log.e(TAG, "Error getting app version", e)
-                }
-            } else {
-                addHeader("X-Platform", "android")
-                addHeader("X-App-Version", "1.0")
-            }
-        }.build()
+        val originalRequest = chain.request()
+        val requestBuilder = originalRequest.newBuilder()
         
+        Log.d(TAG, "=== AUTH INTERCEPTOR DEBUG ===")
+        Log.d(TAG, "Request URL: ${originalRequest.url}")
+        
+        // Simple approach: use in-memory token first, then check storage
+        val currentToken = authToken ?: run {
+            if (::preferencesManager.isInitialized) {
+                val storedToken = preferencesManager.getJwtToken()
+                val isExpired = preferencesManager.isTokenExpired()
+                Log.d(TAG, "Checking stored token - exists: ${storedToken != null}, expired: $isExpired")
+                if (storedToken != null && !isExpired) {
+                    // Update in-memory token from storage
+                    authToken = storedToken
+                    storedToken
+                } else null
+            } else null
+        }
+        
+        Log.d(TAG, "Token to use: ${currentToken?.take(20) ?: "null"}...")
+        
+        // Add headers
+        currentToken?.let { token ->
+            requestBuilder.addHeader("Authorization", "Bearer $token")
+            Log.d(TAG, "✅ Added Authorization header")
+        } ?: run {
+            Log.w(TAG, "❌ No auth token available - request will fail")
+        }
+        
+        requestBuilder.addHeader("Content-Type", "application/json")
+        requestBuilder.addHeader("Accept", "application/json")
+        
+        // Add device info headers
+        if (::applicationContext.isInitialized) {
+            try {
+                val packageInfo = applicationContext.packageManager.getPackageInfo(
+                    applicationContext.packageName, 0
+                )
+                requestBuilder.addHeader("X-App-Version", packageInfo.versionName ?: "1.0")
+                requestBuilder.addHeader("X-Platform", "android")
+            } catch (e: PackageManager.NameNotFoundException) {
+                Log.e(TAG, "Error getting app version", e)
+            }
+        } else {
+            requestBuilder.addHeader("X-Platform", "android")
+            requestBuilder.addHeader("X-App-Version", "1.0")
+        }
+        
+        val request = requestBuilder.build()
         chain.proceed(request)
     }
     
