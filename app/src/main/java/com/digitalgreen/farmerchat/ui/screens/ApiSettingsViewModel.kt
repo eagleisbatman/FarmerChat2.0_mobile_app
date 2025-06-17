@@ -36,9 +36,40 @@ class ApiSettingsViewModel(application: Application) : AndroidViewModel(applicat
         loadSettings()
     }
     
+    private fun loadCachedSettings() {
+        // Load preferences immediately without API call
+        val savedLanguage = preferencesManager.getSelectedLanguage()
+        val languageName = LanguageManager.getLanguageByCode(savedLanguage)?.name ?: "English"
+        val voiceResponsesEnabled = preferencesManager.getVoiceResponsesEnabled()
+        val voiceInputEnabled = preferencesManager.getVoiceInputEnabled()
+        val formattedResponsesEnabled = preferencesManager.getFormattedResponsesEnabled()
+        
+        // Get app version
+        val appVersion = try {
+            "${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})"
+        } catch (e: Exception) {
+            "1.0.0"
+        }
+        
+        _settingsState.update { state ->
+            state.copy(
+                currentLanguage = savedLanguage,
+                currentLanguageName = languageName,
+                voiceResponsesEnabled = voiceResponsesEnabled,
+                voiceInputEnabled = voiceInputEnabled,
+                formattedResponsesEnabled = formattedResponsesEnabled,
+                appVersion = appVersion
+            )
+        }
+    }
+    
     private fun loadSettings() {
         viewModelScope.launch {
-            _settingsState.update { it.copy(isLoading = true) }
+            // First load cached settings immediately
+            loadCachedSettings()
+            
+            // Don't show loading indicator to avoid flicker
+            // _settingsState.update { it.copy(isLoading = true) }
             
             try {
                 // Load user profile from API

@@ -34,7 +34,7 @@ router.get('/profile', authenticate, async (req: AuthRequest, res) => {
 
     res.json({
       success: true,
-      data: { user }
+      data: user
     });
   } catch (error) {
     logger.error('Get user profile error:', error);
@@ -128,7 +128,7 @@ router.put('/profile', authenticate, async (req: AuthRequest, res) => {
 
     res.json({
       success: true,
-      data: { user }
+      data: user
     });
   } catch (error) {
     logger.error('Update user profile error:', error);

@@ -211,6 +211,7 @@ fun ChatScreen(
                                     text = question,
                                     category = "General", // Default category for API questions
                                     onClick = {
+                                        android.util.Log.d("ChatScreen", "Starter question clicked: $question")
                                         viewModel.sendMessage(question)
                                     },
                                     modifier = Modifier.padding(horizontal = DesignSystem.Spacing.md + DesignSystem.Spacing.xs, vertical = DesignSystem.Spacing.xs)

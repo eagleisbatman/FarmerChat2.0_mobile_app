@@ -49,13 +49,13 @@ fun ApiConversation.toConversation(): Conversation {
     return Conversation(
         id = this.id,
         title = this.title,
-        lastMessage = this.lastMessage,
-        lastMessageTime = parseApiDate(this.lastMessageTime) ?: Date(),
+        lastMessage = this.lastMessage ?: "Start a conversation...",
+        lastMessageTime = this.lastMessageTime?.let { parseApiDate(it) } ?: Date(),
         lastMessageIsUser = this.lastMessageIsUser,
         userId = "", // Will be filled by repository
         createdAt = parseApiDate(this.createdAt) ?: Date(),
         tags = this.tags,
-        englishTags = this.englishTags,
+        englishTags = this.english_tags ?: this.englishTags ?: emptyList(),
         summary = this.summary
     )
 }

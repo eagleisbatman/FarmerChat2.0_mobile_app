@@ -64,11 +64,12 @@ data class UpdateUserRequest(
 data class ApiConversation(
     @SerializedName("id") val id: String,
     @SerializedName("title") val title: String,
-    @SerializedName("lastMessage") val lastMessage: String,
-    @SerializedName("lastMessageTime") val lastMessageTime: String,
-    @SerializedName("lastMessageIsUser") val lastMessageIsUser: Boolean,
+    @SerializedName("lastMessage") val lastMessage: String? = null,
+    @SerializedName("lastMessageTime") val lastMessageTime: String? = null,
+    @SerializedName("lastMessageIsUser") val lastMessageIsUser: Boolean = false,
     @SerializedName("tags") val tags: List<String> = emptyList(),
-    @SerializedName("englishTags") val englishTags: List<String> = emptyList(),
+    @SerializedName("englishTags") val englishTags: List<String>? = null,
+    @SerializedName("english_tags") val english_tags: List<String>? = null, // Backend uses snake_case
     @SerializedName("summary") val summary: String? = null,
     @SerializedName("createdAt") val createdAt: String,
     @SerializedName("updatedAt") val updatedAt: String
@@ -108,10 +109,10 @@ data class SendMessageRequest(
 )
 
 data class SendMessageResponse(
-    @SerializedName("message") val message: ApiMessage,
-    @SerializedName("aiResponse") val aiResponse: ApiMessage,
+    @SerializedName("response") val response: String,
     @SerializedName("followUpQuestions") val followUpQuestions: List<FollowUpQuestion> = emptyList(),
-    @SerializedName("conversationTitle") val conversationTitle: String? = null
+    @SerializedName("title") val title: String? = null,
+    @SerializedName("usage") val usage: Map<String, Any>? = null
 )
 
 data class RateMessageRequest(

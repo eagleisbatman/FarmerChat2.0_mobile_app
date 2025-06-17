@@ -77,7 +77,7 @@ router.post('/send', authenticate, async (req: AuthRequest, res) => {
 });
 
 // Get chat history
-router.get('/history/:conversationId', authenticate, async (req: AuthRequest, res) => {
+router.get('/:conversationId/messages', authenticate, async (req: AuthRequest, res) => {
   try {
     const { conversationId } = req.params;
     const { limit = 50, offset = 0 } = req.query;
@@ -108,10 +108,7 @@ router.get('/history/:conversationId', authenticate, async (req: AuthRequest, re
 
     res.json({
       success: true,
-      data: {
-        messages: messagesResult.rows,
-        total: messagesResult.rows.length
-      }
+      data: messagesResult.rows  // API expects data to be the array directly
     });
   } catch (error) {
     logger.error('Chat history error:', error);
@@ -153,7 +150,7 @@ router.post('/starter-questions', authenticate, async (req: AuthRequest, res) =>
 
     res.json({
       success: true,
-      data: { questions }
+      data: questions  // This is already an array of objects
     });
   } catch (error) {
     logger.error('Starter questions error:', error);
@@ -165,9 +162,10 @@ router.post('/starter-questions', authenticate, async (req: AuthRequest, res) =>
 });
 
 // Rate a response
-router.post('/rate', authenticate, async (req: AuthRequest, res) => {
+router.post('/messages/:messageId/rate', authenticate, async (req: AuthRequest, res) => {
   try {
-    const { messageId, rating, feedback } = req.body;
+    const { messageId } = req.params;
+    const { rating, feedback } = req.body;
     
     if (!messageId || rating === undefined) {
       throw new AppError('Message ID and rating are required', 400);

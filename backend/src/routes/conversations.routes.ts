@@ -78,9 +78,7 @@ router.post('/', authenticate, async (req: AuthRequest, res) => {
 
     res.json({
       success: true,
-      data: {
-        conversation: result.rows[0]
-      }
+      data: result.rows[0]
     });
   } catch (error) {
     logger.error('Create conversation error:', error);

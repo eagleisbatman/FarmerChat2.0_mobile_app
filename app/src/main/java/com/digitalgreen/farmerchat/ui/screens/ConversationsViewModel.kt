@@ -40,7 +40,7 @@ class ConversationsViewModel(application: Application) : AndroidViewModel(applic
                             id = apiConv.id,
                             userId = currentUserId,
                             title = apiConv.title,
-                            lastMessage = apiConv.lastMessage,
+                            lastMessage = apiConv.lastMessage ?: "Start a conversation...",
                             lastMessageTime = Date(), // API returns string, convert to Date
                             lastMessageIsUser = apiConv.lastMessageIsUser,
                             hasUnreadMessages = false,

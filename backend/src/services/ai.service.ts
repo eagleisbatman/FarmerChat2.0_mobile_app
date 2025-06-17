@@ -33,6 +33,7 @@ export class AIService {
     if (config.ai.providers.gemini.apiKey) {
       this.providers.set('gemini', new GeminiProvider({
         apiKey: config.ai.providers.gemini.apiKey,
+        model: config.ai.providers.gemini.model,
       }));
     }
     
@@ -40,6 +41,7 @@ export class AIService {
     if (config.ai.providers.openai.apiKey) {
       this.providers.set('openai', new OpenAIProvider({
         apiKey: config.ai.providers.openai.apiKey,
+        model: config.ai.providers.openai.model,
       }));
     }
     
@@ -47,6 +49,7 @@ export class AIService {
     if (config.ai.providers.anthropic.apiKey) {
       this.providers.set('anthropic', new AnthropicProvider({
         apiKey: config.ai.providers.anthropic.apiKey,
+        model: config.ai.providers.anthropic.model,
       }));
     }
     
@@ -83,7 +86,7 @@ export class AIService {
     const response = await provider.generateResponse(messages);
     
     // Log usage
-    await provider.logUsage(request.userId, provider.getDefaultModel(), response.usage);
+    await provider.logUsage(request.userId, response.model || provider.getDefaultModel(), response.usage);
     
     // Save messages to database
     await this.saveMessages(request.conversationId, request.message, response.content);
@@ -113,7 +116,7 @@ export class AIService {
     const response = await provider.generateStreamResponse(messages, onChunk);
     
     // Log usage
-    await provider.logUsage(request.userId, provider.getDefaultModel(), response.usage);
+    await provider.logUsage(request.userId, response.model || provider.getDefaultModel(), response.usage);
     
     // Save messages to database
     await this.saveMessages(request.conversationId, request.message, response.content);
