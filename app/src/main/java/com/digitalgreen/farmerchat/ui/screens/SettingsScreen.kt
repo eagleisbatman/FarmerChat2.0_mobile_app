@@ -22,7 +22,6 @@ import com.digitalgreen.farmerchat.ui.components.currentLanguage
 import com.digitalgreen.farmerchat.ui.components.FarmerChatAppBar
 import com.digitalgreen.farmerchat.ui.theme.DesignSystem
 import com.digitalgreen.farmerchat.utils.StringsManager.StringKey
-import com.digitalgreen.farmerchat.data.FarmerChatRepository
 import com.digitalgreen.farmerchat.utils.PreferencesManager
 import com.digitalgreen.farmerchat.utils.StringProvider
 import kotlinx.coroutines.launch
@@ -170,9 +169,9 @@ fun SettingsScreen(
                         icon = Icons.Default.Speed,
                         title = localizedString(StringKey.RESPONSE_LENGTH),
                         subtitle = when(settingsState.responseLength) {
-                            ResponseLength.CONCISE -> localizedString(StringKey.CONCISE)
-                            ResponseLength.DETAILED -> localizedString(StringKey.DETAILED)
-                            ResponseLength.COMPREHENSIVE -> localizedString(StringKey.COMPREHENSIVE)
+                            "concise" -> localizedString(StringKey.CONCISE)
+                            "comprehensive" -> localizedString(StringKey.COMPREHENSIVE)
+                            else -> localizedString(StringKey.DETAILED)
                         },
                         onClick = { showResponseLengthDialog = true }
                     )
@@ -389,7 +388,8 @@ fun SettingsScreen(
             title = { Text(localizedString(StringKey.RESPONSE_LENGTH)) },
             text = {
                 Column {
-                    ResponseLength.values().forEach { length ->
+                    val responseLengths = listOf("concise", "medium", "comprehensive")
+                    responseLengths.forEach { length ->
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -410,9 +410,9 @@ fun SettingsScreen(
                             Spacer(modifier = Modifier.width(DesignSystem.Spacing.sm))
                             Text(
                                 text = when(length) {
-                                    ResponseLength.CONCISE -> localizedString(StringKey.CONCISE)
-                                    ResponseLength.DETAILED -> localizedString(StringKey.DETAILED)
-                                    ResponseLength.COMPREHENSIVE -> localizedString(StringKey.COMPREHENSIVE)
+                                    "concise" -> localizedString(StringKey.CONCISE)
+                                    "comprehensive" -> localizedString(StringKey.COMPREHENSIVE)
+                                    else -> localizedString(StringKey.DETAILED)
                                 }
                             )
                         }
@@ -833,8 +833,4 @@ fun AboutDialog(
     )
 }
 
-enum class ResponseLength {
-    CONCISE,
-    DETAILED,
-    COMPREHENSIVE
-}
+// ResponseLength enum removed - using String values directly

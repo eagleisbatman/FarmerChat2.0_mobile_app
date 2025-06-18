@@ -7,5 +7,7 @@
 			"path": "../../FarmerChat-Translation-Tools"
 		}
 	],
-	"settings": {}
+	"settings": {
+		"java.configuration.updateBuildConfiguration": "interactive"
+	}
 }

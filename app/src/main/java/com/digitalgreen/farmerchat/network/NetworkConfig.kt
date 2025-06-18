@@ -17,9 +17,8 @@ import java.util.concurrent.TimeUnit
 object NetworkConfig {
     private const val TAG = "NetworkConfig"
     
-    // TODO: Update with your backend URL
-    private const val BASE_URL = "http://10.0.2.2:3002/api/v1/" // Android emulator localhost
-    // For physical device, use your computer's IP: "http://192.168.1.XXX:3002/api/v1/"
+    private const val BASE_URL = "http://10.0.2.2:3004/api/v1/" // Android emulator localhost
+    // For physical device, use your computer's IP: "http://192.168.1.XXX:3004/api/v1/"
     
     private var authToken: String? = null
     private lateinit var applicationContext: Context

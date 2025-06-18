@@ -24,6 +24,23 @@ import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
 
+data class SettingsState(
+    val userName: String = "",
+    val userLocation: String = "",
+    val userRole: String? = null,
+    val userGender: String? = null,
+    val selectedCrops: List<String> = emptyList(),
+    val selectedLivestock: List<String> = emptyList(),
+    val currentLanguage: String = "en",
+    val currentLanguageName: String = "English",
+    val voiceResponsesEnabled: Boolean = true,
+    val voiceInputEnabled: Boolean = true,
+    val responseLength: String? = null,
+    val formattedResponsesEnabled: Boolean = true,
+    val appVersion: String = "1.0",
+    val isLoading: Boolean = false
+)
+
 class ApiSettingsViewModel(application: Application) : AndroidViewModel(application) {
     private val repository = (application as FarmerChatApplication).repository
     private val preferencesManager = PreferencesManager(application)
@@ -83,11 +100,7 @@ class ApiSettingsViewModel(application: Application) : AndroidViewModel(applicat
                             selectedCrops = apiUser.crops,
                             selectedLivestock = apiUser.livestock,
                             currentLanguage = apiUser.language,
-                            responseLength = when(apiUser.responseLength) {
-                                "concise" -> ResponseLength.CONCISE
-                                "comprehensive" -> ResponseLength.COMPREHENSIVE
-                                else -> ResponseLength.DETAILED
-                            }
+                            responseLength = apiUser.responseLength
                         )
                     }
                 }
@@ -165,18 +178,13 @@ class ApiSettingsViewModel(application: Application) : AndroidViewModel(applicat
         }
     }
     
-    fun updateResponseLength(length: ResponseLength) {
+    fun updateResponseLength(length: String) {
         viewModelScope.launch {
-            preferencesManager.saveResponseLength(length.name)
+            preferencesManager.saveResponseLength(length)
             _settingsState.update { it.copy(responseLength = length) }
             
             // Update via API
-            val apiLength = when(length) {
-                ResponseLength.CONCISE -> "concise"
-                ResponseLength.COMPREHENSIVE -> "comprehensive"
-                else -> "medium"
-            }
-            repository.updateUserProfile(responseLength = apiLength)
+            repository.updateUserProfile(responseLength = length)
         }
     }
     
