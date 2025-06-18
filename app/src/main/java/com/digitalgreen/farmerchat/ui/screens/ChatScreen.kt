@@ -53,6 +53,7 @@ import kotlinx.coroutines.launch
 fun ChatScreen(
     conversationId: String,
     onNavigateBack: () -> Unit,
+    onNavigateToNewChat: () -> Unit = {},
     viewModel: ApiChatViewModel = viewModel(
         factory = ViewModelProvider.AndroidViewModelFactory.getInstance(LocalContext.current.applicationContext as android.app.Application)
     )
@@ -136,6 +137,14 @@ fun ChatScreen(
                 title = conversationTitle,
                 onBackClick = onNavigateBack,
                 actions = {
+                    // New Chat button
+                    IconButton(onClick = onNavigateToNewChat) {
+                        Icon(
+                            Icons.Default.Add,
+                            contentDescription = localizedString(StringKey.NEW_CONVERSATION),
+                            tint = Color.White
+                        )
+                    }
                     IconButton(onClick = { /* TODO: More options */ }) {
                         Icon(
                             Icons.Default.MoreVert,
@@ -391,43 +400,50 @@ fun ChatScreen(
                 }
             }
             
-            // Input area
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                shadowElevation = DesignSystem.Elevation.large,
-                color = MaterialTheme.colorScheme.surface
+            // Input area - only show when not loading and starter questions are loaded (if first message)
+            val showInputControls = !isLoading && (messages.isNotEmpty() || (!starterQuestionsLoading && starterQuestions.isNotEmpty()))
+            
+            AnimatedVisibility(
+                visible = showInputControls,
+                enter = slideInVertically { it } + fadeIn(),
+                exit = slideOutVertically { it } + fadeOut()
             ) {
-                Column {
-                    HorizontalDivider()
-                    
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = DesignSystem.Spacing.md, vertical = DesignSystem.Spacing.sm),
-                        verticalAlignment = Alignment.Bottom
-                    ) {
-                        // Text input field
-                        TextField(
-                            value = textInput,
-                            onValueChange = { textInput = it },
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    shadowElevation = DesignSystem.Elevation.large,
+                    color = MaterialTheme.colorScheme.surface
+                ) {
+                    Column {
+                        HorizontalDivider()
+                        
+                        Row(
                             modifier = Modifier
-                                .weight(1f)
-                                .clip(RoundedCornerShape(DesignSystem.Spacing.lg)),
-                            placeholder = { 
-                                Text(
-                                    localizedString(StringKey.TYPE_MESSAGE),
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = DesignSystem.Opacity.medium)
-                                ) 
-                            },
-                            colors = TextFieldDefaults.colors(
-                                focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-                                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-                                focusedIndicatorColor = Color.Transparent,
-                                unfocusedIndicatorColor = Color.Transparent
-                            ),
-                            singleLine = true,
-                            enabled = !isRecording
-                        )
+                                .fillMaxWidth()
+                                .padding(horizontal = DesignSystem.Spacing.md, vertical = DesignSystem.Spacing.sm),
+                            verticalAlignment = Alignment.Bottom
+                        ) {
+                            // Text input field
+                            TextField(
+                                value = textInput,
+                                onValueChange = { textInput = it },
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .clip(RoundedCornerShape(DesignSystem.Spacing.lg)),
+                                placeholder = { 
+                                    Text(
+                                        localizedString(StringKey.TYPE_MESSAGE),
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = DesignSystem.Opacity.medium)
+                                    ) 
+                                },
+                                colors = TextFieldDefaults.colors(
+                                    focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                    focusedIndicatorColor = Color.Transparent,
+                                    unfocusedIndicatorColor = Color.Transparent
+                                ),
+                                singleLine = true,
+                                enabled = !isRecording && !isLoading
+                            )
                         
                         Spacer(modifier = Modifier.width(DesignSystem.Spacing.sm))
                         
@@ -467,6 +483,7 @@ fun ChatScreen(
                                     tint = MaterialTheme.colorScheme.primary
                                 )
                             }
+                        }
                         }
                     }
                 }
