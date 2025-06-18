@@ -56,7 +56,12 @@ class AppRepository(private val context: Context) {
             
             result.onSuccess { response ->
                 if (response.success && response.data != null) {
-                    NetworkConfig.setAuthToken(response.data.token)
+                    // Save tokens to persistent storage
+                    NetworkConfig.setAuthTokens(
+                        jwtToken = response.data.token,
+                        refreshToken = response.data.refreshToken ?: response.data.token, // Use same token if no refresh token
+                        expiresIn = response.data.expiresIn.toLong()
+                    )
                     _currentUser.value = response.data.user
                     
                     // Connect WebSocket for real-time features
@@ -288,7 +293,7 @@ class AppRepository(private val context: Context) {
     
     // Authentication Management
     fun signOut() {
-        NetworkConfig.setAuthToken(null)
+        NetworkConfig.clearAuthTokens() // This clears both in-memory and persistent tokens
         _currentUser.value = null
         _conversations.value = emptyList()
         webSocketClient.disconnect()
