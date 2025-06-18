@@ -54,24 +54,114 @@ npm run dev
 ```
 
 ### Building and Running
+
+#### Complete Build and Deploy Process (USE THIS BY DEFAULT)
+```bash
+# ALWAYS use this sequence after making code changes:
+./gradlew clean assembleDebug && ./gradlew installDebug
+
+# This command:
+# 1. Cleans previous build artifacts
+# 2. Builds a fresh debug APK
+# 3. Installs it on the running emulator/device
+```
+
+#### Individual Commands (for specific needs)
 ```bash
 # Build the project
 ./gradlew build
 
-# Build debug APK
+# Build debug APK only
 ./gradlew assembleDebug
 
-# Install and run on connected device/emulator
+# Install already built APK
 ./gradlew installDebug
 
 # Clean build artifacts
 ./gradlew clean
 
-# Run with specific build variant
+# Build release variant
 ./gradlew assembleRelease
+
+# Run app after installation (if not auto-started)
+adb shell am start -n com.digitalgreen.farmerchat/.MainActivity
 ```
 
-### Testing
+#### Emulator Management
+```bash
+# List available emulators
+emulator -list-avds
+
+# Start specific emulator
+emulator -avd <emulator_name>
+
+# Start default emulator in background
+emulator -avd $(emulator -list-avds | head -1) &
+
+# Check if emulator is running
+adb devices
+
+# Wait for emulator to be ready
+adb wait-for-device
+```
+
+#### Complete Development Workflow
+```bash
+# 1. Start backend (in one terminal)
+cd backend
+lsof -ti:3004 | xargs kill -9 2>/dev/null || true
+npm run dev
+
+# 2. Start emulator (in another terminal)
+emulator -avd $(emulator -list-avds | head -1) &
+adb wait-for-device
+
+# 3. Build and deploy app (in main terminal)
+./gradlew clean assembleDebug && ./gradlew installDebug
+
+# 4. View logs (optional)
+adb logcat | grep -E "FarmerChat|ApiChat|NetworkConfig"
+```
+
+### Testing the App
+
+#### Quick Test After Changes
+```bash
+# This is the standard command to test after any code changes:
+./gradlew clean assembleDebug && ./gradlew installDebug
+
+# The app should auto-launch. If not:
+adb shell am start -n com.digitalgreen.farmerchat/.MainActivity
+```
+
+#### Testing Checklist
+1. **First Launch**:
+   - Language selection appears
+   - Complete onboarding (select language, crops, livestock)
+   - Redirected to conversations list
+
+2. **Chat Functionality**:
+   - Tap "+" to create new conversation
+   - Starter questions load
+   - Tap a question - should get OpenAI response
+   - Follow-up questions appear after response
+
+3. **Phone Auth** (after first conversation):
+   - Phone auth prompt appears
+   - Can enter phone number or skip
+   - OTP screen works (currently mock implementation)
+
+4. **Token Persistence**:
+   - Force close app: `adb shell am force-stop com.digitalgreen.farmerchat`
+   - Reopen: `adb shell am start -n com.digitalgreen.farmerchat/.MainActivity`
+   - Should NOT see onboarding again
+
+5. **Settings**:
+   - All settings load properly
+   - Can edit name, location, language
+   - Can change crops/livestock selections
+
+#### Unit Testing
 ```bash
 # Run all unit tests
 ./gradlew test
@@ -84,6 +174,28 @@ npm run dev
 
 # Run tests with coverage
 ./gradlew createDebugCoverageReport
+```
+
+#### Debugging Commands
+```bash
+# View all logs
+adb logcat
+
+# View app-specific logs
+adb logcat | grep -E "FarmerChat|ApiChat|NetworkConfig|JWT"
+
+# Clear app data (forces fresh install)
+adb shell pm clear com.digitalgreen.farmerchat
+
+# Check network requests
+adb logcat | grep "HTTP"
+
+# Monitor backend requests (check backend terminal)
+# You should see requests to:
+# - POST /api/v1/auth/firebase
+# - GET /api/v1/conversations
+# - POST /api/v1/chat/send
+# - GET /api/v1/user/profile
 ```
 
 ### Linting and Code Quality
