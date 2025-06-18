@@ -1,6 +1,5 @@
 package com.digitalgreen.farmerchat.data
 
-import com.google.firebase.firestore.PropertyName
 import java.util.Date
 
 // User profile data model

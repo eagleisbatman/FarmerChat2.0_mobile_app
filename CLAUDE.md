@@ -9,7 +9,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 **Architecture**: Successfully migrated from Firebase-only to **Node.js + Neon PostgreSQL** backend with Firebase Auth for phone OTP only.
 
 **Status**: 
-- ✅ Backend: Node.js + Express + TypeScript running on port 3002
+- ✅ Backend: Node.js + Express + TypeScript running on port 3004
 - ✅ Database: Neon PostgreSQL (Project: `spring-flower-04114371`) 
 - ✅ API Endpoints: Complete RESTful API with full functionality
 - ✅ Authentication: Firebase → Backend JWT exchange working perfectly
@@ -39,6 +39,19 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 **Important**: App is now fully functional with the new backend architecture.
 
 ## Common Development Commands
+
+### Backend Server Management
+```bash
+# IMPORTANT: Always check and kill processes on port 3004 before starting
+lsof -ti:3004 | xargs kill -9 2>/dev/null || true
+
+# Start the backend server (always on port 3004)
+cd backend
+npm run dev
+
+# The server MUST run on port 3004 to avoid port conflicts
+# Never use ports 3000, 3002, etc. - always use 3004
+```
 
 ### Building and Running
 ```bash

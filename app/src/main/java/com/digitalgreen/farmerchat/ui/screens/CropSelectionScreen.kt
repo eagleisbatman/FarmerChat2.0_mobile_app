@@ -17,96 +17,99 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.digitalgreen.farmerchat.data.FarmerChatRepository
+import com.digitalgreen.farmerchat.data.AppRepository
 import com.digitalgreen.farmerchat.data.CropsManager
 import com.digitalgreen.farmerchat.ui.components.localizedString
 import com.digitalgreen.farmerchat.ui.components.currentLanguage
 import com.digitalgreen.farmerchat.ui.components.FarmerChatAppBar
 import com.digitalgreen.farmerchat.ui.theme.DesignSystem
 import com.digitalgreen.farmerchat.utils.StringsManager.StringKey
-import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import androidx.compose.ui.graphics.Color
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CropSelectionScreen(
-    onNavigateBack: () -> Unit
-) {
-    val context = LocalContext.current
-    val viewModel: CropSelectionViewModel = viewModel(
-        factory = object : ViewModelProvider.Factory {
-            override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
-                @Suppress("UNCHECKED_CAST")
-                return CropSelectionViewModel(
-                    repository = FarmerChatRepository()
-                ) as T
-            }
-        }
+    onNavigateBack: () -> Unit,
+    onCropsSelected: () -> Unit,
+    showAppBar: Boolean = true,
+    viewModel: CropSelectionViewModel = viewModel(
+        factory = ViewModelProvider.AndroidViewModelFactory.getInstance(LocalContext.current.applicationContext as android.app.Application)
     )
-    
+) {
     val selectedCrops by viewModel.selectedCrops.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
+    val filteredCrops by viewModel.filteredCrops.collectAsState()
     var searchQuery by remember { mutableStateOf("") }
+    val currentLanguageCode = currentLanguage()
     
-    val allCrops = remember { CropsManager.getAllCrops() }
-    val filteredCrops = remember(searchQuery) {
-        if (searchQuery.isEmpty()) {
-            allCrops
-        } else {
-            CropsManager.searchCrops(searchQuery)
-        }
-    }
+    val appTitle = localizedString(StringKey.SELECT_CROPS)
+    val searchPlaceholder = localizedString(StringKey.SEARCH_CROPS)
+    val saveButtonText = localizedString(StringKey.SAVE)
     
     Scaffold(
         topBar = {
-            FarmerChatAppBar(
-                title = localizedString(StringKey.SELECT_CROPS),
-                onBackClick = onNavigateBack,
-                actions = {
-                    TextButton(
-                        onClick = {
-                            viewModel.saveCrops()
-                            onNavigateBack()
-                        },
-                        enabled = selectedCrops.isNotEmpty()
+            if (showAppBar) {
+                FarmerChatAppBar(
+                    title = appTitle,
+                    onBackClick = onNavigateBack
+                )
+            }
+        },
+        bottomBar = {
+            if (showAppBar) {
+                Surface(
+                    shadowElevation = 8.dp,
+                    color = MaterialTheme.colorScheme.surface
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(DesignSystem.Spacing.md)
                     ) {
-                        Text(
-                            text = localizedString(StringKey.SAVE),
-                            color = Color.White
-                        )
+                        Button(
+                            onClick = {
+                                viewModel.saveCrops()
+                                onCropsSelected()
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            enabled = !isLoading
+                        ) {
+                            Text(saveButtonText)
+                        }
                     }
                 }
-            )
+            }
         }
     ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
+                .padding(horizontal = DesignSystem.Spacing.md)
         ) {
-            // Search bar
+            // Search Bar
             OutlinedTextField(
                 value = searchQuery,
-                onValueChange = { searchQuery = it },
-                label = { Text(localizedString(StringKey.SEARCH_CROPS)) },
+                onValueChange = { query ->
+                    searchQuery = query
+                    viewModel.filterCrops(query, currentLanguageCode)
+                },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(DesignSystem.Spacing.md),
+                    .padding(vertical = DesignSystem.Spacing.sm),
+                placeholder = { Text(searchPlaceholder) },
                 singleLine = true
             )
             
-            // Selected count
+            // Selection count
             Text(
                 text = "${selectedCrops.size} ${localizedString(StringKey.SELECTED)}",
                 style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.padding(
-                    horizontal = DesignSystem.Spacing.md, 
-                    vertical = DesignSystem.Spacing.sm
-                )
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(bottom = DesignSystem.Spacing.sm)
             )
             
             if (isLoading) {
@@ -117,42 +120,17 @@ fun CropSelectionScreen(
                     CircularProgressIndicator()
                 }
             } else {
-                // Crops grid
                 LazyVerticalGrid(
-                    columns = GridCells.Adaptive(120.dp),
-                    contentPadding = PaddingValues(DesignSystem.Spacing.md),
+                    columns = GridCells.Fixed(2),
                     horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.sm),
-                    verticalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.sm)
+                    verticalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.sm),
+                    modifier = Modifier.fillMaxSize()
                 ) {
                     items(filteredCrops) { crop ->
-                        val currentLanguage = currentLanguage()
-                        val localizedName = crop.getLocalizedName(currentLanguage)
-                        
-                        // Debug logging
-                        LaunchedEffect(crop.id, currentLanguage) {
-                            android.util.Log.d("CropSelectionScreen", "Crop: ${crop.id}, Language: $currentLanguage, Localized: $localizedName")
-                        }
-                        
-                        FilterChip(
-                            selected = selectedCrops.contains(crop.id),
-                            onClick = { viewModel.toggleCrop(crop.id) },
-                            label = {
-                                Text(
-                                    text = "${crop.emoji} $localizedName",
-                                    textAlign = TextAlign.Center,
-                                    modifier = Modifier.fillMaxWidth()
-                                )
-                            },
-                            leadingIcon = if (selectedCrops.contains(crop.id)) {
-                                {
-                                    Icon(
-                                        Icons.Default.Check,
-                                        contentDescription = localizedString(StringKey.SELECTED),
-                                        modifier = Modifier.size(DesignSystem.IconSize.small)
-                                    )
-                                }
-                            } else null,
-                            modifier = Modifier.fillMaxWidth()
+                        CropItem(
+                            cropName = crop.getLocalizedName(currentLanguageCode),
+                            isSelected = selectedCrops.contains(crop.id),
+                            onToggle = { viewModel.toggleCrop(crop.id) }
                         )
                     }
                 }
@@ -161,15 +139,62 @@ fun CropSelectionScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun CropItem(
+    cropName: String,
+    isSelected: Boolean,
+    onToggle: () -> Unit
+) {
+    Card(
+        onClick = onToggle,
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(80.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface
+        ),
+        border = if (isSelected) CardDefaults.outlinedCardBorder() else null
+    ) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = cropName,
+                style = MaterialTheme.typography.bodyMedium,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(horizontal = DesignSystem.Spacing.sm)
+            )
+            if (isSelected) {
+                Icon(
+                    imageVector = Icons.Default.Check,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(DesignSystem.Spacing.xs)
+                        .size(DesignSystem.IconSize.small),
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
+        }
+    }
+}
+
 class CropSelectionViewModel(
-    private val repository: FarmerChatRepository
-) : androidx.lifecycle.ViewModel() {
+    application: android.app.Application
+) : androidx.lifecycle.AndroidViewModel(application) {
+    
+    private val repository = (application as com.digitalgreen.farmerchat.FarmerChatApplication).repository
     
     private val _selectedCrops = MutableStateFlow<Set<String>>(emptySet())
     val selectedCrops: StateFlow<Set<String>> = _selectedCrops.asStateFlow()
     
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+    
+    private val _filteredCrops = MutableStateFlow(CropsManager.getAllCrops())
+    val filteredCrops: StateFlow<List<CropsManager.Crop>> = _filteredCrops.asStateFlow()
     
     init {
         loadUserCrops()
@@ -178,19 +203,12 @@ class CropSelectionViewModel(
     private fun loadUserCrops() {
         viewModelScope.launch {
             _isLoading.value = true
-            try {
-                val userId = FirebaseAuth.getInstance().currentUser?.uid
-                if (userId != null) {
-                    val userProfile = repository.getUserProfile(userId)
-                    userProfile?.let {
-                        _selectedCrops.value = it.crops.toSet()
-                    }
-                }
-            } catch (e: Exception) {
-                // Handle error
-            } finally {
-                _isLoading.value = false
+            repository.getUserProfile().onSuccess { user ->
+                _selectedCrops.value = user.crops.toSet()
+            }.onFailure { e ->
+                android.util.Log.e("CropSelection", "Failed to load user profile", e)
             }
+            _isLoading.value = false
         }
     }
     
@@ -204,18 +222,22 @@ class CropSelectionViewModel(
     
     fun saveCrops() {
         viewModelScope.launch {
-            try {
-                val userId = FirebaseAuth.getInstance().currentUser?.uid
-                if (userId != null) {
-                    val userProfile = repository.getUserProfile(userId)
-                    userProfile?.let { profile ->
-                        val updatedProfile = profile.copy(crops = _selectedCrops.value.toList())
-                        repository.saveUserProfile(updatedProfile)
-                    }
-                }
-            } catch (e: Exception) {
-                // Handle error
+            _isLoading.value = true
+            repository.updateUserProfile(crops = _selectedCrops.value.toList()).onSuccess {
+                // Success
+            }.onFailure { e ->
+                android.util.Log.e("CropSelection", "Failed to update crops", e)
             }
+            _isLoading.value = false
+        }
+    }
+    
+    fun filterCrops(query: String, languageCode: String) {
+        _filteredCrops.value = if (query.isBlank()) {
+            CropsManager.getAllCrops()
+        } else {
+            CropsManager.searchCrops(query)
         }
     }
 }
+

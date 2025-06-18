@@ -17,96 +17,99 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.digitalgreen.farmerchat.data.FarmerChatRepository
+import com.digitalgreen.farmerchat.data.AppRepository
 import com.digitalgreen.farmerchat.data.LivestockManager
 import com.digitalgreen.farmerchat.ui.components.localizedString
 import com.digitalgreen.farmerchat.ui.components.currentLanguage
 import com.digitalgreen.farmerchat.ui.components.FarmerChatAppBar
 import com.digitalgreen.farmerchat.ui.theme.DesignSystem
 import com.digitalgreen.farmerchat.utils.StringsManager.StringKey
-import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import androidx.compose.ui.graphics.Color
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LivestockSelectionScreen(
-    onNavigateBack: () -> Unit
-) {
-    val context = LocalContext.current
-    val viewModel: LivestockSelectionViewModel = viewModel(
-        factory = object : ViewModelProvider.Factory {
-            override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
-                @Suppress("UNCHECKED_CAST")
-                return LivestockSelectionViewModel(
-                    repository = FarmerChatRepository()
-                ) as T
-            }
-        }
+    onNavigateBack: () -> Unit,
+    onLivestockSelected: () -> Unit,
+    showAppBar: Boolean = true,
+    viewModel: LivestockSelectionViewModel = viewModel(
+        factory = ViewModelProvider.AndroidViewModelFactory.getInstance(LocalContext.current.applicationContext as android.app.Application)
     )
-    
+) {
     val selectedLivestock by viewModel.selectedLivestock.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
+    val filteredLivestock by viewModel.filteredLivestock.collectAsState()
     var searchQuery by remember { mutableStateOf("") }
+    val currentLanguageCode = currentLanguage()
     
-    val allLivestock = remember { LivestockManager.getAllLivestock() }
-    val filteredLivestock = remember(searchQuery) {
-        if (searchQuery.isEmpty()) {
-            allLivestock
-        } else {
-            LivestockManager.searchLivestock(searchQuery)
-        }
-    }
+    val appTitle = localizedString(StringKey.SELECT_LIVESTOCK)
+    val searchPlaceholder = localizedString(StringKey.SEARCH_LIVESTOCK)
+    val saveButtonText = localizedString(StringKey.SAVE)
     
     Scaffold(
         topBar = {
-            FarmerChatAppBar(
-                title = localizedString(StringKey.SELECT_LIVESTOCK),
-                onBackClick = onNavigateBack,
-                actions = {
-                    TextButton(
-                        onClick = {
-                            viewModel.saveLivestock()
-                            onNavigateBack()
-                        },
-                        enabled = selectedLivestock.isNotEmpty()
+            if (showAppBar) {
+                FarmerChatAppBar(
+                    title = appTitle,
+                    onBackClick = onNavigateBack
+                )
+            }
+        },
+        bottomBar = {
+            if (showAppBar) {
+                Surface(
+                    shadowElevation = 8.dp,
+                    color = MaterialTheme.colorScheme.surface
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(DesignSystem.Spacing.md)
                     ) {
-                        Text(
-                            text = localizedString(StringKey.SAVE),
-                            color = Color.White
-                        )
+                        Button(
+                            onClick = {
+                                viewModel.saveLivestock()
+                                onLivestockSelected()
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            enabled = !isLoading
+                        ) {
+                            Text(saveButtonText)
+                        }
                     }
                 }
-            )
+            }
         }
     ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
+                .padding(horizontal = DesignSystem.Spacing.md)
         ) {
-            // Search bar
+            // Search Bar
             OutlinedTextField(
                 value = searchQuery,
-                onValueChange = { searchQuery = it },
-                label = { Text(localizedString(StringKey.SEARCH_LIVESTOCK)) },
+                onValueChange = { query ->
+                    searchQuery = query
+                    viewModel.filterLivestock(query, currentLanguageCode)
+                },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(DesignSystem.Spacing.md),
+                    .padding(vertical = DesignSystem.Spacing.sm),
+                placeholder = { Text(searchPlaceholder) },
                 singleLine = true
             )
             
-            // Selected count
+            // Selection count
             Text(
                 text = "${selectedLivestock.size} ${localizedString(StringKey.SELECTED)}",
                 style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.padding(
-                    horizontal = DesignSystem.Spacing.md, 
-                    vertical = DesignSystem.Spacing.sm
-                )
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(bottom = DesignSystem.Spacing.sm)
             )
             
             if (isLoading) {
@@ -117,35 +120,17 @@ fun LivestockSelectionScreen(
                     CircularProgressIndicator()
                 }
             } else {
-                // Livestock grid
                 LazyVerticalGrid(
-                    columns = GridCells.Adaptive(120.dp),
-                    contentPadding = PaddingValues(DesignSystem.Spacing.md),
+                    columns = GridCells.Fixed(2),
                     horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.sm),
-                    verticalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.sm)
+                    verticalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.sm),
+                    modifier = Modifier.fillMaxSize()
                 ) {
                     items(filteredLivestock) { livestock ->
-                        val currentLanguage = currentLanguage()
-                        FilterChip(
-                            selected = selectedLivestock.contains(livestock.id),
-                            onClick = { viewModel.toggleLivestock(livestock.id) },
-                            label = {
-                                Text(
-                                    text = "${livestock.emoji} ${livestock.getLocalizedName(currentLanguage)}",
-                                    textAlign = TextAlign.Center,
-                                    modifier = Modifier.fillMaxWidth()
-                                )
-                            },
-                            leadingIcon = if (selectedLivestock.contains(livestock.id)) {
-                                {
-                                    Icon(
-                                        Icons.Default.Check,
-                                        contentDescription = localizedString(StringKey.SELECTED),
-                                        modifier = Modifier.size(DesignSystem.IconSize.small)
-                                    )
-                                }
-                            } else null,
-                            modifier = Modifier.fillMaxWidth()
+                        LivestockItem(
+                            livestockName = livestock.getLocalizedName(currentLanguageCode),
+                            isSelected = selectedLivestock.contains(livestock.id),
+                            onToggle = { viewModel.toggleLivestock(livestock.id) }
                         )
                     }
                 }
@@ -154,15 +139,62 @@ fun LivestockSelectionScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun LivestockItem(
+    livestockName: String,
+    isSelected: Boolean,
+    onToggle: () -> Unit
+) {
+    Card(
+        onClick = onToggle,
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(80.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface
+        ),
+        border = if (isSelected) CardDefaults.outlinedCardBorder() else null
+    ) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = livestockName,
+                style = MaterialTheme.typography.bodyMedium,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(horizontal = DesignSystem.Spacing.sm)
+            )
+            if (isSelected) {
+                Icon(
+                    imageVector = Icons.Default.Check,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(DesignSystem.Spacing.xs)
+                        .size(DesignSystem.IconSize.small),
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
+        }
+    }
+}
+
 class LivestockSelectionViewModel(
-    private val repository: FarmerChatRepository
-) : androidx.lifecycle.ViewModel() {
+    application: android.app.Application
+) : androidx.lifecycle.AndroidViewModel(application) {
+    
+    private val repository = (application as com.digitalgreen.farmerchat.FarmerChatApplication).repository
     
     private val _selectedLivestock = MutableStateFlow<Set<String>>(emptySet())
     val selectedLivestock: StateFlow<Set<String>> = _selectedLivestock.asStateFlow()
     
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+    
+    private val _filteredLivestock = MutableStateFlow(LivestockManager.getAllLivestock())
+    val filteredLivestock: StateFlow<List<LivestockManager.Livestock>> = _filteredLivestock.asStateFlow()
     
     init {
         loadUserLivestock()
@@ -171,19 +203,12 @@ class LivestockSelectionViewModel(
     private fun loadUserLivestock() {
         viewModelScope.launch {
             _isLoading.value = true
-            try {
-                val userId = FirebaseAuth.getInstance().currentUser?.uid
-                if (userId != null) {
-                    val userProfile = repository.getUserProfile(userId)
-                    userProfile?.let {
-                        _selectedLivestock.value = it.livestock.toSet()
-                    }
-                }
-            } catch (e: Exception) {
-                // Handle error
-            } finally {
-                _isLoading.value = false
+            repository.getUserProfile().onSuccess { user ->
+                _selectedLivestock.value = user.livestock.toSet()
+            }.onFailure { e ->
+                android.util.Log.e("LivestockSelection", "Failed to load user profile", e)
             }
+            _isLoading.value = false
         }
     }
     
@@ -197,18 +222,21 @@ class LivestockSelectionViewModel(
     
     fun saveLivestock() {
         viewModelScope.launch {
-            try {
-                val userId = FirebaseAuth.getInstance().currentUser?.uid
-                if (userId != null) {
-                    val userProfile = repository.getUserProfile(userId)
-                    userProfile?.let { profile ->
-                        val updatedProfile = profile.copy(livestock = _selectedLivestock.value.toList())
-                        repository.saveUserProfile(updatedProfile)
-                    }
-                }
-            } catch (e: Exception) {
-                // Handle error
+            _isLoading.value = true
+            repository.updateUserProfile(livestock = _selectedLivestock.value.toList()).onSuccess {
+                // Success
+            }.onFailure { e ->
+                android.util.Log.e("LivestockSelection", "Failed to update livestock", e)
             }
+            _isLoading.value = false
+        }
+    }
+    
+    fun filterLivestock(query: String, languageCode: String) {
+        _filteredLivestock.value = if (query.isBlank()) {
+            LivestockManager.getAllLivestock()
+        } else {
+            LivestockManager.searchLivestock(query)
         }
     }
 }

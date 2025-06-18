@@ -129,6 +129,9 @@ fun FarmerChatNavigation(
             CropSelectionScreen(
                 onNavigateBack = {
                     navController.popBackStack()
+                },
+                onCropsSelected = {
+                    navController.popBackStack()
                 }
             )
         }
@@ -136,6 +139,9 @@ fun FarmerChatNavigation(
         composable(Screen.LivestockSelection.route) {
             LivestockSelectionScreen(
                 onNavigateBack = {
+                    navController.popBackStack()
+                },
+                onLivestockSelected = {
                     navController.popBackStack()
                 }
             )
