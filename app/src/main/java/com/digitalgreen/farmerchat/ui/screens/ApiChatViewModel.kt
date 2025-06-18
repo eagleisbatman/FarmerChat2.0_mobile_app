@@ -80,10 +80,10 @@ class ApiChatViewModel(application: Application) : AndroidViewModel(application)
             loadStarterQuestions()
             
             // Join conversation for real-time updates
-            repository.joinConversation(conversationId)
+            // repository.joinConversation(conversationId) // TODO: Implement WebSocket support
             
             // Listen for streaming events
-            listenForStreamingEvents()
+            // listenForStreamingEvents() // TODO: Implement WebSocket support
         }
     }
     
@@ -242,7 +242,7 @@ class ApiChatViewModel(application: Application) : AndroidViewModel(application)
     fun stopStreaming() {
         if (isStreaming) {
             currentConversationId?.let { conversationId ->
-                repository.stopStreaming(conversationId)
+                // repository.stopStreaming(conversationId) // TODO: Implement WebSocket support
             }
             isStreaming = false
             _isLoading.value = false
@@ -298,7 +298,7 @@ class ApiChatViewModel(application: Application) : AndroidViewModel(application)
     override fun onCleared() {
         super.onCleared()
         currentConversationId?.let { conversationId ->
-            repository.leaveConversation(conversationId)
+            // repository.leaveConversation(conversationId) // TODO: Implement WebSocket support
         }
         ttsManager.shutdown()
         speechRecognitionManager.destroy()
