@@ -98,7 +98,16 @@ fun FarmerChatNavigation(
             ChatScreen(
                 conversationId = conversationId,
                 onNavigateBack = {
-                    navController.popBackStack()
+                    navController.navigate(Screen.Conversations.route) {
+                        popUpTo(Screen.Conversations.route) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                },
+                onNavigateToNewChat = {
+                    navController.navigate(Screen.Conversations.createRoute(startNewChat = true)) {
+                        popUpTo(Screen.Chat.route) { inclusive = true }
+                        launchSingleTop = true
+                    }
                 }
             )
         }
