@@ -75,15 +75,7 @@ fun FarmerChatNavigation(
             val startNewChat = backStackEntry.arguments?.getBoolean("startNewChat") ?: false
             ConversationsScreen(
                 onNavigateToChat = { conversationId ->
-                    navController.navigate(Screen.Chat.createRoute(conversationId)) {
-                        // Clear the startNewChat flag to prevent creating new chats on back navigation
-                        popUpTo(Screen.Conversations.route) { 
-                            inclusive = false
-                            saveState = true
-                        }
-                        launchSingleTop = true
-                        restoreState = true
-                    }
+                    navController.navigate(Screen.Chat.createRoute(conversationId))
                 },
                 onNavigateToSettings = {
                     navController.navigate(Screen.Settings.route)
@@ -103,10 +95,7 @@ fun FarmerChatNavigation(
             ChatScreen(
                 conversationId = conversationId,
                 onNavigateBack = {
-                    navController.navigate(Screen.Conversations.route) {
-                        popUpTo(Screen.Conversations.route) { inclusive = true }
-                        launchSingleTop = true
-                    }
+                    navController.popBackStack()
                 },
                 onNavigateToNewChat = {
                     navController.navigate(Screen.Conversations.createRoute(startNewChat = true)) {
