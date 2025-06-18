@@ -94,6 +94,7 @@ object DesignSystem {
         val large: Dp = 32.dp
         val xlarge: Dp = 48.dp
         val xxlarge: Dp = 64.dp
+        val xxxlarge: Dp = 80.dp
         val splash: Dp = 120.dp
     }
     

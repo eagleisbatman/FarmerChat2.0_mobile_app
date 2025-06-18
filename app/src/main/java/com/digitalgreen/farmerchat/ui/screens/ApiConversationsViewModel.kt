@@ -11,6 +11,7 @@ import com.digitalgreen.farmerchat.utils.StringProvider
 import com.digitalgreen.farmerchat.utils.StringsManager.StringKey
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import com.google.firebase.auth.FirebaseAuth
 
 class ApiConversationsViewModel(application: Application) : AndroidViewModel(application) {
     private val app = application as FarmerChatApplication
@@ -36,6 +37,9 @@ class ApiConversationsViewModel(application: Application) : AndroidViewModel(app
     
     private val _isRefreshing = MutableStateFlow(false)
     val isRefreshing: StateFlow<Boolean> = _isRefreshing
+    
+    private val _shouldShowPhoneAuth = MutableStateFlow(false)
+    val shouldShowPhoneAuth: StateFlow<Boolean> = _shouldShowPhoneAuth
     
     init {
         viewModelScope.launch {
@@ -105,6 +109,10 @@ class ApiConversationsViewModel(application: Application) : AndroidViewModel(app
             
             repository.createConversation(title = placeholderTitle).onSuccess { conversation ->
                 onSuccess(conversation.id)
+                
+                // Check if this is the first conversation and user doesn't have phone auth
+                checkAndPromptPhoneAuth()
+                
                 // Conversation will be added to list via real-time updates
             }.onFailure { e ->
                 android.util.Log.e("ApiConversationsViewModel", "Failed to create conversation", e)
@@ -113,6 +121,20 @@ class ApiConversationsViewModel(application: Application) : AndroidViewModel(app
             
             _isLoading.value = false
         }
+    }
+    
+    private fun checkAndPromptPhoneAuth() {
+        val currentUser = FirebaseAuth.getInstance().currentUser
+        val isFirstConversation = _conversations.value.size == 1
+        val hasPhoneNumber = currentUser?.phoneNumber?.isNotEmpty() == true
+        
+        if (isFirstConversation && !hasPhoneNumber && currentUser?.isAnonymous == true) {
+            _shouldShowPhoneAuth.value = true
+        }
+    }
+    
+    fun dismissPhoneAuthPrompt() {
+        _shouldShowPhoneAuth.value = false
     }
     
     fun deleteConversation(conversationId: String) {

@@ -220,7 +220,23 @@ object StringsManager {
         
         // Additional actions
         RESET,
-        RESET_ONBOARDING_CONFIRM
+        RESET_ONBOARDING_CONFIRM,
+        
+        // Phone Authentication
+        PHONE_AUTH_TITLE,
+        PHONE_NUMBER,
+        ENTER_PHONE_NUMBER,
+        COUNTRY_CODE,
+        SEND_OTP,
+        VERIFY_OTP,
+        ENTER_OTP,
+        OTP_SENT,
+        RESEND_OTP,
+        VERIFY,
+        PHONE_AUTH_DESC,
+        SKIP_FOR_NOW,
+        INVALID_PHONE_NUMBER,
+        INVALID_OTP
     }
     
     private val translations = mapOf(
@@ -414,7 +430,23 @@ object StringsManager {
             
             // Additional actions
             StringKey.RESET to "Reset",
-            StringKey.RESET_ONBOARDING_CONFIRM to "Are you sure you want to reset the onboarding process? You will need to set up your preferences again."
+            StringKey.RESET_ONBOARDING_CONFIRM to "Are you sure you want to reset the onboarding process? You will need to set up your preferences again.",
+            
+            // Phone Authentication
+            StringKey.PHONE_AUTH_TITLE to "Phone Verification",
+            StringKey.PHONE_NUMBER to "Phone Number",
+            StringKey.ENTER_PHONE_NUMBER to "Enter your phone number",
+            StringKey.COUNTRY_CODE to "Country Code",
+            StringKey.SEND_OTP to "Send OTP",
+            StringKey.VERIFY_OTP to "Verify OTP",
+            StringKey.ENTER_OTP to "Enter OTP code",
+            StringKey.OTP_SENT to "OTP sent to %s",
+            StringKey.RESEND_OTP to "Resend OTP",
+            StringKey.VERIFY to "Verify",
+            StringKey.PHONE_AUTH_DESC to "Verify your phone number to save your conversations and access them anytime",
+            StringKey.SKIP_FOR_NOW to "Skip for now",
+            StringKey.INVALID_PHONE_NUMBER to "Please enter a valid phone number",
+            StringKey.INVALID_OTP to "Invalid OTP. Please try again."
         ),
         
         // Hindi

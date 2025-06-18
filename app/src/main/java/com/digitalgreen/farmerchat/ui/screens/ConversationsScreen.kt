@@ -46,6 +46,7 @@ import java.util.*
 fun ConversationsScreen(
     onNavigateToChat: (String) -> Unit,
     onNavigateToSettings: () -> Unit,
+    onNavigateToPhoneAuth: () -> Unit = {},
     startNewChat: Boolean = false,
     viewModel: ApiConversationsViewModel = viewModel(
         factory = ViewModelProvider.AndroidViewModelFactory.getInstance(LocalContext.current.applicationContext as android.app.Application)
@@ -53,6 +54,7 @@ fun ConversationsScreen(
 ) {
     val conversations by viewModel.conversations.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
+    val shouldShowPhoneAuth by viewModel.shouldShowPhoneAuth.collectAsState()
     var isSearching by remember { mutableStateOf(false) }
     var searchQuery by remember { mutableStateOf("") }
     var selectedTags by remember { mutableStateOf<Set<String>>(emptySet()) }
@@ -89,6 +91,14 @@ fun ConversationsScreen(
             viewModel.createNewConversation { conversationId ->
                 onNavigateToChat(conversationId)
             }
+        }
+    }
+    
+    // Handle phone auth navigation
+    LaunchedEffect(shouldShowPhoneAuth) {
+        if (shouldShowPhoneAuth) {
+            onNavigateToPhoneAuth()
+            viewModel.dismissPhoneAuthPrompt()
         }
     }
     
