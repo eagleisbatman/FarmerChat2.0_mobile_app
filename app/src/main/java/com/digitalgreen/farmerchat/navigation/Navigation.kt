@@ -14,6 +14,7 @@ import com.digitalgreen.farmerchat.ui.screens.SplashScreen
 import com.digitalgreen.farmerchat.ui.screens.SettingsScreen
 import com.digitalgreen.farmerchat.ui.screens.CropSelectionScreen
 import com.digitalgreen.farmerchat.ui.screens.LivestockSelectionScreen
+import com.digitalgreen.farmerchat.ui.screens.PhoneAuthScreen
 
 sealed class Screen(val route: String) {
     object Splash : Screen("splash")
@@ -27,6 +28,7 @@ sealed class Screen(val route: String) {
     object Settings : Screen("settings")
     object CropSelection : Screen("crop_selection")
     object LivestockSelection : Screen("livestock_selection")
+    object PhoneAuth : Screen("phone_auth")
 }
 
 @Composable
@@ -86,6 +88,9 @@ fun FarmerChatNavigation(
                 onNavigateToSettings = {
                     navController.navigate(Screen.Settings.route)
                 },
+                onNavigateToPhoneAuth = {
+                    navController.navigate(Screen.PhoneAuth.route)
+                },
                 startNewChat = startNewChat
             )
         }
@@ -142,6 +147,20 @@ fun FarmerChatNavigation(
         composable(Screen.LivestockSelection.route) {
             LivestockSelectionScreen(
                 onNavigateBack = {
+                    navController.popBackStack()
+                }
+            )
+        }
+        
+        composable(Screen.PhoneAuth.route) {
+            PhoneAuthScreen(
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+                onAuthComplete = {
+                    navController.popBackStack()
+                },
+                onSkip = {
                     navController.popBackStack()
                 }
             )
