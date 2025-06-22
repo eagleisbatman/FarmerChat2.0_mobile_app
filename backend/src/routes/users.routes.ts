@@ -56,7 +56,8 @@ router.put('/profile', authenticate, async (req: AuthRequest, res) => {
       crops, 
       livestock,
       role,
-      gender
+      gender,
+      phone
     } = req.body;
 
     const setClauses = [];
@@ -101,6 +102,11 @@ router.put('/profile', authenticate, async (req: AuthRequest, res) => {
     if (gender !== undefined) {
       setClauses.push(`gender = $${paramIndex++}`);
       values.push(gender);
+    }
+
+    if (phone !== undefined) {
+      setClauses.push(`phone = $${paramIndex++}`);
+      values.push(phone);
     }
 
     if (setClauses.length === 0) {

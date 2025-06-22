@@ -14,7 +14,7 @@ import com.digitalgreen.farmerchat.ui.screens.SplashScreen
 import com.digitalgreen.farmerchat.ui.screens.SettingsScreen
 import com.digitalgreen.farmerchat.ui.screens.CropSelectionScreen
 import com.digitalgreen.farmerchat.ui.screens.LivestockSelectionScreen
-import com.digitalgreen.farmerchat.ui.screens.PhoneAuthScreen
+import com.digitalgreen.farmerchat.ui.screens.PhoneCollectionScreen
 
 sealed class Screen(val route: String) {
     object Splash : Screen("splash")
@@ -28,7 +28,7 @@ sealed class Screen(val route: String) {
     object Settings : Screen("settings")
     object CropSelection : Screen("crop_selection")
     object LivestockSelection : Screen("livestock_selection")
-    object PhoneAuth : Screen("phone_auth")
+    object PhoneCollection : Screen("phone_collection")
 }
 
 @Composable
@@ -46,7 +46,18 @@ fun FarmerChatNavigation(
                         popUpTo(Screen.Splash.route) { inclusive = true }
                     }
                 },
-                onNavigateToChat = {
+                onNavigateToChat = { conversationId ->
+                    if (conversationId != null) {
+                        navController.navigate(Screen.Chat.createRoute(conversationId)) {
+                            popUpTo(Screen.Splash.route) { inclusive = true }
+                        }
+                    } else {
+                        navController.navigate(Screen.Conversations.route) {
+                            popUpTo(Screen.Splash.route) { inclusive = true }
+                        }
+                    }
+                },
+                onNavigateToConversations = {
                     navController.navigate(Screen.Conversations.route) {
                         popUpTo(Screen.Splash.route) { inclusive = true }
                     }
@@ -57,7 +68,7 @@ fun FarmerChatNavigation(
         composable(Screen.Onboarding.route) {
             OnboardingScreen(
                 onOnboardingComplete = {
-                    // Create new conversation and navigate directly to chat
+                    // After onboarding, create new conversation and navigate directly to chat
                     navController.navigate(Screen.Conversations.createRoute(startNewChat = true)) {
                         popUpTo(Screen.Onboarding.route) { inclusive = true }
                     }
@@ -81,7 +92,7 @@ fun FarmerChatNavigation(
                     navController.navigate(Screen.Settings.route)
                 },
                 onNavigateToPhoneAuth = {
-                    navController.navigate(Screen.PhoneAuth.route)
+                    navController.navigate(Screen.PhoneCollection.route)
                 },
                 startNewChat = startNewChat
             )
@@ -95,7 +106,11 @@ fun FarmerChatNavigation(
             ChatScreen(
                 conversationId = conversationId,
                 onNavigateBack = {
-                    navController.popBackStack()
+                    // Navigate to conversations without startNewChat parameter
+                    navController.navigate(Screen.Conversations.route) {
+                        popUpTo(Screen.Chat.route) { inclusive = true }
+                        launchSingleTop = true
+                    }
                 },
                 onNavigateToNewChat = {
                     navController.navigate(Screen.Conversations.createRoute(startNewChat = true)) {
@@ -147,12 +162,12 @@ fun FarmerChatNavigation(
             )
         }
         
-        composable(Screen.PhoneAuth.route) {
-            PhoneAuthScreen(
+        composable(Screen.PhoneCollection.route) {
+            PhoneCollectionScreen(
                 onNavigateBack = {
                     navController.popBackStack()
                 },
-                onAuthComplete = {
+                onComplete = {
                     navController.popBackStack()
                 },
                 onSkip = {

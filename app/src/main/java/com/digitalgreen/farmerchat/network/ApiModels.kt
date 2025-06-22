@@ -45,8 +45,8 @@ data class ApiUser(
     @SerializedName("gender") val gender: String? = null,
     @SerializedName("responseLength") val responseLength: String = "medium",
     @SerializedName("isActive") val isActive: Boolean = true,
-    @SerializedName("createdAt") val createdAt: String,
-    @SerializedName("updatedAt") val updatedAt: String
+    @SerializedName("createdAt") val createdAt: String? = null,
+    @SerializedName("updatedAt") val updatedAt: String? = null
 )
 
 data class UpdateUserRequest(
@@ -57,7 +57,8 @@ data class UpdateUserRequest(
     @SerializedName("livestock") val livestock: List<String>? = null,
     @SerializedName("role") val role: String? = null,
     @SerializedName("gender") val gender: String? = null,
-    @SerializedName("responseLength") val responseLength: String? = null
+    @SerializedName("responseLength") val responseLength: String? = null,
+    @SerializedName("phone") val phone: String? = null
 )
 
 // Conversation Models
@@ -71,8 +72,8 @@ data class ApiConversation(
     @SerializedName("englishTags") val englishTags: List<String>? = null,
     @SerializedName("english_tags") val english_tags: List<String>? = null, // Backend uses snake_case
     @SerializedName("summary") val summary: String? = null,
-    @SerializedName("createdAt") val createdAt: String,
-    @SerializedName("updatedAt") val updatedAt: String
+    @SerializedName("createdAt") val createdAt: String? = null,
+    @SerializedName("updatedAt") val updatedAt: String? = null
 )
 
 data class CreateConversationRequest(
@@ -90,12 +91,12 @@ data class ConversationsResponse(
 // Message Models
 data class ApiMessage(
     @SerializedName("id") val id: String,
-    @SerializedName("conversationId") val conversationId: String,
+    @SerializedName("conversation_id") val conversationId: String,
     @SerializedName("content") val content: String,
-    @SerializedName("isUser") val isUser: Boolean,
-    @SerializedName("createdAt") val createdAt: String,
+    @SerializedName("is_user") val isUser: Boolean,
+    @SerializedName("created_at") val createdAt: String? = null,
     @SerializedName("rating") val rating: Int? = null,
-    @SerializedName("followUpQuestions") val followUpQuestions: List<FollowUpQuestion> = emptyList()
+    @SerializedName("follow_up_questions") val followUpQuestions: List<FollowUpQuestion> = emptyList()
 )
 
 data class FollowUpQuestion(

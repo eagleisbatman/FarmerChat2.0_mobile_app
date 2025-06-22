@@ -32,6 +32,7 @@ import com.digitalgreen.farmerchat.data.LanguageManager
 import com.digitalgreen.farmerchat.ui.components.FarmerChatAppBar
 import com.digitalgreen.farmerchat.ui.components.localizedString
 import com.digitalgreen.farmerchat.ui.components.currentLanguage
+import com.digitalgreen.farmerchat.ui.components.ConversationItemSkeleton
 import com.digitalgreen.farmerchat.utils.StringsManager.StringKey
 import com.digitalgreen.farmerchat.ui.theme.DesignSystem
 import com.digitalgreen.farmerchat.ui.theme.appBarColor
@@ -61,6 +62,18 @@ fun ConversationsScreen(
     var showTagFilter by remember { mutableStateOf(false) }
     val languageCode = currentLanguage()
     
+    // Track if we've loaded data at least once to prevent skeleton on navigation
+    var hasLoadedOnce by remember { mutableStateOf(false) }
+    
+    LaunchedEffect(conversations) {
+        if (conversations.isNotEmpty() || !isLoading) {
+            hasLoadedOnce = true
+        }
+    }
+    
+    // Only show skeleton on very first load, not on navigation
+    val showSkeleton = isLoading && !hasLoadedOnce
+    
     // Get all unique tags from conversations
     val allTags = remember(conversations) {
         conversations.flatMap { it.tags }.distinct().sorted()
@@ -81,13 +94,9 @@ fun ConversationsScreen(
         }
     }
     
-    // State to track if we've already handled the startNewChat
-    var hasHandledNewChat by remember { mutableStateOf(false) }
-    
     // Handle startNewChat navigation
-    LaunchedEffect(startNewChat, hasHandledNewChat) {
-        if (startNewChat && !hasHandledNewChat) {
-            hasHandledNewChat = true
+    LaunchedEffect(startNewChat) {
+        if (startNewChat) {
             viewModel.createNewConversation { conversationId ->
                 onNavigateToChat(conversationId)
             }
@@ -100,6 +109,11 @@ fun ConversationsScreen(
             onNavigateToPhoneAuth()
             viewModel.dismissPhoneAuthPrompt()
         }
+    }
+    
+    // Initialize the ViewModel when the screen is first displayed
+    LaunchedEffect(Unit) {
+        viewModel.initialize()
     }
     
     // Debug logging
@@ -201,8 +215,10 @@ fun ConversationsScreen(
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
+                    android.util.Log.d("ConversationsScreen", "FAB clicked - creating new conversation")
                     // Create new conversation
                     viewModel.createNewConversation { conversationId ->
+                        android.util.Log.d("ConversationsScreen", "Navigating to chat with conversationId: $conversationId")
                         onNavigateToChat(conversationId)
                     }
                 },
@@ -284,12 +300,15 @@ fun ConversationsScreen(
             
             // Main content
             when {
-                isLoading -> {
-                    Box(
+                showSkeleton -> {
+                    // Show skeleton loaders instead of spinner
+                    LazyColumn(
                         modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
+                        verticalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.xxs)
                     ) {
-                        CircularProgressIndicator()
+                        items(5) { // Show 5 skeleton items
+                            ConversationItemSkeleton()
+                        }
                     }
                 }
                 filteredConversations.isEmpty() -> {

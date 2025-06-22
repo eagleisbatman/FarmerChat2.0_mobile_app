@@ -37,6 +37,9 @@ import com.digitalgreen.farmerchat.ui.components.CompactQuestionChip
 import com.digitalgreen.farmerchat.ui.components.VoiceRecordingButton
 import com.digitalgreen.farmerchat.ui.components.FarmerChatAppBar
 import com.digitalgreen.farmerchat.ui.components.localizedString
+import com.digitalgreen.farmerchat.ui.components.MessageSkeleton
+import com.digitalgreen.farmerchat.ui.components.StarterQuestionsSkeleton
+import com.digitalgreen.farmerchat.ui.components.TypingIndicator
 import com.digitalgreen.farmerchat.utils.StringsManager.StringKey
 import com.digitalgreen.farmerchat.ui.theme.DesignSystem
 import com.digitalgreen.farmerchat.ui.theme.primaryTextColor
@@ -47,6 +50,7 @@ import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.util.Date
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 @Composable
@@ -62,19 +66,22 @@ fun ChatScreen(
     val messages by viewModel.messages.collectAsState()
     val starterQuestions by viewModel.starterQuestions.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
-    val isSpeaking by viewModel.isSpeaking.collectAsState()
     val isRecording by viewModel.isRecording.collectAsState()
     val speechError by viewModel.speechError.collectAsState()
     val followUpQuestions by viewModel.followUpQuestions.collectAsState()
     val recognizedText by viewModel.recognizedText.collectAsState()
     val userProfile by viewModel.userProfile.collectAsState()
-    val voiceConfidenceScore by viewModel.voiceConfidenceScore.collectAsState()
-    val voiceConfidenceLevel = viewModel.voiceConfidenceLevel
+    // val speechConfidence by viewModel.speechConfidence.collectAsState()
+    val speechConfidence = 1.0f // Default confidence
+    val currentConversation by viewModel.currentConversation.collectAsState()
+    val currentStreamingMessage by viewModel.currentStreamingMessage.collectAsState()
+    
+    // Get state from ViewModel instead of creating dummy state
+    val isSpeaking by viewModel.isSpeaking.collectAsState()
     val starterQuestionsLoading by viewModel.starterQuestionsLoading.collectAsState()
     val starterQuestionsError by viewModel.starterQuestionsError.collectAsState()
-    val currentConversation by viewModel.currentConversation.collectAsState()
     
-    val conversationTitle = currentConversation?.getLocalizedTitle(userProfile?.language ?: "en") 
+    val conversationTitle = currentConversation?.title 
         ?: localizedString(StringKey.NEW_CONVERSATION)
     
     var textInput by remember { mutableStateOf("") }
@@ -88,11 +95,18 @@ fun ChatScreen(
     // Permission for recording audio
     val recordAudioPermission = rememberPermissionState(Manifest.permission.RECORD_AUDIO)
     
-    // Auto-scroll to bottom when new message arrives
-    LaunchedEffect(messages.size) {
-        if (messages.isNotEmpty()) {
-            coroutineScope.launch {
-                scrollState.animateScrollToItem(messages.size - 1)
+    // Auto-scroll to bottom when new message arrives or streaming
+    LaunchedEffect(messages.size, currentStreamingMessage) {
+        coroutineScope.launch {
+            if (messages.isNotEmpty() || currentStreamingMessage.isNotEmpty()) {
+                val targetIndex = if (currentStreamingMessage.isNotEmpty()) {
+                    messages.size // Scroll to streaming message
+                } else {
+                    messages.size - 1 // Scroll to last message
+                }
+                if (targetIndex >= 0) {
+                    scrollState.animateScrollToItem(targetIndex)
+                }
             }
         }
     }
@@ -175,8 +189,8 @@ fun ChatScreen(
                     verticalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.xs),
                     contentPadding = PaddingValues(vertical = DesignSystem.Spacing.md)
                 ) {
-                    // Show starter questions section if no messages
-                    if (messages.isEmpty()) {
+                    // Show starter questions section if no messages and not loading
+                    if (messages.isEmpty() && !isLoading) {
                         item {
                             Column(
                                 modifier = Modifier
@@ -195,14 +209,10 @@ fun ChatScreen(
                                 
                                 Spacer(modifier = Modifier.height(DesignSystem.Spacing.lg))
                                 
-                                // Show loading indicator for starter questions
-                                if (starterQuestionsLoading) {
-                                    CircularProgressIndicator(
-                                        modifier = Modifier.size(DesignSystem.IconSize.medium),
-                                        color = MaterialTheme.colorScheme.primary
-                                    )
-                                    Spacer(modifier = Modifier.height(DesignSystem.Spacing.md))
-                                } else if (starterQuestionsError != null) {
+                                // Only show skeleton on initial load, not when questions are already displayed
+                                if (starterQuestionsLoading && starterQuestions.isEmpty()) {
+                                    StarterQuestionsSkeleton()
+                                } else if (starterQuestionsError != null && starterQuestions.isEmpty()) {
                                     Text(
                                         text = starterQuestionsError ?: "",
                                         fontSize = DesignSystem.Typography.bodyMedium,
@@ -214,7 +224,7 @@ fun ChatScreen(
                             }
                         }
                         
-                        if (!starterQuestionsLoading && starterQuestions.isNotEmpty()) {
+                        if (starterQuestions.isNotEmpty()) {
                             items(starterQuestions) { question ->
                                 QuestionChip(
                                     text = question,
@@ -227,9 +237,16 @@ fun ChatScreen(
                                 )
                             }
                         }
-                    } else {
-                    // Show chat messages
-                    items(messages) { message ->
+                    } else if (messages.isNotEmpty() || isLoading) {
+                        // Show skeleton when messages are loading
+                        if (messages.isEmpty() && isLoading) {
+                            items(3) { index ->
+                                MessageSkeleton(isUser = index % 2 == 0)
+                            }
+                        }
+                        
+                        // Show chat messages
+                        items(messages) { message ->
                         MessageBubbleV2(
                             message = message,
                             onPlayAudio = {
@@ -248,35 +265,28 @@ fun ChatScreen(
                         )
                     }
                     
-                    // Show typing indicator when loading
-                    if (isLoading) {
+                    // Show streaming message if it exists
+                    if (currentStreamingMessage.isNotEmpty()) {
                         item {
-                            Row(
-                                modifier = Modifier.padding(DesignSystem.Spacing.sm),
-                                horizontalArrangement = Arrangement.Start
-                            ) {
-                                Card(
-                                    colors = CardDefaults.cardColors(
-                                        containerColor = MaterialTheme.colorScheme.secondaryContainer
-                                    )
-                                ) {
-                                    Row(
-                                        modifier = Modifier.padding(DesignSystem.Spacing.sm + DesignSystem.Spacing.xs),
-                                        horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.xs)
-                                    ) {
-                                        repeat(3) {
-                                            Box(
-                                                modifier = Modifier
-                                                    .size(DesignSystem.Spacing.sm)
-                                                    .background(
-                                                        MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = DesignSystem.Opacity.medium),
-                                                        shape = CircleShape
-                                                    )
-                                            )
-                                        }
-                                    }
-                                }
-                            }
+                            MessageBubbleV2(
+                                message = ChatMessage(
+                                    content = currentStreamingMessage,
+                                    isUser = false,
+                                    timestamp = Date()
+                                ),
+                                onPlayAudio = { },
+                                isSpeaking = false,
+                                onFeedback = { },
+                                currentLanguageCode = userProfile?.language ?: "en",
+                                isStreaming = true
+                            )
+                        }
+                    }
+                    
+                    // Show typing indicator when loading (but not when streaming)
+                    if (isLoading && currentStreamingMessage.isEmpty()) {
+                        item {
+                            TypingIndicator()
                         }
                     }
                 }
@@ -350,19 +360,25 @@ fun ChatScreen(
                             )
                             
                             // Confidence indicator
-                            if (voiceConfidenceScore > 0) {
+                            if (speechConfidence > 0) {
                                 Spacer(modifier = Modifier.height(DesignSystem.Spacing.xs))
                                 Row(
                                     horizontalArrangement = Arrangement.Center,
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
+                                    val confidenceLevel = when {
+                                        speechConfidence >= 0.8f -> SpeechRecognitionManager.ConfidenceLevel.HIGH
+                                        speechConfidence >= 0.5f -> SpeechRecognitionManager.ConfidenceLevel.MEDIUM
+                                        else -> SpeechRecognitionManager.ConfidenceLevel.LOW
+                                    }
+                                    
                                     LinearProgressIndicator(
-                                        progress = voiceConfidenceScore,
+                                        progress = speechConfidence,
                                         modifier = Modifier
                                             .width(100.dp)
                                             .height(DesignSystem.Spacing.xs)
                                             .clip(RoundedCornerShape(DesignSystem.Spacing.xxs)),
-                                        color = when (voiceConfidenceLevel) {
+                                        color = when (confidenceLevel) {
                                             SpeechRecognitionManager.ConfidenceLevel.HIGH -> DesignSystem.Colors.Success
                                             SpeechRecognitionManager.ConfidenceLevel.MEDIUM -> DesignSystem.Colors.Warning
                                             SpeechRecognitionManager.ConfidenceLevel.LOW -> DesignSystem.Colors.Error
@@ -370,13 +386,13 @@ fun ChatScreen(
                                     )
                                     Spacer(modifier = Modifier.width(DesignSystem.Spacing.sm))
                                     Text(
-                                        text = when (voiceConfidenceLevel) {
+                                        text = when (confidenceLevel) {
                                             SpeechRecognitionManager.ConfidenceLevel.HIGH -> localizedString(StringKey.CONFIDENCE_HIGH)
                                             SpeechRecognitionManager.ConfidenceLevel.MEDIUM -> localizedString(StringKey.CONFIDENCE_MEDIUM)
                                             SpeechRecognitionManager.ConfidenceLevel.LOW -> localizedString(StringKey.CONFIDENCE_LOW)
                                         },
                                         fontSize = DesignSystem.Typography.bodySmall,
-                                        color = when (voiceConfidenceLevel) {
+                                        color = when (confidenceLevel) {
                                             SpeechRecognitionManager.ConfidenceLevel.HIGH -> DesignSystem.Colors.Success
                                             SpeechRecognitionManager.ConfidenceLevel.MEDIUM -> DesignSystem.Colors.Warning
                                             SpeechRecognitionManager.ConfidenceLevel.LOW -> DesignSystem.Colors.Error

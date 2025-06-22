@@ -31,7 +31,11 @@ object CropsManager {
         SPICES("Spices & Herbs"),
         PLANTATION("Plantation Crops"),
         FODDER("Fodder Crops"),
-        FLOWERS("Flowers & Ornamentals")
+        FLOWERS("Flowers & Ornamentals");
+        
+        fun getLocalizedName(languageCode: String): String {
+            return com.digitalgreen.farmerchat.utils.StringsManager.getCropCategoryString(this, languageCode)
+        }
     }
     
     private val crops = listOf(

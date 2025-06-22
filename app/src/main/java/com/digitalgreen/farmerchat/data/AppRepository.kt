@@ -39,7 +39,8 @@ class AppRepository(private val context: Context) {
                 return Result.failure(Exception("No Firebase user authenticated"))
             }
             
-            val idToken = firebaseUser.getIdToken(false).await().token
+            // Force token refresh to ensure we have a valid token
+            val idToken = firebaseUser.getIdToken(true).await().token
                 ?: return Result.failure(Exception("Failed to get Firebase ID token"))
             
             val deviceInfo = DeviceInfo(
@@ -56,12 +57,17 @@ class AppRepository(private val context: Context) {
             
             result.onSuccess { response ->
                 if (response.success && response.data != null) {
-                    // Save tokens to persistent storage
+                    // IMPORTANT: Set token in memory IMMEDIATELY for subsequent requests
+                    NetworkConfig.setAuthToken(response.data.token)
+                    Log.d(TAG, "JWT token set in memory: ${response.data.token.take(20)}...")
+                    
+                    // Then save to persistent storage
                     NetworkConfig.setAuthTokens(
                         jwtToken = response.data.token,
                         refreshToken = response.data.refreshToken ?: response.data.token, // Use same token if no refresh token
                         expiresIn = response.data.expiresIn.toLong()
                     )
+                    Log.d(TAG, "JWT token saved to persistent storage")
                     _currentUser.value = response.data.user
                     
                     // Connect WebSocket for real-time features
@@ -78,6 +84,23 @@ class AppRepository(private val context: Context) {
             Log.e(TAG, "Authentication error", e)
             Result.failure(e)
         }
+    }
+    
+    // WebSocket Management
+    suspend fun ensureWebSocketConnected() {
+        if (!webSocketClient.isConnected()) {
+            val token = NetworkConfig.getAuthToken()
+            if (token != null) {
+                Log.d(TAG, "Reconnecting WebSocket with existing token")
+                webSocketClient.connect(token)
+            } else {
+                Log.w(TAG, "No auth token available for WebSocket connection")
+            }
+        }
+    }
+    
+    fun disconnectWebSocket() {
+        webSocketClient.disconnect()
     }
     
     // User Profile Management
@@ -101,7 +124,8 @@ class AppRepository(private val context: Context) {
         livestock: List<String>? = null,
         role: String? = null,
         gender: String? = null,
-        responseLength: String? = null
+        responseLength: String? = null,
+        phone: String? = null
     ): Result<ApiUser> {
         val request = UpdateUserRequest(
             name = name,
@@ -111,7 +135,8 @@ class AppRepository(private val context: Context) {
             livestock = livestock,
             role = role,
             gender = gender,
-            responseLength = responseLength
+            responseLength = responseLength,
+            phone = phone
         )
         
         return safeApiCall { NetworkConfig.userApi.updateUserProfile(request) }
@@ -144,10 +169,15 @@ class AppRepository(private val context: Context) {
     }
     
     suspend fun createConversation(title: String? = null, tags: List<String> = emptyList()): Result<ApiConversation> {
+        Log.d(TAG, "AppRepository: Creating conversation with title: $title")
+        val token = NetworkConfig.getAuthToken()
+        Log.d(TAG, "AppRepository: Current auth token: ${if (token != null) "Present" else "NULL"}")
+        
         val request = CreateConversationRequest(title = title, tags = tags)
         
         return safeApiCall { NetworkConfig.conversationApi.createConversation(request) }
             .mapCatching { response ->
+                Log.d(TAG, "AppRepository: Create conversation response: success=${response.success}, data=${response.data}")
                 if (response.success && response.data != null) {
                     // Update local conversations list
                     _conversations.value = listOf(response.data) + _conversations.value
@@ -155,6 +185,9 @@ class AppRepository(private val context: Context) {
                 } else {
                     throw Exception(response.error ?: "Failed to create conversation")
                 }
+            }
+            .onFailure { e ->
+                Log.e(TAG, "AppRepository: Failed to create conversation", e)
             }
     }
     
@@ -292,7 +325,7 @@ class AppRepository(private val context: Context) {
     }
     
     // Authentication Management
-    fun signOut() {
+    suspend fun signOut() {
         NetworkConfig.clearAuthTokens() // This clears both in-memory and persistent tokens
         _currentUser.value = null
         _conversations.value = emptyList()

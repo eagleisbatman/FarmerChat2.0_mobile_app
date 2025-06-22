@@ -75,14 +75,22 @@ export class AuthService {
         user
       };
     } catch (error: any) {
-      logger.error('Error verifying Firebase token:', error);
+      logger.error('Error verifying Firebase token:', {
+        message: error.message,
+        code: error.code,
+        stack: error.stack,
+        fullError: JSON.stringify(error, null, 2)
+      });
       if (error.code === 'auth/id-token-expired') {
         throw new AppError('Token expired', 401);
       }
       if (error.code === 'auth/invalid-id-token') {
         throw new AppError('Invalid token', 401);
       }
-      throw new AppError('Failed to verify token', 500);
+      if (error.code === 'auth/argument-error') {
+        throw new AppError('Invalid token format', 401);
+      }
+      throw new AppError(`Failed to verify token: ${error.message || 'Unknown error'}`, 500);
     }
   }
   

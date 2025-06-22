@@ -41,10 +41,18 @@ class ApiConversationsViewModel(application: Application) : AndroidViewModel(app
     private val _shouldShowPhoneAuth = MutableStateFlow(false)
     val shouldShowPhoneAuth: StateFlow<Boolean> = _shouldShowPhoneAuth
     
-    init {
+    // Remove init block to prevent premature API calls
+    // Call initialize() from the UI when ready
+    
+    fun initialize() {
+        // Only initialize once
+        if (_isLoading.value || _conversations.value.isNotEmpty()) return
+        
         viewModelScope.launch {
+            _isLoading.value = true
+            
             loadUserProfile()
-            loadConversations()
+            loadConversations(initialLoad = true)
             
             // Listen for real-time conversation updates
             listenForConversationUpdates()
@@ -60,11 +68,11 @@ class ApiConversationsViewModel(application: Application) : AndroidViewModel(app
         }
     }
     
-    fun loadConversations(refresh: Boolean = false) {
+    fun loadConversations(refresh: Boolean = false, initialLoad: Boolean = false) {
         viewModelScope.launch {
             if (refresh) {
                 _isRefreshing.value = true
-            } else {
+            } else if (!initialLoad) {
                 _isLoading.value = true
             }
             
@@ -102,12 +110,15 @@ class ApiConversationsViewModel(application: Application) : AndroidViewModel(app
     
     fun createNewConversation(onSuccess: (String) -> Unit) {
         viewModelScope.launch {
+            android.util.Log.d("ApiConversationsViewModel", "Starting createNewConversation")
             _isLoading.value = true
             _error.value = null
             
             val placeholderTitle = stringProvider.getString(StringKey.START_A_CONVERSATION)
+            android.util.Log.d("ApiConversationsViewModel", "Creating conversation with title: $placeholderTitle")
             
             repository.createConversation(title = placeholderTitle).onSuccess { conversation ->
+                android.util.Log.d("ApiConversationsViewModel", "Conversation created successfully: ${conversation.id}")
                 onSuccess(conversation.id)
                 
                 // Check if this is the first conversation and user doesn't have phone auth
@@ -124,13 +135,18 @@ class ApiConversationsViewModel(application: Application) : AndroidViewModel(app
     }
     
     private fun checkAndPromptPhoneAuth() {
+        // Disabled for now - causing unexpected popups
+        // TODO: Implement proper phone auth flow
+        /*
         val currentUser = FirebaseAuth.getInstance().currentUser
-        val isFirstConversation = _conversations.value.size == 1
+        val conversationCount = _conversations.value.size
         val hasPhoneNumber = currentUser?.phoneNumber?.isNotEmpty() == true
         
-        if (isFirstConversation && !hasPhoneNumber && currentUser?.isAnonymous == true) {
+        // Show phone collection after 3 conversations if user hasn't provided phone yet
+        if (conversationCount == 3 && !hasPhoneNumber && currentUser?.isAnonymous == true) {
             _shouldShowPhoneAuth.value = true
         }
+        */
     }
     
     fun dismissPhoneAuthPrompt() {

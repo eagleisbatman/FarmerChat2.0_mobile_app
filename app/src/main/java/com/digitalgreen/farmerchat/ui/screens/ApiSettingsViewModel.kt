@@ -49,7 +49,10 @@ class ApiSettingsViewModel(application: Application) : AndroidViewModel(applicat
     private val _settingsState = MutableStateFlow(SettingsState())
     val settingsState: StateFlow<SettingsState> = _settingsState.asStateFlow()
     
-    init {
+    // Remove init block to prevent premature API calls
+    // Call initialize() from the UI when ready
+    
+    fun initialize() {
         loadSettings()
     }
     
@@ -82,11 +85,11 @@ class ApiSettingsViewModel(application: Application) : AndroidViewModel(applicat
     
     private fun loadSettings() {
         viewModelScope.launch {
+            // Show loading state for skeleton loading
+            _settingsState.update { it.copy(isLoading = true) }
+            
             // First load cached settings immediately
             loadCachedSettings()
-            
-            // Don't show loading indicator to avoid flicker
-            // _settingsState.update { it.copy(isLoading = true) }
             
             try {
                 // Load user profile from API

@@ -20,6 +20,7 @@ import androidx.lifecycle.ViewModelProvider
 import com.digitalgreen.farmerchat.ui.components.localizedString
 import com.digitalgreen.farmerchat.ui.components.currentLanguage
 import com.digitalgreen.farmerchat.ui.components.FarmerChatAppBar
+import com.digitalgreen.farmerchat.ui.components.SettingsSectionSkeleton
 import com.digitalgreen.farmerchat.ui.theme.DesignSystem
 import com.digitalgreen.farmerchat.utils.StringsManager.StringKey
 import com.digitalgreen.farmerchat.utils.PreferencesManager
@@ -56,6 +57,12 @@ fun SettingsScreen(
         editableName = settingsState.userName
         editableLocation = settingsState.userLocation
     }
+    
+    // Initialize the ViewModel when the screen is first displayed
+    LaunchedEffect(Unit) {
+        viewModel.initialize()
+    }
+    
     val coroutineScope = rememberCoroutineScope()
     
     Scaffold(
@@ -72,9 +79,28 @@ fun SettingsScreen(
                 .padding(paddingValues),
             contentPadding = PaddingValues(vertical = DesignSystem.Spacing.sm)
         ) {
-            // Profile Section
-            item {
-                SettingsSection(title = localizedString(StringKey.PROFILE)) {
+            if (settingsState.isLoading) {
+                // Show skeleton loading for all sections
+                item {
+                    SettingsSectionSkeleton(itemCount = 6) // Profile section has 6 items
+                }
+                item {
+                    SettingsSectionSkeleton(itemCount = 3) // Preferences section has 3 items
+                }
+                item {
+                    SettingsSectionSkeleton(itemCount = 2) // AI Settings section has 2 items
+                }
+                item {
+                    SettingsSectionSkeleton(itemCount = 2) // Data & Privacy section has 2 items
+                }
+                item {
+                    SettingsSectionSkeleton(itemCount = 4) // About section has 4 items
+                }
+            } else {
+                // Show actual content when loaded
+                // Profile Section
+                item {
+                    SettingsSection(title = localizedString(StringKey.PROFILE)) {
                     SettingsItem(
                         icon = Icons.Default.Person,
                         title = localizedString(StringKey.NAME),
@@ -247,6 +273,7 @@ fun SettingsScreen(
                     )
                 }
             }
+            } // Close else block for skeleton loading
         }
     }
     

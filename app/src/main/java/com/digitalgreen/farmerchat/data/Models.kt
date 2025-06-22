@@ -87,8 +87,11 @@ data class Feedback(
 // Onboarding state
 data class OnboardingState(
     val currentStep: Int = 0,
-    val selectedLanguage: String = "en",
     val selectedLocation: String = "",
+    val selectedLanguage: String = "en",
+    val phoneNumber: String = "",
+    val pin: String = "",
+    val confirmPin: String = "",
     val selectedCrops: List<String> = emptyList(),
     val selectedLivestock: List<String> = emptyList(),
     val role: String = "",

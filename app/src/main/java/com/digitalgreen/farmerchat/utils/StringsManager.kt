@@ -236,7 +236,27 @@ object StringsManager {
         PHONE_AUTH_DESC,
         SKIP_FOR_NOW,
         INVALID_PHONE_NUMBER,
-        INVALID_OTP
+        INVALID_OTP,
+        
+        // Crop Categories
+        CROP_CATEGORY_CEREALS,
+        CROP_CATEGORY_PULSES,
+        CROP_CATEGORY_VEGETABLES,
+        CROP_CATEGORY_FRUITS,
+        CROP_CATEGORY_CASH_CROPS,
+        CROP_CATEGORY_OILSEEDS,
+        CROP_CATEGORY_SPICES,
+        CROP_CATEGORY_PLANTATION,
+        CROP_CATEGORY_FODDER,
+        CROP_CATEGORY_FLOWERS,
+        
+        // Livestock Categories
+        LIVESTOCK_CATEGORY_CATTLE,
+        LIVESTOCK_CATEGORY_POULTRY,
+        LIVESTOCK_CATEGORY_SMALL_RUMINANTS,
+        LIVESTOCK_CATEGORY_SWINE,
+        LIVESTOCK_CATEGORY_AQUACULTURE,
+        LIVESTOCK_CATEGORY_OTHERS
     }
     
     private val translations = mapOf(
@@ -446,7 +466,27 @@ object StringsManager {
             StringKey.PHONE_AUTH_DESC to "Verify your phone number to save your conversations and access them anytime",
             StringKey.SKIP_FOR_NOW to "Skip for now",
             StringKey.INVALID_PHONE_NUMBER to "Please enter a valid phone number",
-            StringKey.INVALID_OTP to "Invalid OTP. Please try again."
+            StringKey.INVALID_OTP to "Invalid OTP. Please try again.",
+            
+            // Crop Categories
+            StringKey.CROP_CATEGORY_CEREALS to "Cereals & Grains",
+            StringKey.CROP_CATEGORY_PULSES to "Pulses & Legumes",
+            StringKey.CROP_CATEGORY_VEGETABLES to "Vegetables",
+            StringKey.CROP_CATEGORY_FRUITS to "Fruits",
+            StringKey.CROP_CATEGORY_CASH_CROPS to "Cash Crops",
+            StringKey.CROP_CATEGORY_OILSEEDS to "Oilseeds",
+            StringKey.CROP_CATEGORY_SPICES to "Spices & Herbs",
+            StringKey.CROP_CATEGORY_PLANTATION to "Plantation Crops",
+            StringKey.CROP_CATEGORY_FODDER to "Fodder Crops",
+            StringKey.CROP_CATEGORY_FLOWERS to "Flowers & Ornamentals",
+            
+            // Livestock Categories
+            StringKey.LIVESTOCK_CATEGORY_CATTLE to "Cattle",
+            StringKey.LIVESTOCK_CATEGORY_POULTRY to "Poultry",
+            StringKey.LIVESTOCK_CATEGORY_SMALL_RUMINANTS to "Goats & Sheep",
+            StringKey.LIVESTOCK_CATEGORY_SWINE to "Pigs",
+            StringKey.LIVESTOCK_CATEGORY_AQUACULTURE to "Fish & Aquaculture",
+            StringKey.LIVESTOCK_CATEGORY_OTHERS to "Other Animals"
         ),
         
         // Hindi
@@ -632,7 +672,54 @@ object StringsManager {
             
             // Additional actions
             StringKey.RESET to "रीसेट करें",
-            StringKey.RESET_ONBOARDING_CONFIRM to "क्या आप वाकई ऑनबोर्डिंग प्रक्रिया को रीसेट करना चाहते हैं? आपको अपनी प्राथमिकताएं फिर से सेट करनी होंगी।"
+            StringKey.RESET_ONBOARDING_CONFIRM to "क्या आप वाकई ऑनबोर्डिंग प्रक्रिया को रीसेट करना चाहते हैं? आपको अपनी प्राथमिकताएं फिर से सेट करनी होंगी।",
+            
+            // Role and Gender translations (missing)
+            StringKey.SELECT_ROLE to "आपकी भूमिका क्या है?",
+            StringKey.ROLE_SUBTITLE to "यह हमें आपकी आवश्यकताओं के अनुसार सलाह देने में मदद करता है",
+            StringKey.FARMER to "किसान",
+            StringKey.EXTENSION_WORKER to "विस्तार कार्यकर्ता",
+            StringKey.SELECT_GENDER to "अपना लिंग चुनें",
+            StringKey.GENDER_SUBTITLE to "यह हमें अधिक व्यक्तिगत सिफारिशें प्रदान करने में मदद करता है",
+            StringKey.MALE to "पुरुष",
+            StringKey.FEMALE to "महिला",
+            StringKey.OTHER to "अन्य",
+            
+            // Phone Authentication
+            StringKey.PHONE_AUTH_TITLE to "फ़ोन सत्यापन",
+            StringKey.PHONE_NUMBER to "फ़ोन नंबर",
+            StringKey.ENTER_PHONE_NUMBER to "अपना फ़ोन नंबर दर्ज करें",
+            StringKey.COUNTRY_CODE to "देश कोड",
+            StringKey.SEND_OTP to "OTP भेजें",
+            StringKey.VERIFY_OTP to "OTP सत्यापित करें",
+            StringKey.ENTER_OTP to "OTP कोड दर्ज करें",
+            StringKey.OTP_SENT to "OTP %s पर भेजा गया",
+            StringKey.RESEND_OTP to "OTP फिर से भेजें",
+            StringKey.VERIFY to "सत्यापित करें",
+            StringKey.PHONE_AUTH_DESC to "अपनी बातचीत सहेजने और कभी भी उन्हें एक्सेस करने के लिए अपना फ़ोन नंबर सत्यापित करें",
+            StringKey.SKIP_FOR_NOW to "अभी के लिए छोड़ें",
+            StringKey.INVALID_PHONE_NUMBER to "कृपया एक वैध फ़ोन नंबर दर्ज करें",
+            StringKey.INVALID_OTP to "अमान्य OTP। कृपया पुनः प्रयास करें।",
+            
+            // Crop Categories
+            StringKey.CROP_CATEGORY_CEREALS to "अनाज और दाने",
+            StringKey.CROP_CATEGORY_PULSES to "दालें",
+            StringKey.CROP_CATEGORY_VEGETABLES to "सब्जियां",
+            StringKey.CROP_CATEGORY_FRUITS to "फल",
+            StringKey.CROP_CATEGORY_CASH_CROPS to "नकदी फसलें",
+            StringKey.CROP_CATEGORY_OILSEEDS to "तिलहन",
+            StringKey.CROP_CATEGORY_SPICES to "मसाले और जड़ी-बूटियां",
+            StringKey.CROP_CATEGORY_PLANTATION to "बागान फसलें",
+            StringKey.CROP_CATEGORY_FODDER to "चारा फसलें",
+            StringKey.CROP_CATEGORY_FLOWERS to "फूल और सजावटी",
+            
+            // Livestock Categories
+            StringKey.LIVESTOCK_CATEGORY_CATTLE to "मवेशी",
+            StringKey.LIVESTOCK_CATEGORY_POULTRY to "मुर्गीपालन",
+            StringKey.LIVESTOCK_CATEGORY_SMALL_RUMINANTS to "बकरी और भेड़",
+            StringKey.LIVESTOCK_CATEGORY_SWINE to "सूअर",
+            StringKey.LIVESTOCK_CATEGORY_AQUACULTURE to "मछली और जलीय कृषि",
+            StringKey.LIVESTOCK_CATEGORY_OTHERS to "अन्य जानवर"
         ),
         
         // Swahili
@@ -818,7 +905,54 @@ object StringsManager {
             
             // Additional actions
             StringKey.RESET to "Weka upya",
-            StringKey.RESET_ONBOARDING_CONFIRM to "Je, una uhakika unataka kuweka upya mchakato wa kuanza? Utahitaji kuweka mapendekezo yako tena."
+            StringKey.RESET_ONBOARDING_CONFIRM to "Je, una uhakika unataka kuweka upya mchakato wa kuanza? Utahitaji kuweka mapendekezo yako tena.",
+            
+            // Role and Gender translations (missing)
+            StringKey.SELECT_ROLE to "Jukumu lako ni lipi?",
+            StringKey.ROLE_SUBTITLE to "Hii inatusaidia kutoa ushauri unaolingana na mahitaji yako",
+            StringKey.FARMER to "Mkulima",
+            StringKey.EXTENSION_WORKER to "Mfanyakazi wa Ugani",
+            StringKey.SELECT_GENDER to "Chagua jinsia yako",
+            StringKey.GENDER_SUBTITLE to "Hii inatusaidia kutoa mapendekezo ya kibinafsi zaidi",
+            StringKey.MALE to "Mwanaume",
+            StringKey.FEMALE to "Mwanamke",
+            StringKey.OTHER to "Nyingine",
+            
+            // Phone Authentication
+            StringKey.PHONE_AUTH_TITLE to "Uthibitisho wa Simu",
+            StringKey.PHONE_NUMBER to "Nambari ya Simu",
+            StringKey.ENTER_PHONE_NUMBER to "Weka nambari yako ya simu",
+            StringKey.COUNTRY_CODE to "Msimbo wa Nchi",
+            StringKey.SEND_OTP to "Tuma OTP",
+            StringKey.VERIFY_OTP to "Thibitisha OTP",
+            StringKey.ENTER_OTP to "Weka msimbo wa OTP",
+            StringKey.OTP_SENT to "OTP imetumwa kwa %s",
+            StringKey.RESEND_OTP to "Tuma OTP tena",
+            StringKey.VERIFY to "Thibitisha",
+            StringKey.PHONE_AUTH_DESC to "Thibitisha nambari yako ya simu ili kuhifadhi mazungumzo yako na kuyafikia wakati wowote",
+            StringKey.SKIP_FOR_NOW to "Ruka kwa sasa",
+            StringKey.INVALID_PHONE_NUMBER to "Tafadhali weka nambari sahihi ya simu",
+            StringKey.INVALID_OTP to "OTP si sahihi. Tafadhali jaribu tena.",
+            
+            // Crop Categories
+            StringKey.CROP_CATEGORY_CEREALS to "Nafaka",
+            StringKey.CROP_CATEGORY_PULSES to "Kunde na Maharage",
+            StringKey.CROP_CATEGORY_VEGETABLES to "Mboga",
+            StringKey.CROP_CATEGORY_FRUITS to "Matunda",
+            StringKey.CROP_CATEGORY_CASH_CROPS to "Mazao ya Biashara",
+            StringKey.CROP_CATEGORY_OILSEEDS to "Mbegu za Mafuta",
+            StringKey.CROP_CATEGORY_SPICES to "Viungo na Majani",
+            StringKey.CROP_CATEGORY_PLANTATION to "Mazao ya Mashamba Makubwa",
+            StringKey.CROP_CATEGORY_FODDER to "Mazao ya Malisho",
+            StringKey.CROP_CATEGORY_FLOWERS to "Maua na Mapambo",
+            
+            // Livestock Categories
+            StringKey.LIVESTOCK_CATEGORY_CATTLE to "Ng'ombe",
+            StringKey.LIVESTOCK_CATEGORY_POULTRY to "Kuku",
+            StringKey.LIVESTOCK_CATEGORY_SMALL_RUMINANTS to "Mbuzi na Kondoo",
+            StringKey.LIVESTOCK_CATEGORY_SWINE to "Nguruwe",
+            StringKey.LIVESTOCK_CATEGORY_AQUACULTURE to "Samaki na Uvuvi",
+            StringKey.LIVESTOCK_CATEGORY_OTHERS to "Wanyama Wengine"
         )
     )
     
@@ -851,5 +985,39 @@ object StringsManager {
     fun getString(key: StringKey, languageCode: String = "en", vararg args: Any): String {
         val template = getString(key, languageCode)
         return String.format(template, *args)
+    }
+    
+    /**
+     * Get localized string for a crop category
+     */
+    fun getCropCategoryString(category: com.digitalgreen.farmerchat.data.CropsManager.CropCategory, languageCode: String = "en"): String {
+        val key = when (category) {
+            com.digitalgreen.farmerchat.data.CropsManager.CropCategory.CEREALS -> StringKey.CROP_CATEGORY_CEREALS
+            com.digitalgreen.farmerchat.data.CropsManager.CropCategory.PULSES -> StringKey.CROP_CATEGORY_PULSES
+            com.digitalgreen.farmerchat.data.CropsManager.CropCategory.VEGETABLES -> StringKey.CROP_CATEGORY_VEGETABLES
+            com.digitalgreen.farmerchat.data.CropsManager.CropCategory.FRUITS -> StringKey.CROP_CATEGORY_FRUITS
+            com.digitalgreen.farmerchat.data.CropsManager.CropCategory.CASH_CROPS -> StringKey.CROP_CATEGORY_CASH_CROPS
+            com.digitalgreen.farmerchat.data.CropsManager.CropCategory.OILSEEDS -> StringKey.CROP_CATEGORY_OILSEEDS
+            com.digitalgreen.farmerchat.data.CropsManager.CropCategory.SPICES -> StringKey.CROP_CATEGORY_SPICES
+            com.digitalgreen.farmerchat.data.CropsManager.CropCategory.PLANTATION -> StringKey.CROP_CATEGORY_PLANTATION
+            com.digitalgreen.farmerchat.data.CropsManager.CropCategory.FODDER -> StringKey.CROP_CATEGORY_FODDER
+            com.digitalgreen.farmerchat.data.CropsManager.CropCategory.FLOWERS -> StringKey.CROP_CATEGORY_FLOWERS
+        }
+        return getString(key, languageCode)
+    }
+    
+    /**
+     * Get localized string for a livestock category
+     */
+    fun getLivestockCategoryString(category: com.digitalgreen.farmerchat.data.LivestockManager.LivestockCategory, languageCode: String = "en"): String {
+        val key = when (category) {
+            com.digitalgreen.farmerchat.data.LivestockManager.LivestockCategory.CATTLE -> StringKey.LIVESTOCK_CATEGORY_CATTLE
+            com.digitalgreen.farmerchat.data.LivestockManager.LivestockCategory.POULTRY -> StringKey.LIVESTOCK_CATEGORY_POULTRY
+            com.digitalgreen.farmerchat.data.LivestockManager.LivestockCategory.SMALL_RUMINANTS -> StringKey.LIVESTOCK_CATEGORY_SMALL_RUMINANTS
+            com.digitalgreen.farmerchat.data.LivestockManager.LivestockCategory.SWINE -> StringKey.LIVESTOCK_CATEGORY_SWINE
+            com.digitalgreen.farmerchat.data.LivestockManager.LivestockCategory.AQUACULTURE -> StringKey.LIVESTOCK_CATEGORY_AQUACULTURE
+            com.digitalgreen.farmerchat.data.LivestockManager.LivestockCategory.OTHERS -> StringKey.LIVESTOCK_CATEGORY_OTHERS
+        }
+        return getString(key, languageCode)
     }
 }

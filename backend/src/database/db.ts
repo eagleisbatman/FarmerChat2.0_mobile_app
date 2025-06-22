@@ -7,20 +7,31 @@ export const pool = new Pool({
   connectionString: config.database.url,
   max: 20, // Maximum number of clients in the pool
   idleTimeoutMillis: 30000, // How long a client is allowed to remain idle before being closed
-  connectionTimeoutMillis: 2000, // How long to wait for a connection
+  connectionTimeoutMillis: 10000, // Increased timeout to 10 seconds for initial connection
+  ssl: {
+    rejectUnauthorized: false // Required for Neon DB
+  }
 });
 
 // Test database connection
 export async function testConnection(): Promise<boolean> {
   try {
-    const client = await pool.connect();
-    const result = await client.query('SELECT NOW()');
-    client.release();
+    logger.info('Attempting to connect to Neon database...');
+    logger.info(`Database URL: ${config.database.url?.substring(0, 50)}...`);
+    
+    const result = await pool.query('SELECT NOW()');
     logger.info(`Database connected at: ${result.rows[0].now}`);
+    logger.info('Neon database connection established');
     return true;
-  } catch (error) {
-    logger.error('Database connection failed:', error);
-    return false;
+  } catch (error: any) {
+    logger.error('Database connection failed:', {
+      message: error.message,
+      code: error.code,
+      detail: error.detail
+    });
+    console.error('Full database error:', error);
+    console.error('Database URL:', config.database.url?.substring(0, 50) + '...');
+    throw error;
   }
 }
 
