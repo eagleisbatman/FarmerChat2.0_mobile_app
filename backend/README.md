@@ -4,7 +4,7 @@ A Node.js/TypeScript backend for the FarmerChat application, providing REST APIs
 
 ## Features
 
-- 🚀 **Multi-AI Provider Support**: Seamlessly switch between Google Gemini, OpenAI GPT-4, and Anthropic Claude
+- 🤖 **OpenAI Integration**: Currently using OpenAI gpt-4o-mini as the active AI provider
 - 🔐 **Firebase Authentication**: Phone number OTP authentication via Firebase Auth
 - 🗄️ **Neon Database**: Serverless PostgreSQL for scalable data storage
 - 🌐 **Multi-Language Support**: 50+ languages with dynamic translation management
@@ -20,7 +20,7 @@ A Node.js/TypeScript backend for the FarmerChat application, providing REST APIs
 - **Database**: Neon (Serverless PostgreSQL)
 - **Cache**: Redis
 - **Authentication**: Firebase Auth with JWT
-- **AI Providers**: Google Gemini, OpenAI, Anthropic Claude
+- **AI Provider**: OpenAI (gpt-4o-mini) - Multi-provider architecture available but only OpenAI enabled
 - **Real-time**: Socket.IO
 - **Notifications**: Firebase Cloud Messaging
 
@@ -30,7 +30,7 @@ A Node.js/TypeScript backend for the FarmerChat application, providing REST APIs
 - Redis server (optional, for caching)
 - Neon database account
 - Firebase project (for Auth and FCM)
-- API keys for AI providers (at least one)
+- OpenAI API key (currently the only enabled provider)
 
 ## Installation
 
