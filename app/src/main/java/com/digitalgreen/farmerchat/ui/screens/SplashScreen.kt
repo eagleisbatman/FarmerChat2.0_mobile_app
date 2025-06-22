@@ -3,6 +3,8 @@ package com.digitalgreen.farmerchat.ui.screens
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
@@ -24,18 +26,34 @@ import kotlinx.coroutines.delay
 @Composable
 fun SplashScreen(
     onNavigateToOnboarding: () -> Unit,
-    onNavigateToChat: () -> Unit,
+    onNavigateToChat: (conversationId: String?) -> Unit,
+    onNavigateToConversations: () -> Unit,
     viewModel: SplashViewModel = viewModel()
 ) {
     val hasCompletedOnboarding by viewModel.hasCompletedOnboarding.collectAsState()
+    val authState by viewModel.authenticationState.collectAsState()
+    val navigationDecision by viewModel.navigationDecision.collectAsState()
     
-    LaunchedEffect(hasCompletedOnboarding) {
-        delay(2000) // Show splash for 2 seconds
-        if (hasCompletedOnboarding == true) {
-            onNavigateToChat()
-        } else {
-            onNavigateToOnboarding()
+    // Handle navigation based on authentication and onboarding state
+    LaunchedEffect(hasCompletedOnboarding, authState, navigationDecision) {
+        // Only navigate when authenticated AND we know onboarding status
+        if (authState is SplashViewModel.AuthState.Authenticated && hasCompletedOnboarding != null) {
+            delay(1500) // Show splash briefly after successful auth
+            
+            if (hasCompletedOnboarding == true) {
+                // Use smart navigation decision
+                navigationDecision?.let { decision ->
+                    if (decision.shouldGoToChat && decision.conversationId != null) {
+                        onNavigateToChat(decision.conversationId)
+                    } else {
+                        onNavigateToConversations()
+                    }
+                } ?: onNavigateToConversations() // Fallback to conversations if no decision
+            } else {
+                onNavigateToOnboarding()
+            }
         }
+        // If auth fails, stay on splash screen showing error
     }
     
     Box(
@@ -78,6 +96,52 @@ fun SplashScreen(
                 color = Color.White.copy(alpha = DesignSystem.Opacity.high),
                 textAlign = TextAlign.Center
             )
+            
+            Spacer(modifier = Modifier.height(DesignSystem.Spacing.xl))
+            
+            // Show loading or error state
+            when (authState) {
+                is SplashViewModel.AuthState.Loading -> {
+                    CircularProgressIndicator(
+                        color = Color.White,
+                        modifier = Modifier.size(32.dp)
+                    )
+                }
+                is SplashViewModel.AuthState.Error -> {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.padding(horizontal = DesignSystem.Spacing.lg)
+                    ) {
+                        Text(
+                            text = "Cannot connect to server",
+                            fontSize = DesignSystem.Typography.bodyLarge,
+                            fontWeight = DesignSystem.Typography.Weight.Medium,
+                            color = Color.White,
+                            textAlign = TextAlign.Center
+                        )
+                        Spacer(modifier = Modifier.height(DesignSystem.Spacing.sm))
+                        Text(
+                            text = "Please ensure the backend is running on port 3004",
+                            fontSize = DesignSystem.Typography.bodyMedium,
+                            color = Color.White.copy(alpha = DesignSystem.Opacity.high),
+                            textAlign = TextAlign.Center
+                        )
+                        Spacer(modifier = Modifier.height(DesignSystem.Spacing.lg))
+                        Button(
+                            onClick = { viewModel.retryAuthentication() },
+                            colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                                containerColor = Color.White,
+                                contentColor = DesignSystem.Colors.Primary
+                            )
+                        ) {
+                            Text("Retry", fontWeight = DesignSystem.Typography.Weight.Medium)
+                        }
+                    }
+                }
+                is SplashViewModel.AuthState.Authenticated -> {
+                    // Show nothing extra when authenticated
+                }
+            }
         }
     }
 }

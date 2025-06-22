@@ -6,6 +6,8 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 -- Users table (extends Supabase auth.users)
 CREATE TABLE IF NOT EXISTS users (
     id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+    email TEXT,
+    phone TEXT,
     name TEXT,
     language TEXT DEFAULT 'en',
     location TEXT,
@@ -13,6 +15,8 @@ CREATE TABLE IF NOT EXISTS users (
     crops TEXT[] DEFAULT '{}',
     livestock TEXT[] DEFAULT '{}',
     preferences JSONB DEFAULT '{}',
+    role TEXT,
+    gender TEXT,
     voice_enabled BOOLEAN DEFAULT true,
     response_length TEXT DEFAULT 'detailed',
     created_at TIMESTAMPTZ DEFAULT NOW(),

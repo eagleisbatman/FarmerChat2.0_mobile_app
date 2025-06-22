@@ -17,6 +17,7 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.digitalgreen.farmerchat.BuildConfig
 import com.digitalgreen.farmerchat.data.ChatMessage
 import com.digitalgreen.farmerchat.data.LanguageManager
 import com.digitalgreen.farmerchat.ui.theme.DesignSystem
@@ -43,6 +44,9 @@ fun MessageBubbleV2(
     val isUser = message.isUser
     val dateFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
     
+    // Debug logging
+    android.util.Log.d("MessageBubbleV2", "Message: ${message.content.take(50)}, isUser: $isUser, message.user: ${message.user}")
+    
     // Check if current language is RTL
     val isRtlLanguage = LanguageManager.getLanguageByCode(currentLanguageCode)?.isRTL ?: false
     
@@ -50,170 +54,118 @@ fun MessageBubbleV2(
     CompositionLocalProvider(
         LocalLayoutDirection provides if (isRtlLanguage) LayoutDirection.Rtl else LayoutDirection.Ltr
     ) {
-        Row(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = DesignSystem.Spacing.md, vertical = DesignSystem.Spacing.xs),
-            horizontalArrangement = if (isRtlLanguage) Arrangement.End else Arrangement.Start
+            horizontalAlignment = Alignment.Start // Always align to start (left)
         ) {
-            // Avatar (AI for bot messages)
-            if (!isUser) {
-                Box(
-                    modifier = Modifier
-                        .size(32.dp)
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.primaryContainer),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Agriculture,
-                        contentDescription = "AI Assistant",
-                        modifier = Modifier.size(DesignSystem.IconSize.small),
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-                }
-                Spacer(modifier = Modifier.width(DesignSystem.Spacing.sm))
-            }
-            
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .widthIn(max = 320.dp), // 80% of typical phone width
-                horizontalAlignment = if (isRtlLanguage) Alignment.End else Alignment.Start
+            // Sender name and timestamp in same row
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(bottom = DesignSystem.Spacing.xxs)
             ) {
-                // Message bubble
-                Surface(
-                    shape = RoundedCornerShape(
-                        topStart = 16.dp,
-                        topEnd = 16.dp,
-                        bottomStart = if (!isUser && !isRtlLanguage || isUser && isRtlLanguage) 4.dp else 16.dp,
-                        bottomEnd = if (isUser && !isRtlLanguage || !isUser && isRtlLanguage) 4.dp else 16.dp
-                    ),
+                Text(
+                    text = if (isUser) "You" else "Farmer Chat",
+                    fontSize = DesignSystem.Typography.labelSmall,
+                    fontWeight = DesignSystem.Typography.Weight.Medium,
                     color = if (isUser) {
                         MaterialTheme.colorScheme.primary
                     } else {
-                        MaterialTheme.colorScheme.surfaceVariant
-                    },
-                    shadowElevation = DesignSystem.Elevation.small,
-                    modifier = Modifier.animateContentSize()
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    }
+                )
+                Spacer(modifier = Modifier.width(DesignSystem.Spacing.sm))
+                Text(
+                    text = "• ${dateFormat.format(message.timestamp)}",
+                    fontSize = DesignSystem.Typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = DesignSystem.Opacity.medium)
+                )
+            }
+            
+            // Message bubble with better visual distinction
+            Surface(
+                shape = RoundedCornerShape(
+                    topStart = if (isUser) 16.dp else 4.dp,
+                    topEnd = if (isUser) 4.dp else 16.dp,
+                    bottomStart = 16.dp,
+                    bottomEnd = 16.dp
+                ),
+                color = if (isUser) {
+                    // Use the green primary color for user messages
+                    MaterialTheme.colorScheme.primary
+                } else {
+                    MaterialTheme.colorScheme.surface
+                },
+                shadowElevation = if (isUser) DesignSystem.Elevation.small else DesignSystem.Elevation.none,
+                modifier = Modifier
+                    .fillMaxWidth() // Use full width as requested
+                    .animateContentSize()
+            ) {
+                Column(
+                    modifier = Modifier.padding(
+                        horizontal = DesignSystem.Spacing.md,
+                        vertical = DesignSystem.Spacing.sm
+                    )
                 ) {
-                    Column(
-                        modifier = Modifier.padding(
-                            horizontal = DesignSystem.Spacing.md,
-                            vertical = DesignSystem.Spacing.sm
+                    // Message content
+                    if (isUser) {
+                        Text(
+                            text = if (isStreaming && message.content.isEmpty()) "..." else message.content,
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            fontSize = DesignSystem.Typography.bodyLarge,
+                            lineHeight = DesignSystem.Typography.titleMedium,
+                            modifier = Modifier.animateContentSize()
                         )
-                    ) {
-                        // Message content
-                        if (isUser) {
-                            Text(
-                                text = if (isStreaming && message.content.isEmpty()) "..." else message.content,
-                                color = MaterialTheme.colorScheme.onPrimary,
-                                fontSize = DesignSystem.Typography.bodyLarge,
-                                lineHeight = DesignSystem.Typography.titleMedium,
-                                modifier = Modifier.animateContentSize()
-                            )
-                        } else {
-                            MarkdownText(
-                                text = if (isStreaming && message.content.isEmpty()) "..." else message.content,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                fontSize = 15,
-                                lineHeight = 22,
-                                modifier = Modifier.animateContentSize()
-                            )
-                        }
+                    } else {
+                        MarkdownText(
+                            text = if (isStreaming && message.content.isEmpty()) "..." else message.content,
+                            modifier = Modifier.animateContentSize(),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            isStreaming = isStreaming // Pass streaming flag
+                        )
+                    }
+                    
+                    // Debug for troubleshooting
+                    if (BuildConfig.DEBUG) {
+                        android.util.Log.d("MessageBubbleV2", "Rendering message - isUser: $isUser, background: ${if (isUser) "green/primary" else "surface"}")
+                    }
+                    
+                    // Action buttons (only for AI messages, no timestamp here)
+                    if (!isUser && (!isStreaming || message.content.isNotEmpty())) {
+                        Spacer(modifier = Modifier.height(DesignSystem.Spacing.xs))
                         
-                        // Timestamp and actions
-                        if (!isStreaming || message.content.isNotEmpty()) {
-                            Spacer(modifier = Modifier.height(DesignSystem.Spacing.xs))
-                            
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.sm),
-                                modifier = Modifier.fillMaxWidth()
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.xs)
+                        ) {
+                            // Voice button
+                            IconButton(
+                                onClick = onPlayAudio,
+                                modifier = Modifier.size(28.dp)
                             ) {
-                                // Timestamp
-                                Text(
-                                    text = dateFormat.format(message.timestamp),
-                                    fontSize = DesignSystem.Typography.labelSmall,
-                                    color = if (isUser) {
-                                        MaterialTheme.colorScheme.onPrimary.copy(alpha = DesignSystem.Opacity.high)
-                                    } else {
-                                        MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = DesignSystem.Opacity.medium)
-                                    }
+                                Icon(
+                                    imageVector = if (isSpeaking) Icons.Default.Stop else Icons.AutoMirrored.Filled.VolumeUp,
+                                    contentDescription = if (isSpeaking) localizedString(StringKey.STOP) else localizedString(StringKey.PLAY),
+                                    modifier = Modifier.size(DesignSystem.IconSize.small),
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = DesignSystem.Opacity.medium)
                                 )
-                                
-                                Spacer(modifier = Modifier.weight(1f))
-                                
-                                // Action buttons (only for AI messages)
-                                if (!isUser) {
-                                    Row(
-                                        horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.xs)
-                                    ) {
-                                        // Voice button
-                                        IconButton(
-                                            onClick = onPlayAudio,
-                                            modifier = Modifier.size(28.dp)
-                                        ) {
-                                            Icon(
-                                                imageVector = if (isSpeaking) Icons.Default.Stop else Icons.AutoMirrored.Filled.VolumeUp,
-                                                contentDescription = if (isSpeaking) localizedString(StringKey.STOP) else localizedString(StringKey.PLAY),
-                                                modifier = Modifier.size(DesignSystem.IconSize.small),
-                                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = DesignSystem.Opacity.medium)
-                                            )
-                                        }
-                                        
-                                        // Feedback button
-                                        IconButton(
-                                            onClick = onFeedback,
-                                            modifier = Modifier.size(28.dp)
-                                        ) {
-                                            Icon(
-                                                imageVector = Icons.Default.ThumbsUpDown,
-                                                contentDescription = localizedString(StringKey.RATE),
-                                                modifier = Modifier.size(DesignSystem.IconSize.small),
-                                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = DesignSystem.Opacity.medium)
-                                            )
-                                        }
-                                    }
-                                }
+                            }
+                            
+                            // Feedback button
+                            IconButton(
+                                onClick = onFeedback,
+                                modifier = Modifier.size(28.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.ThumbsUpDown,
+                                    contentDescription = localizedString(StringKey.RATE),
+                                    modifier = Modifier.size(DesignSystem.IconSize.small),
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = DesignSystem.Opacity.medium)
+                                )
                             }
                         }
                     }
                 }
-                
-                // User name label (optional, for user messages)
-                if (isUser) {
-                    Spacer(modifier = Modifier.height(2.dp))
-                    Text(
-                        text = localizedString(StringKey.YOU),
-                        fontSize = DesignSystem.Typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = DesignSystem.Opacity.medium)
-                    )
-                }
-            }
-            
-            // Avatar (User for user messages) - only in LTR mode
-            if (isUser && !isRtlLanguage) {
-                Spacer(modifier = Modifier.width(DesignSystem.Spacing.sm))
-                Box(
-                    modifier = Modifier
-                        .size(32.dp)
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.secondaryContainer),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Person,
-                        contentDescription = "User",
-                        modifier = Modifier.size(DesignSystem.IconSize.small),
-                        tint = MaterialTheme.colorScheme.onSecondaryContainer
-                    )
-                }
-            }
-            
-            // Add spacer to limit bubble width
-            if (!isUser) {
-                Spacer(modifier = Modifier.weight(0.2f))
             }
         }
     }

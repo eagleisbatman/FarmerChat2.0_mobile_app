@@ -9,38 +9,76 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 **Architecture**: Successfully migrated from Firebase-only to **Node.js + Neon PostgreSQL** backend with Firebase Auth for phone OTP only.
 
 **Status**: 
-- ✅ Backend: Node.js + Express + TypeScript running on port 3004
+- ✅ Backend: Node.js + Express + TypeScript running on port **3004** (NEVER use 3000, 3002)
 - ✅ Database: Neon PostgreSQL (Project: `spring-flower-04114371`) 
 - ✅ API Endpoints: Complete RESTful API with full functionality
 - ✅ Authentication: Firebase → Backend JWT exchange working perfectly
-- ✅ **Token Authorization**: JWT tokens properly attached to all requests
+- ✅ **Token Authorization**: JWT tokens properly persisted and attached to all requests
 - ✅ **Chat Functionality**: Messages send/receive working with OpenAI integration
-- ✅ **Settings**: Profile data loads and updates correctly
-- ✅ **Starter Questions**: Load and are clickable
-- ✅ **Follow-up Questions**: Generated and displayed after AI responses
-- ✅ **Conversation Management**: Create, list, and update conversations
+- ✅ **All Firebase Removed**: Except Firebase Auth for phone OTP
+- ✅ **Gemini API Removed**: Only OpenAI enabled (gpt-4o-mini)
+- ✅ **Phone OTP**: Registration flow already implemented
 
-**AI Configuration**: Using OpenAI gpt-4o-mini model (configurable in backend .env)
+**AI Configuration**: Using OpenAI gpt-4o-mini model only (no Gemini)
 
-**Key Fixes Applied**:
-1. Fixed auth interceptor to properly attach Bearer tokens
-2. Updated API routes to match expected endpoints
-3. Made model fields nullable to handle backend responses
-4. Switched from WebSocket to HTTP for message sending (`/api/v1/chat/send`)
-5. Optimized settings loading with cache-first approach
-6. Updated `SendMessageResponse` model to match backend response format
+**Key Implementation Details**:
+- JWT tokens persist between app sessions using DataStore
+- Backend MUST run on port 3004 (kill existing processes first)
+- All Firebase database code removed - using API only
+- Phone OTP registration screen already exists and works
 
-**Implementation Details**:
-- Using HTTP endpoint `/api/v1/chat/send` for messaging (not WebSocket)
-- Backend supports both HTTP and WebSocket streaming (future enhancement)
-- Optimistic UI updates for better user experience
-- Comprehensive debug logging throughout the flow
+**Important**: Fresh deployment, API-only mode. No Firebase database operations.
 
-**Important**: App is now fully functional with the new backend architecture.
+## Recent Fixes (Jun 21, 2025)
+
+### Navigation Loop Fix
+- Fixed infinite loop in ConversationsScreen when `startNewChat` parameter was true
+- Added `hasHandledStartNewChat` flag to ensure navigation only happens once
+
+### Dynamic Prompts Implementation
+- Removed dependency on database-seeded prompts
+- All prompts (system, starter questions, follow-up, titles) are now dynamically generated
+- No need to run seed scripts - everything works out of the box
+
+### Multilingual Onboarding
+- Added translations for role selection (Farmer/Extension Worker) in Hindi and Swahili
+- Added translations for gender selection (Male/Female/Other) in Hindi and Swahili
+- Added translations for phone authentication screens in all languages
+
+### 🔧 Recent Integration Fixes (January 2025)
+
+**Fixed Issues**:
+1. **Backend Authentication** - Added missing authentication middleware to protected routes
+2. **Token Race Condition** - Fixed async token loading and removed blocking operations
+3. **ViewModel Initialization** - Prevented premature API calls by adding explicit initialization
+4. **Authentication Flow** - Improved error handling and retry capability in SplashViewModel
+5. **WebSocket Reconnection** - Added automatic reconnection after app restart
+6. **401 Error Handling** - Added detection and handling of expired tokens
+
+**Key Changes**:
+- All protected backend routes now require JWT authentication
+- ViewModels use `initialize()` pattern instead of init blocks
+- WebSocket automatically reconnects using stored tokens
+- Proper async/await for token operations
+- Authentication state management with loading/error/success states
 
 ## Common Development Commands
 
 ### Backend Server Management
+
+#### Quick Start Script
+```bash
+# Use the automated startup script:
+./start-backend.sh
+
+# This script automatically:
+# 1. Kills any process on port 3004
+# 2. Navigates to backend directory
+# 3. Installs dependencies if needed
+# 4. Starts the backend server
+```
+
+#### Manual Backend Start
 ```bash
 # IMPORTANT: Always check and kill processes on port 3004 before starting
 lsof -ti:3004 | xargs kill -9 2>/dev/null || true
@@ -51,6 +89,24 @@ npm run dev
 
 # The server MUST run on port 3004 to avoid port conflicts
 # Never use ports 3000, 3002, etc. - always use 3004
+```
+
+#### Port Management Commands
+```bash
+# Check what's running on port 3004
+lsof -i:3004
+
+# Kill process on port 3004 (macOS/Linux)
+lsof -ti:3004 | xargs kill -9 2>/dev/null || true
+
+# Alternative: Find and kill Node.js processes
+ps aux | grep node | grep -v grep | awk '{print $2}' | xargs kill -9 2>/dev/null || true
+
+# Check if backend is responding
+curl http://localhost:3004/health
+
+# One-liner to kill port and start backend
+lsof -ti:3004 | xargs kill -9 2>/dev/null || true && cd backend && npm run dev
 ```
 
 ### Building and Running
@@ -85,6 +141,30 @@ npm run dev
 
 # Run app after installation (if not auto-started)
 adb shell am start -n com.digitalgreen.farmerchat/.MainActivity
+```
+
+#### Android App Management
+```bash
+# Force stop the app (kill running instance)
+adb shell am force-stop com.digitalgreen.farmerchat
+
+# Clear app data (complete reset - removes all stored data)
+adb shell pm clear com.digitalgreen.farmerchat
+
+# Uninstall the app
+adb uninstall com.digitalgreen.farmerchat
+
+# Check if app is installed
+adb shell pm list packages | grep farmerchat
+
+# Launch the app
+adb shell am start -n com.digitalgreen.farmerchat/.MainActivity
+
+# One-liner to kill app, rebuild, and redeploy
+adb shell am force-stop com.digitalgreen.farmerchat && ./gradlew clean assembleDebug && ./gradlew installDebug
+
+# Complete reset: Clear data, rebuild, and launch
+adb shell pm clear com.digitalgreen.farmerchat && ./gradlew clean assembleDebug && ./gradlew installDebug && adb shell am start -n com.digitalgreen.farmerchat/.MainActivity
 ```
 
 #### Emulator Management
@@ -123,28 +203,106 @@ adb wait-for-device
 adb logcat | grep -E "FarmerChat|ApiChat|NetworkConfig"
 ```
 
+#### Quick Development Commands (One-Liners)
+
+```bash
+# Kill backend port and restart server
+lsof -ti:3004 | xargs kill -9 2>/dev/null || true && cd backend && npm run dev
+
+# Kill app, clean build, and redeploy
+adb shell am force-stop com.digitalgreen.farmerchat && ./gradlew clean assembleDebug && ./gradlew installDebug
+
+# Complete fresh start (clear data, rebuild, launch)
+adb shell pm clear com.digitalgreen.farmerchat && ./gradlew clean assembleDebug && ./gradlew installDebug && adb shell am start -n com.digitalgreen.farmerchat/.MainActivity
+
+# Backend + App restart (run in separate terminals)
+# Terminal 1:
+lsof -ti:3004 | xargs kill -9 2>/dev/null || true && cd backend && npm run dev
+# Terminal 2:
+adb shell am force-stop com.digitalgreen.farmerchat && ./gradlew clean assembleDebug && ./gradlew installDebug
+
+# Check all services status
+echo "Backend:" && curl -s http://localhost:3004/health || echo "Not running" && echo "App:" && adb shell pm list packages | grep farmerchat || echo "Not installed"
+```
+
+#### Troubleshooting Process Conflicts
+
+```bash
+# Find all Node.js processes
+ps aux | grep node
+
+# Find what's using port 3004
+lsof -i:3004
+
+# Kill all Node.js processes (use with caution)
+pkill -9 node
+
+# Find and kill specific backend process
+ps aux | grep "backend" | grep -v grep | awk '{print $2}' | xargs kill -9
+
+# Check Android app process
+adb shell ps | grep farmerchat
+
+# Complete system cleanup
+pkill -9 node && adb shell am force-stop com.digitalgreen.farmerchat && adb shell pm clear com.digitalgreen.farmerchat
+```
+
 ### Testing the App
 
 #### Quick Test After Changes
 ```bash
-# This is the standard command to test after any code changes:
+# BACKEND MUST BE RUNNING FIRST!
+# Start backend in one terminal:
+./start-backend.sh
+
+# Then in another terminal, build and deploy:
 ./gradlew clean assembleDebug && ./gradlew installDebug
 
 # The app should auto-launch. If not:
 adb shell am start -n com.digitalgreen.farmerchat/.MainActivity
 ```
 
+#### Common Issues and Solutions
+
+1. **"No auth token available" Error**:
+   - **Cause**: Backend not running when app started
+   - **Solution**: 
+     ```bash
+     # 1. Start backend first
+     ./start-backend.sh
+     
+     # 2. Clear app data and restart
+     adb shell pm clear com.digitalgreen.farmerchat
+     ./gradlew clean assembleDebug && ./gradlew installDebug
+     ```
+
+2. **"Connection refused" Error**:
+   - **Cause**: Backend not running or wrong port
+   - **Solution**: Ensure backend is on port 3004
+   - **Check**: `lsof -i:3004` should show node process
+
+3. **Chat not loading/Settings empty**:
+   - **Cause**: No authentication token
+   - **Solution**: Clear app data and restart with backend running
+
+4. **Onboarding appears repeatedly**:
+   - **Cause**: JWT token not persisting
+   - **Solution**: Already fixed - tokens now persist using DataStore
+
 #### Testing Checklist
-1. **First Launch**:
+1. **First Launch** (with backend running):
    - Language selection appears
    - Complete onboarding (select language, crops, livestock)
    - Redirected to conversations list
+   - Backend shows: `POST /api/v1/auth/verify` success
 
 2. **Chat Functionality**:
    - Tap "+" to create new conversation
    - Starter questions load
    - Tap a question - should get OpenAI response
    - Follow-up questions appear after response
+   - Backend shows: `POST /api/v1/chat/send` requests
+   - WebSocket connects automatically for streaming
 
 3. **Phone Auth** (after first conversation):
    - Phone auth prompt appears
@@ -155,11 +313,13 @@ adb shell am start -n com.digitalgreen.farmerchat/.MainActivity
    - Force close app: `adb shell am force-stop com.digitalgreen.farmerchat`
    - Reopen: `adb shell am start -n com.digitalgreen.farmerchat/.MainActivity`
    - Should NOT see onboarding again
+   - Should load conversations directly
 
 5. **Settings**:
    - All settings load properly
    - Can edit name, location, language
    - Can change crops/livestock selections
+   - Backend shows: `GET /api/v1/user/profile` requests
 
 #### Unit Testing
 ```bash
@@ -192,10 +352,11 @@ adb logcat | grep "HTTP"
 
 # Monitor backend requests (check backend terminal)
 # You should see requests to:
-# - POST /api/v1/auth/firebase
-# - GET /api/v1/conversations
-# - POST /api/v1/chat/send
-# - GET /api/v1/user/profile
+# - POST /api/v1/auth/verify (authentication)
+# - GET /api/v1/conversations (list conversations)
+# - POST /api/v1/chat/send (send messages)
+# - GET /api/v1/users/profile (user profile)
+# - WebSocket connections on port 3004
 ```
 
 ### Linting and Code Quality
@@ -214,7 +375,22 @@ adb logcat | grep "HTTP"
 ./gradlew ktlintFormat
 ```
 
-### Firebase Deployment
+### Database Management
+
+#### Clear Database (Fresh Start)
+```bash
+# Using Neon MCP tool (preferred)
+# Run: TRUNCATE TABLE messages, conversations, users CASCADE
+
+# Or using psql:
+cd backend
+psql $DATABASE_URL -c "TRUNCATE TABLE messages, conversations, users CASCADE"
+```
+
+#### Note on Prompts
+As of June 21, 2025, the backend no longer requires seeded prompts. All prompts (system, starter questions, follow-up questions, and titles) are generated dynamically based on user profile and context. No seed scripts needed!
+
+### Firebase Deployment (Legacy)
 ```bash
 # Deploy Firestore rules and indexes
 firebase deploy --only firestore:rules,firestore:indexes

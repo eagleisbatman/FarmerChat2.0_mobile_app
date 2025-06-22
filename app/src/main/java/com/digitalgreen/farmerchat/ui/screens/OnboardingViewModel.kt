@@ -21,6 +21,9 @@ class OnboardingViewModel(application: Application) : AndroidViewModel(applicati
     private val _onboardingState = MutableStateFlow(OnboardingState())
     val onboardingState: StateFlow<OnboardingState> = _onboardingState
     
+    private val _isOnboardingComplete = MutableStateFlow(false)
+    val isOnboardingComplete: StateFlow<Boolean> = _isOnboardingComplete
+    
     private var locationInfo: LocationInfo? = null
     
     fun selectLanguage(language: String) {
@@ -79,6 +82,18 @@ class OnboardingViewModel(application: Application) : AndroidViewModel(applicati
         _onboardingState.update { it.copy(gender = gender) }
     }
     
+    fun updatePhoneNumber(phoneNumber: String) {
+        _onboardingState.update { it.copy(phoneNumber = phoneNumber) }
+    }
+    
+    fun updatePin(pin: String) {
+        _onboardingState.update { it.copy(pin = pin) }
+    }
+    
+    fun updateConfirmPin(confirmPin: String) {
+        _onboardingState.update { it.copy(confirmPin = confirmPin) }
+    }
+    
     fun nextStep() {
         _onboardingState.update { it.copy(currentStep = it.currentStep + 1) }
     }
@@ -101,19 +116,55 @@ class OnboardingViewModel(application: Application) : AndroidViewModel(applicati
             
             preferencesManager.setOnboardingCompleted(true)
             
-            // Update user profile via API
-            repository.updateUserProfile(
+            // IMPORTANT: Ensure we're authenticated before updating profile
+            // Check if we already have a valid token from SplashViewModel
+            val existingToken = com.digitalgreen.farmerchat.network.NetworkConfig.getAuthToken()
+            
+            if (existingToken == null) {
+                android.util.Log.d("OnboardingViewModel", "No existing token, authenticating with backend...")
+                val authResult = repository.authenticateWithFirebase()
+                authResult.fold(
+                    onSuccess = { authResponse ->
+                        android.util.Log.d("OnboardingViewModel", "Authentication successful")
+                    },
+                    onFailure = { error ->
+                        android.util.Log.e("OnboardingViewModel", "Failed to authenticate", error)
+                        _isOnboardingComplete.value = true // Still complete onboarding
+                        return@launch
+                    }
+                )
+                
+                // Wait a moment to ensure token is properly saved
+                kotlinx.coroutines.delay(100)
+            } else {
+                android.util.Log.d("OnboardingViewModel", "Using existing token: ${existingToken.take(20)}...")
+            }
+            
+            // Now update user profile via API
+            android.util.Log.d("OnboardingViewModel", "Updating profile with data: name=${state.name}, crops=${state.selectedCrops}, livestock=${state.selectedLivestock}")
+            
+            val updateResult = repository.updateUserProfile(
                 name = state.name.ifEmpty { "Farmer" }, // Use name from state, fallback to "Farmer" if empty
                 language = state.selectedLanguage,
                 location = state.selectedLocation,
                 crops = state.selectedCrops.toList(),
                 livestock = state.selectedLivestock.toList(),
-                role = state.role,
-                gender = state.gender,
-                responseLength = "medium"
-            ).onFailure { error ->
-                android.util.Log.e("OnboardingViewModel", "Failed to update profile", error)
-            }
+                role = state.role.ifEmpty { null },
+                gender = state.gender.ifEmpty { null },
+                responseLength = "medium",
+                phone = if (state.phoneNumber.isNotEmpty()) state.phoneNumber else null
+            )
+            
+            updateResult.fold(
+                onSuccess = { user ->
+                    android.util.Log.d("OnboardingViewModel", "Profile updated successfully: ${user.name}, crops=${user.crops}, livestock=${user.livestock}")
+                    _isOnboardingComplete.value = true
+                },
+                onFailure = { error ->
+                    android.util.Log.e("OnboardingViewModel", "Failed to update profile", error)
+                    _isOnboardingComplete.value = true // Still complete onboarding even if profile update fails
+                }
+            )
         }
     }
 }

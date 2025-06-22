@@ -27,7 +27,11 @@ object LivestockManager {
         SMALL_RUMINANTS("Goats & Sheep"),
         SWINE("Pigs"),
         AQUACULTURE("Fish & Aquaculture"),
-        OTHERS("Other Animals")
+        OTHERS("Other Animals");
+        
+        fun getLocalizedName(languageCode: String): String {
+            return com.digitalgreen.farmerchat.utils.StringsManager.getLivestockCategoryString(this, languageCode)
+        }
     }
     
     enum class Purpose(val displayName: String) {

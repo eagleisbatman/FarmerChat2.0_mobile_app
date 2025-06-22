@@ -61,16 +61,31 @@ export class PromptService {
   }
 
   async getSystemPrompt(userProfile: any, languageCode: string = 'en'): Promise<string> {
-    const variables: PromptVariables = {
-      location: userProfile.location || 'unspecified location',
-      crops: Array.isArray(userProfile.crops) ? userProfile.crops.join(', ') : 'various crops',
-      livestock: Array.isArray(userProfile.livestock) ? userProfile.livestock.join(', ') : 'various livestock',
-      language: this.getLanguageName(languageCode),
-      languageCode: languageCode,
-      userName: userProfile.name || 'farmer'
-    };
+    // Generate dynamic system prompt without database dependency
+    const location = userProfile?.location || 'unspecified location';
+    const crops = Array.isArray(userProfile?.crops) ? userProfile.crops.join(', ') : 'various crops';
+    const livestock = Array.isArray(userProfile?.livestock) ? userProfile.livestock.join(', ') : 'various livestock';
+    const language = this.getLanguageName(languageCode);
+    const userName = userProfile?.name || 'farmer';
 
-    return this.renderPrompt('system', variables, languageCode);
+    return `You are an AI agricultural assistant helping ${userName}, a farmer in ${location}.
+
+Key Information:
+- Location: ${location}
+- Crops: ${crops}
+- Livestock: ${livestock}
+- Language: ${language}
+
+Instructions:
+1. Always respond in ${language} language ONLY
+2. Provide practical, actionable advice specific to their location and farming context
+3. Consider local climate, soil conditions, and agricultural practices
+4. Be concise but thorough in your responses
+5. If asked about crops/livestock they don't grow, still provide helpful information
+6. Always be encouraging and supportive
+7. Use simple, clear language that farmers can easily understand
+
+Remember: You are their trusted agricultural advisor. Help them improve their farming practices and livelihoods.`;
   }
 
   async getFollowUpPrompt(
@@ -78,15 +93,23 @@ export class PromptService {
     userProfile: any,
     languageCode: string = 'en'
   ): Promise<string> {
-    const variables: PromptVariables = {
-      response: response.substring(0, 500), // Limit response length
-      language: this.getLanguageName(languageCode),
-      languageCode: languageCode,
-      crops: Array.isArray(userProfile.crops) ? userProfile.crops.join(', ') : 'various crops',
-      livestock: Array.isArray(userProfile.livestock) ? userProfile.livestock.join(', ') : 'various livestock'
-    };
+    // Generate dynamic follow-up prompt without database dependency
+    const responseSnippet = response.substring(0, 500);
+    const language = this.getLanguageName(languageCode);
+    const crops = Array.isArray(userProfile?.crops) ? userProfile.crops.join(', ') : 'various crops';
+    const livestock = Array.isArray(userProfile?.livestock) ? userProfile.livestock.join(', ') : 'various livestock';
 
-    return this.renderPrompt('follow_up', variables, languageCode);
+    return `Based on this response to a farmer who grows ${crops} and raises ${livestock}:
+"${responseSnippet}"
+
+Generate 3 follow-up questions that:
+1. Are in ${language} language ONLY
+2. Are SHORT and CONCISE (maximum 40 characters each)
+3. Help the farmer understand the topic better
+4. Are practical and actionable
+5. Build upon the information provided
+
+Output ONLY the 3 questions, one per line, without numbering or bullet points.`;
   }
 
   async getTitlePrompt(
@@ -94,14 +117,22 @@ export class PromptService {
     firstResponse: string,
     languageCode: string = 'en'
   ): Promise<string> {
-    const variables: PromptVariables = {
-      firstMessage: firstMessage.substring(0, 200),
-      firstResponse: firstResponse.substring(0, 200),
-      language: this.getLanguageName(languageCode),
-      languageCode: languageCode
-    };
+    // Generate dynamic title prompt without database dependency
+    const messageSnippet = firstMessage.substring(0, 200);
+    const responseSnippet = firstResponse.substring(0, 200);
+    const language = this.getLanguageName(languageCode);
 
-    return this.renderPrompt('title', variables, languageCode);
+    return `Based on this conversation:
+User: "${messageSnippet}"
+Assistant: "${responseSnippet}"
+
+Generate a SHORT conversation title that:
+1. Is in ${language} language ONLY
+2. Is maximum 4-5 words
+3. Captures the main topic
+4. Is clear and descriptive
+
+Output ONLY the title, without quotes or extra formatting.`;
   }
 
   async getStarterQuestionPrompt(
@@ -109,16 +140,43 @@ export class PromptService {
     languageCode: string = 'en',
     currentMonth?: string
   ): Promise<string> {
-    const variables: PromptVariables = {
-      crops: Array.isArray(userProfile.crops) ? userProfile.crops.join(', ') : 'various crops',
-      livestock: Array.isArray(userProfile.livestock) ? userProfile.livestock.join(', ') : 'various livestock',
-      location: userProfile.location || 'unspecified location',
-      language: this.getLanguageName(languageCode),
-      languageCode: languageCode,
-      currentMonth: currentMonth || new Date().toLocaleString('en', { month: 'long' })
-    };
+    // Generate dynamic starter question prompt without database dependency
+    const crops = Array.isArray(userProfile?.crops) ? userProfile.crops.join(', ') : 'various crops';
+    const livestock = Array.isArray(userProfile?.livestock) ? userProfile.livestock.join(', ') : 'various livestock';
+    const location = userProfile?.location || 'unspecified location';
+    const language = this.getLanguageName(languageCode);
+    const month = currentMonth || new Date().toLocaleString('en', { month: 'long' });
 
-    return this.renderPrompt('starter_question', variables, languageCode);
+    // Dynamic prompt generation based on user profile
+    if (!userProfile?.crops?.length && !userProfile?.livestock?.length) {
+      // Generic prompt for users without specific crops/livestock
+      return `Generate 4 starter questions for a farmer in ${location} in ${language} language ONLY.
+The questions should be:
+1. General farming advice
+2. Crop selection recommendations
+3. Seasonal farming tips for ${month}
+4. Agricultural best practices
+
+Each question must be:
+- SHORT and CONCISE (maximum 60 characters)
+- In ${language} language ONLY
+- Practical and relevant to farmers
+- Formatted as a simple question
+
+Output ONLY the 4 questions, one per line, without numbering or bullet points.`;
+    }
+
+    // Specific prompt for users with crops/livestock
+    return `Generate 4 starter questions for a farmer in ${location} who grows ${crops} and raises ${livestock}.
+
+Requirements:
+1. Generate questions in ${language} language ONLY
+2. Each question must be SHORT and CONCISE (maximum 60 characters)
+3. Questions MUST be specific to the farmer's crops/livestock listed above
+4. Questions should be seasonally relevant for ${month}
+5. Make questions practical and actionable
+
+Output ONLY the 4 questions, one per line, without numbering or bullet points.`;
   }
 
   async createPrompt(prompt: Partial<PromptTemplate>): Promise<PromptTemplate> {

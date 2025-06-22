@@ -17,8 +17,7 @@ class ChatWebSocketClient {
     
     companion object {
         private const val TAG = "ChatWebSocket"
-        // TODO: Update with your backend WebSocket URL
-        private const val SOCKET_URL = "http://10.0.2.2:3000"
+        private const val SOCKET_URL = "http://10.0.2.2:3004"
     }
     
     val chatEvents: Flow<ChatStreamEvent> = chatEventChannel.receiveAsFlow()

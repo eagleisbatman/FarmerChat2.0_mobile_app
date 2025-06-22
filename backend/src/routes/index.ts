@@ -13,9 +13,9 @@ router.use('/auth', authRoutes);
 router.use('/translations', translationRoutes);
 
 // Protected routes (require authentication)
-router.use('/chat', chatRoutes);
-router.use('/users', userRoutes);
-router.use('/conversations', conversationRoutes);
+router.use('/chat', authenticate, chatRoutes);
+router.use('/users', authenticate, userRoutes);
+router.use('/conversations', authenticate, conversationRoutes);
 
 // API info endpoint
 router.get('/', (req, res) => {

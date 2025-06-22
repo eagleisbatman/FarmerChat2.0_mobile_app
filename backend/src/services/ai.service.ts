@@ -73,9 +73,12 @@ export class AIService {
     // Get conversation history
     const messages = await this.getConversationHistory(request.conversationId);
     
-    // Add system message based on user profile
+    // Add system message based on user profile using PromptService
     if (request.userProfile) {
-      const systemMessage = this.buildSystemMessage(request.userProfile);
+      const { PromptService } = await import('./prompt.service');
+      const promptService = new PromptService();
+      const languageCode = request.userProfile.language || 'en';
+      const systemMessage = await promptService.getSystemPrompt(request.userProfile, languageCode);
       messages.unshift({ role: 'system', content: systemMessage });
     }
     
@@ -103,9 +106,12 @@ export class AIService {
     // Get conversation history
     const messages = await this.getConversationHistory(request.conversationId);
     
-    // Add system message based on user profile
+    // Add system message based on user profile using PromptService
     if (request.userProfile) {
-      const systemMessage = this.buildSystemMessage(request.userProfile);
+      const { PromptService } = await import('./prompt.service');
+      const promptService = new PromptService();
+      const languageCode = request.userProfile.language || 'en';
+      const systemMessage = await promptService.getSystemPrompt(request.userProfile, languageCode);
       messages.unshift({ role: 'system', content: systemMessage });
     }
     
@@ -130,13 +136,14 @@ export class AIService {
     userProfile?: any
   ): Promise<FollowUpQuestion[]> {
     const provider = this.getProvider();
+    const languageName = this.getLanguageName(userLanguage);
     
     const prompt = `Based on this agricultural advice response, generate 3 short follow-up questions that a farmer might ask.
     
 Response: ${response}
 
 Requirements:
-1. Generate questions in ${userLanguage} language ONLY
+1. Generate questions in ${languageName} language ONLY
 2. Each question must be SHORT and CONCISE (maximum 40 characters)
 3. Questions should be practical and actionable
 4. Focus on the farmer's specific context if provided
@@ -171,14 +178,15 @@ Output format: Return only the 3 questions, one per line, no numbering or bullet
     userLanguage: string
   ): Promise<string> {
     const provider = this.getProvider();
+    const languageName = this.getLanguageName(userLanguage);
     
-    const prompt = `Generate a short, descriptive title for this conversation in ${userLanguage} language.
+    const prompt = `Generate a short, descriptive title for this conversation in ${languageName} language.
 
 User: ${firstMessage}
 Assistant: ${firstResponse.substring(0, 200)}...
 
 Requirements:
-1. Title must be in ${userLanguage} language
+1. Title must be in ${languageName} language
 2. Maximum 50 characters
 3. Should summarize the main topic
 4. Be specific and descriptive

@@ -28,8 +28,10 @@ object NetworkConfig {
         applicationContext = context.applicationContext
         preferencesManager = PreferencesManager(context)
         
+        Log.d(TAG, "NetworkConfig initializing...")
         // Load stored token on initialization
         loadStoredToken()
+        Log.d(TAG, "NetworkConfig initialized with token: ${authToken?.take(20) ?: "null"}")
     }
     
     private fun loadStoredToken() {
@@ -39,15 +41,25 @@ object NetworkConfig {
                 authToken = storedToken
                 Log.d(TAG, "Loaded valid token from storage")
             } else if (storedToken != null) {
-                Log.d(TAG, "Stored token is expired, clearing")
-                runBlocking {
-                    preferencesManager.clearAuthTokens()
-                }
+                Log.d(TAG, "Stored token is expired, will clear asynchronously")
                 authToken = null
+                // Clear tokens asynchronously to avoid blocking
+                // Note: We can't use coroutines here, so we'll just mark the token as null
+                // The actual cleanup will happen elsewhere
             }
         } catch (e: Exception) {
             Log.e(TAG, "Error loading stored token", e)
             authToken = null
+        }
+    }
+    
+    suspend fun ensureTokenLoaded() {
+        if (authToken == null && ::preferencesManager.isInitialized) {
+            val storedToken = preferencesManager.getJwtToken()
+            if (storedToken != null && !preferencesManager.isTokenExpired()) {
+                authToken = storedToken
+                Log.d(TAG, "Async loaded valid token from storage")
+            }
         }
     }
     
@@ -56,22 +68,21 @@ object NetworkConfig {
         Log.d(TAG, "Auth token updated: ${if (token != null) "Set" else "Cleared"}")
     }
     
-    fun setAuthTokens(jwtToken: String, refreshToken: String, expiresIn: Long) {
+    suspend fun setAuthTokens(jwtToken: String, refreshToken: String, expiresIn: Long) {
         authToken = jwtToken
+        Log.d(TAG, "Set auth token in memory: ${jwtToken.take(20)}...")
         // Save tokens to persistent storage
-        runBlocking {
-            preferencesManager.saveAuthTokens(jwtToken, refreshToken, expiresIn)
-        }
+        preferencesManager.saveAuthTokens(jwtToken, refreshToken, expiresIn)
         Log.d(TAG, "Auth tokens saved to storage")
     }
     
-    fun clearAuthTokens() {
+    suspend fun clearAuthTokens() {
         authToken = null
-        runBlocking {
-            preferencesManager.clearAuthTokens()
-        }
+        preferencesManager.clearAuthTokens()
         Log.d(TAG, "Auth tokens cleared from storage")
     }
+    
+    fun getAuthToken(): String? = authToken
     
     private val authInterceptor = Interceptor { chain ->
         val originalRequest = chain.request()
@@ -80,28 +91,36 @@ object NetworkConfig {
         Log.d(TAG, "=== AUTH INTERCEPTOR DEBUG ===")
         Log.d(TAG, "Request URL: ${originalRequest.url}")
         
-        // Simple approach: use in-memory token first, then check storage
-        val currentToken = authToken ?: run {
-            if (::preferencesManager.isInitialized) {
-                val storedToken = preferencesManager.getJwtToken()
-                val isExpired = preferencesManager.isTokenExpired()
-                Log.d(TAG, "Checking stored token - exists: ${storedToken != null}, expired: $isExpired")
-                if (storedToken != null && !isExpired) {
-                    // Update in-memory token from storage
-                    authToken = storedToken
-                    storedToken
+        // Check if this is an auth endpoint that doesn't require authentication
+        val isAuthEndpoint = originalRequest.url.encodedPath.contains("/auth/") || 
+                           originalRequest.url.encodedPath.contains("/auth/verify") ||
+                           originalRequest.url.encodedPath.contains("/auth/config")
+        
+        var currentToken: String? = null
+        
+        if (!isAuthEndpoint) {
+            // Simple approach: use in-memory token first, then check storage as fallback
+            currentToken = authToken ?: run {
+                if (::preferencesManager.isInitialized) {
+                    // Only use runBlocking as a last resort in interceptor
+                    runBlocking {
+                        ensureTokenLoaded()
+                    }
+                    authToken
                 } else null
-            } else null
-        }
-        
-        Log.d(TAG, "Token to use: ${currentToken?.take(20) ?: "null"}...")
-        
-        // Add headers
-        currentToken?.let { token ->
-            requestBuilder.addHeader("Authorization", "Bearer $token")
-            Log.d(TAG, "✅ Added Authorization header")
-        } ?: run {
-            Log.w(TAG, "❌ No auth token available - request will fail")
+            }
+            
+            Log.d(TAG, "Token to use: ${currentToken?.take(20) ?: "null"}...")
+            
+            // Add headers
+            currentToken?.let { token ->
+                requestBuilder.addHeader("Authorization", "Bearer $token")
+                Log.d(TAG, "✅ Added Authorization header")
+            } ?: run {
+                Log.w(TAG, "❌ No auth token available - request will fail")
+            }
+        } else {
+            Log.d(TAG, "✅ Auth endpoint - skipping token requirement")
         }
         
         requestBuilder.addHeader("Content-Type", "application/json")
@@ -124,7 +143,24 @@ object NetworkConfig {
         }
         
         val request = requestBuilder.build()
-        chain.proceed(request)
+        val response = chain.proceed(request)
+        
+        // Handle 401 Unauthorized - token might be expired
+        if (response.code == 401 && currentToken != null) {
+            Log.w(TAG, "Got 401 response, token might be expired")
+            response.close()
+            
+            // Clear the expired token
+            runBlocking {
+                clearAuthTokens()
+            }
+            
+            // Return the 401 response - let the app handle re-authentication
+            // In a production app, you might want to trigger automatic re-authentication here
+            response
+        } else {
+            response
+        }
     }
     
     private val loggingInterceptor = HttpLoggingInterceptor { message ->
@@ -171,10 +207,19 @@ suspend inline fun <T> safeApiCall(
         } else {
             val errorMsg = response.errorBody()?.string() ?: "Unknown error"
             Log.e("API_ERROR", "HTTP ${response.code()}: $errorMsg")
-            Result.failure(Exception("HTTP ${response.code()}: $errorMsg"))
+            
+            // Special handling for 401 errors
+            if (response.code() == 401) {
+                Result.failure(UnauthorizedException("Authentication required"))
+            } else {
+                Result.failure(Exception("HTTP ${response.code()}: $errorMsg"))
+            }
         }
     } catch (e: Exception) {
         Log.e("API_EXCEPTION", "API call failed", e)
         Result.failure(e)
     }
 }
+
+// Custom exception for unauthorized access
+class UnauthorizedException(message: String) : Exception(message)

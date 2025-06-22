@@ -6,6 +6,10 @@ import com.digitalgreen.farmerchat.data.LanguageManager
 import com.digitalgreen.farmerchat.data.CropsManager
 import com.digitalgreen.farmerchat.data.LivestockManager
 import com.digitalgreen.farmerchat.data.ChatMessage
+import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 object PromptManager {
     
@@ -27,27 +31,69 @@ object PromptManager {
         val language = userProfile?.language?.let { LanguageManager.getLanguageByCode(it) }
         val locationContext = userProfile?.locationInfo?.let { getLocationContext(it) }
         
+        // Get current date and time information
+        val currentDateTime = LocalDateTime.now()
+        val dateFormatter = DateTimeFormatter.ofPattern("EEEE, MMMM dd, yyyy", Locale.ENGLISH)
+        val timeFormatter = DateTimeFormatter.ofPattern("HH:mm", Locale.ENGLISH)
+        val currentDate = currentDateTime.format(dateFormatter)
+        val currentTime = currentDateTime.format(timeFormatter)
+        val currentMonth = currentDateTime.month.name.lowercase().replaceFirstChar { it.uppercase() }
+        val currentSeason = getCurrentSeason(currentDateTime.monthValue, locationContext)
+        
         return buildString {
             appendLine("You are FarmerChat, an AI agricultural assistant designed to help smallholder farmers with practical, actionable advice.")
             appendLine()
-            appendLine("USER CONTEXT:")
+            appendLine("CURRENT CONTEXT:")
+            appendLine("• Current Date: $currentDate")
+            appendLine("• Current Time: $currentTime UTC")
+            appendLine("• Current Month: $currentMonth") 
+            appendLine("• Current Season: $currentSeason")
+            appendLine()
+            appendLine("USER PROFILE:")
             appendLine("• Language: ${language?.englishName ?: "English"} (${language?.code ?: "en"})")
+            
+            // User ID for context (if needed for support/tracking)
+            if (userProfile?.userId?.isNotEmpty() == true) {
+                appendLine("• User ID: ${userProfile.userId}")
+            }
             
             if (locationContext != null) {
                 appendLine("• Location Details:")
                 locationContext.forEach { (key, value) ->
-                    appendLine("  - ${key.replace("_", " ").capitalize()}: $value")
+                    appendLine("  - ${key.replace("_", " ").replaceFirstChar { it.uppercase() }}: $value")
+                }
+                // Add timezone context if location is available
+                userProfile?.locationInfo?.let { location ->
+                    val timeZoneInfo = getTimeZoneInfo(location)
+                    if (timeZoneInfo.isNotEmpty()) {
+                        appendLine("  - Local Timezone: $timeZoneInfo")
+                    }
                 }
             } else if (!userProfile?.location.isNullOrEmpty()) {
                 appendLine("• Location: ${userProfile?.location}")
             }
             
             if (!userProfile?.crops.isNullOrEmpty()) {
-                appendLine("• Crops: ${userProfile.crops.joinToString(", ")}")
+                // Get localized crop names for better context
+                val localizedCrops = userProfile.crops.mapNotNull { cropId ->
+                    CropsManager.getCropById(cropId)?.getLocalizedName(userProfile.language)
+                }.ifEmpty { userProfile.crops }
+                appendLine("• Crops Growing: ${localizedCrops.joinToString(", ")}")
             }
             
             if (!userProfile?.livestock.isNullOrEmpty()) {
-                appendLine("• Livestock: ${userProfile.livestock.joinToString(", ")}")
+                // Get localized livestock names for better context
+                val localizedLivestock = userProfile.livestock.mapNotNull { livestockId ->
+                    LivestockManager.getLivestockById(livestockId)?.getLocalizedName(userProfile.language)
+                }.ifEmpty { userProfile.livestock }
+                appendLine("• Livestock Raising: ${localizedLivestock.joinToString(", ")}")
+            }
+            
+            // Add farming experience level if available
+            userProfile?.role?.let { role ->
+                if (role.isNotEmpty()) {
+                    appendLine("• Farming Role: $role")
+                }
             }
             
             appendLine()
@@ -58,33 +104,40 @@ object PromptManager {
             appendLine("   - Use culturally appropriate expressions for ${language?.englishName ?: "English"} speakers")
             appendLine("   - If the user writes in a different language, still respond in ${language?.englishName ?: "English"}")
             appendLine()
-            appendLine("2. FORMATTING:")
+            appendLine("2. TIMING AND CONTEXT AWARENESS:")
+            appendLine("   • ALWAYS consider the current date ($currentDate) and season ($currentSeason)")
+            appendLine("   • Provide seasonally appropriate advice for $currentMonth")
+            appendLine("   • Consider current weather patterns and timing for farming activities")
+            appendLine("   • Mention if advice is time-sensitive (e.g., 'now is the right time for...')")
+            appendLine("   • Account for planting/harvesting seasons based on current date and location")
+            appendLine()
+            appendLine("3. FORMATTING:")
             appendLine("   • Use **bold** for important terms and key points")
             appendLine("   • Use *italics* for scientific names and emphasis")
             appendLine("   • Use bullet points (•) for lists")
             appendLine("   • Use numbered lists for step-by-step instructions")
             appendLine("   • Use --- for section separators when needed")
             appendLine()
-            appendLine("3. CONTENT STRUCTURE:")
+            appendLine("4. CONTENT STRUCTURE:")
             appendLine("   • Start with a brief, direct answer to the question")
             appendLine("   • Provide practical, actionable advice")
             appendLine("   • Include relevant local context when available")
             appendLine("   • Mention specific timing, quantities, and measurements")
             appendLine("   • Add warnings or cautions where necessary")
             appendLine()
-            appendLine("4. AGRICULTURAL FOCUS:")
+            appendLine("5. AGRICULTURAL FOCUS:")
             appendLine("   • Prioritize sustainable and organic practices when possible")
             appendLine("   • Consider local climate and seasonal patterns")
             appendLine("   • Suggest cost-effective solutions suitable for smallholder farmers")
             appendLine("   • Include traditional practices alongside modern techniques")
             appendLine("   • Mention government schemes or support programs if relevant to the location")
             appendLine()
-            appendLine("5. RESPONSE LENGTH:")
+            appendLine("6. RESPONSE LENGTH:")
             appendLine("   • Keep responses concise but comprehensive")
             appendLine("   • Aim for 150-300 words unless more detail is specifically requested")
             appendLine("   • Break longer responses into clear sections")
             appendLine()
-            appendLine("6. SAFETY AND ETHICS:")
+            appendLine("7. SAFETY AND ETHICS:")
             appendLine("   • Only recommend approved agricultural practices")
             appendLine("   • Warn about any potential risks or hazards")
             appendLine("   • Encourage consultation with local agricultural officers for serious issues")
@@ -356,6 +409,49 @@ object PromptManager {
             appendLine("- General farming advice")
             appendLine()
             appendLine("Format: Return only the 3 questions in ${language?.englishName ?: "English"}, one per line.")
+        }
+    }
+    
+    private fun getCurrentSeason(monthValue: Int, locationContext: Map<String, String>?): String {
+        // Determine hemisphere from location context
+        val isNorthernHemisphere = locationContext?.get("Country")?.let { country ->
+            // List of southern hemisphere countries
+            val southernCountries = setOf(
+                "Australia", "New Zealand", "South Africa", "Argentina", "Chile", 
+                "Brazil", "Uruguay", "Paraguay", "Bolivia", "Peru", "Ecuador",
+                "Madagascar", "Mozambique", "Botswana", "Namibia", "Zimbabwe",
+                "Zambia", "Malawi", "Tanzania", "Kenya", "Rwanda", "Burundi"
+            )
+            !southernCountries.contains(country)
+        } ?: true // Default to northern hemisphere
+        
+        return if (isNorthernHemisphere) {
+            when (monthValue) {
+                12, 1, 2 -> "Winter"
+                3, 4, 5 -> "Spring"
+                6, 7, 8 -> "Summer" 
+                9, 10, 11 -> "Autumn/Fall"
+                else -> "Unknown"
+            }
+        } else {
+            when (monthValue) {
+                12, 1, 2 -> "Summer"
+                3, 4, 5 -> "Autumn/Fall"
+                6, 7, 8 -> "Winter"
+                9, 10, 11 -> "Spring"
+                else -> "Unknown"
+            }
+        }
+    }
+    
+    private fun getTimeZoneInfo(location: LocationInfo): String {
+        // Simplified timezone estimation based on longitude
+        // This is a basic approximation - in production, you'd use a proper timezone API
+        val timezoneOffset = (location.longitude / 15.0).toInt()
+        return when {
+            timezoneOffset > 0 -> "UTC+${timezoneOffset}"
+            timezoneOffset < 0 -> "UTC${timezoneOffset}"
+            else -> "UTC"
         }
     }
 }

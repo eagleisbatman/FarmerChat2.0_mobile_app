@@ -27,8 +27,8 @@ fun ApiUser.toUserProfile(): UserProfile {
         role = this.role ?: "",
         gender = this.gender ?: "",
         hasCompletedOnboarding = true, // If they have an API profile, they've completed onboarding
-        createdAt = parseApiDate(this.createdAt) ?: Date(),
-        lastUpdated = parseApiDate(this.updatedAt) ?: Date()
+        createdAt = this.createdAt?.let { parseApiDate(it) } ?: Date(),
+        lastUpdated = this.updatedAt?.let { parseApiDate(it) } ?: Date()
     )
 }
 
@@ -53,7 +53,7 @@ fun ApiConversation.toConversation(): Conversation {
         lastMessageTime = this.lastMessageTime?.let { parseApiDate(it) } ?: Date(),
         lastMessageIsUser = this.lastMessageIsUser,
         userId = "", // Will be filled by repository
-        createdAt = parseApiDate(this.createdAt) ?: Date(),
+        createdAt = this.createdAt?.let { parseApiDate(it) } ?: Date(),
         tags = this.tags,
         englishTags = this.english_tags ?: this.englishTags ?: emptyList(),
         summary = this.summary
@@ -62,15 +62,30 @@ fun ApiConversation.toConversation(): Conversation {
 
 // Convert API Message to ChatMessage
 fun ApiMessage.toChatMessage(): ChatMessage {
-    return ChatMessage(
-        id = this.id,
-        content = this.content,
-        isUser = this.isUser,
-        timestamp = parseApiDate(this.createdAt) ?: Date(),
-        followUpQuestions = this.followUpQuestions.map { it.question },
-        user = this.isUser,
-        voiceMessage = false
-    )
+    android.util.Log.d("ModelAdapters", "Converting ApiMessage: id=${this.id}, isUser=${this.isUser}, content=${this.content.take(50)}")
+    return try {
+        ChatMessage(
+            id = this.id,
+            content = this.content,
+            isUser = this.isUser,
+            timestamp = this.createdAt?.let { parseApiDate(it) } ?: Date(),
+            followUpQuestions = this.followUpQuestions.mapNotNull { it?.question }.filter { it.isNotEmpty() },
+            user = this.isUser,
+            voiceMessage = false
+        )
+    } catch (e: Exception) {
+        android.util.Log.e("ModelAdapters", "Error converting ApiMessage to ChatMessage", e)
+        // Return a safe fallback
+        ChatMessage(
+            id = this.id,
+            content = this.content,
+            isUser = this.isUser,
+            timestamp = Date(),
+            followUpQuestions = emptyList(),
+            user = this.isUser,
+            voiceMessage = false
+        )
+    }
 }
 
 // Convert API FollowUpQuestion to old format

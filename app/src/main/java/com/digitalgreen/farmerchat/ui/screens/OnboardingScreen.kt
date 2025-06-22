@@ -40,7 +40,10 @@ import kotlinx.coroutines.launch
 import android.Manifest
 import com.digitalgreen.farmerchat.ui.components.localizedString
 import com.digitalgreen.farmerchat.ui.components.currentLanguage
+import com.digitalgreen.farmerchat.ui.components.SmartLanguageSelector
+import com.digitalgreen.farmerchat.ui.components.OnboardingPhoneStep
 import com.digitalgreen.farmerchat.utils.StringsManager.StringKey
+import com.digitalgreen.farmerchat.utils.LocationLanguageMapper
 
 // Data classes for onboarding
 data class Location(val id: String, val name: String, val state: String)
@@ -51,53 +54,164 @@ fun OnboardingScreen(
     viewModel: OnboardingViewModel = viewModel()
 ) {
     val state by viewModel.onboardingState.collectAsState()
+    val isComplete by viewModel.isOnboardingComplete.collectAsState()
+    
+    // Navigate when onboarding is truly complete
+    LaunchedEffect(isComplete) {
+        if (isComplete) {
+            onOnboardingComplete()
+        }
+    }
     
     when (state.currentStep) {
-        0 -> LanguageSelectionStep(
-            selectedLanguage = state.selectedLanguage,
-            onLanguageSelected = viewModel::selectLanguage,
-            onNext = viewModel::nextStep
-        )
-        1 -> LocationSelectionStep(
+        0 -> LocationSelectionStep(
             selectedLocation = state.selectedLocation,
             onLocationSelected = viewModel::selectLocation,
             onNext = viewModel::nextStep,
+            onBack = null // First step has no back button
+        )
+        1 -> SmartLanguageSelectionStep(
+            selectedLanguage = state.selectedLanguage,
+            userLocation = state.selectedLocation.takeIf { it.isNotEmpty() },
+            onLanguageSelected = viewModel::selectLanguage,
+            onNext = viewModel::nextStep,
             onBack = viewModel::previousStep
         )
-        2 -> CropSelectionStep(
+        2 -> PhoneCollectionStep(
+            userLocation = state.selectedLocation.takeIf { it.isNotEmpty() },
+            phoneNumber = state.phoneNumber,
+            pin = state.pin,
+            confirmPin = state.confirmPin,
+            onPhoneNumberChanged = viewModel::updatePhoneNumber,
+            onPinChanged = viewModel::updatePin,
+            onConfirmPinChanged = viewModel::updateConfirmPin,
+            onNext = viewModel::nextStep,
+            onBack = viewModel::previousStep,
+            onSkip = viewModel::nextStep // Skip to next step
+        )
+        3 -> CropSelectionStep(
             selectedCrops = state.selectedCrops,
             onCropToggled = viewModel::toggleCrop,
             onNext = viewModel::nextStep,
-            onBack = viewModel::previousStep
+            onBack = viewModel::previousStep,
+            onSkip = viewModel::nextStep // Add skip option
         )
-        3 -> LivestockSelectionStep(
+        4 -> LivestockSelectionStep(
             selectedLivestock = state.selectedLivestock,
             onLivestockToggled = viewModel::toggleLivestock,
             onNext = viewModel::nextStep,
-            onBack = viewModel::previousStep
+            onBack = viewModel::previousStep,
+            onSkip = viewModel::nextStep // Add skip option
         )
-        4 -> RoleSelectionStep(
+        5 -> RoleSelectionStep(
             selectedRole = state.role,
             onRoleSelected = viewModel::updateRole,
             onNext = viewModel::nextStep,
             onBack = viewModel::previousStep
         )
-        5 -> GenderSelectionStep(
+        6 -> GenderSelectionStep(
             selectedGender = state.gender,
             onGenderSelected = viewModel::updateGender,
             onNext = viewModel::nextStep,
             onBack = viewModel::previousStep
         )
-        6 -> NameInputStep(
+        7 -> NameInputStep(
             name = state.name,
             onNameChanged = viewModel::updateName,
             onComplete = {
                 viewModel.completeOnboarding()
-                onOnboardingComplete()
+                // Navigation will happen via LaunchedEffect when authentication completes
             },
             onBack = viewModel::previousStep
         )
     }
+}
+
+@Composable
+fun SmartLanguageSelectionStep(
+    selectedLanguage: String,
+    userLocation: String?,
+    onLanguageSelected: (String) -> Unit,
+    onNext: () -> Unit,
+    onBack: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(DesignSystem.Spacing.md)
+    ) {
+        Text(
+            text = localizedString(StringKey.CHOOSE_LANGUAGE),
+            fontSize = DesignSystem.Typography.headlineMedium,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(vertical = DesignSystem.Spacing.md)
+        )
+        
+        Text(
+            text = if (userLocation != null) {
+                "Select your preferred language for $userLocation"
+            } else {
+                localizedString(StringKey.LANGUAGE_SUBTITLE)
+            },
+            fontSize = DesignSystem.Typography.titleSmall,
+            color = secondaryTextColor(),
+            modifier = Modifier.padding(bottom = DesignSystem.Spacing.md)
+        )
+        
+        SmartLanguageSelector(
+            selectedLanguage = selectedLanguage,
+            userLocation = userLocation,
+            onLanguageSelected = onLanguageSelected,
+            modifier = Modifier.weight(1f)
+        )
+        
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.md)
+        ) {
+            OutlinedButton(
+                onClick = onBack,
+                modifier = Modifier.weight(1f)
+            ) {
+                Text("Back")
+            }
+            
+            Button(
+                onClick = onNext,
+                modifier = Modifier.weight(1f),
+                enabled = selectedLanguage.isNotEmpty()
+            ) {
+                Text("Continue")
+            }
+        }
+    }
+}
+
+@Composable
+fun PhoneCollectionStep(
+    userLocation: String?,
+    phoneNumber: String,
+    pin: String,
+    confirmPin: String,
+    onPhoneNumberChanged: (String) -> Unit,
+    onPinChanged: (String) -> Unit,
+    onConfirmPinChanged: (String) -> Unit,
+    onNext: () -> Unit,
+    onBack: () -> Unit,
+    onSkip: () -> Unit
+) {
+    OnboardingPhoneStep(
+        userLocation = userLocation,
+        phoneNumber = phoneNumber,
+        pin = pin,
+        confirmPin = confirmPin,
+        onPhoneNumberChanged = onPhoneNumberChanged,
+        onPinChanged = onPinChanged,
+        onConfirmPinChanged = onConfirmPinChanged,
+        onNext = onNext,
+        onBack = onBack,
+        onSkip = onSkip
+    )
 }
 
 @Composable
@@ -253,7 +367,7 @@ fun LocationSelectionStep(
     selectedLocation: String,
     onLocationSelected: (String) -> Unit,
     onNext: () -> Unit,
-    onBack: () -> Unit,
+    onBack: (() -> Unit)? = null,
     viewModel: OnboardingViewModel = viewModel()
 ) {
     val context = LocalContext.current
@@ -456,16 +570,18 @@ fun LocationSelectionStep(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.sm)
         ) {
-            OutlinedButton(
-                onClick = onBack,
-                modifier = Modifier.weight(1f)
-            ) {
-                Text(localizedString(StringKey.BACK), modifier = Modifier.padding(vertical = DesignSystem.Spacing.sm))
+            if (onBack != null) {
+                OutlinedButton(
+                    onClick = onBack,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(localizedString(StringKey.BACK), modifier = Modifier.padding(vertical = DesignSystem.Spacing.sm))
+                }
             }
             
             Button(
                 onClick = onNext,
-                modifier = Modifier.weight(1f),
+                modifier = if (onBack == null) Modifier.fillMaxWidth() else Modifier.weight(1f),
                 enabled = selectedLocation.isNotEmpty() || detectedLocation != null,
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
             ) {
@@ -480,7 +596,8 @@ fun CropSelectionStep(
     selectedCrops: List<String>,
     onCropToggled: (String) -> Unit,
     onNext: () -> Unit,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onSkip: () -> Unit
 ) {
     var searchQuery by remember { mutableStateOf("") }
     var selectedCategory by remember { mutableStateOf<com.digitalgreen.farmerchat.data.CropsManager.CropCategory?>(null) }
@@ -557,7 +674,7 @@ fun CropSelectionStep(
                         selectedCategory = null
                         searchQuery = ""
                     },
-                    label = { Text("All") }
+                    label = { Text(localizedString(StringKey.ALL)) }
                 )
             }
             items(categories.size) { index ->
@@ -568,7 +685,7 @@ fun CropSelectionStep(
                         selectedCategory = if (selectedCategory == category) null else category
                         searchQuery = ""
                     },
-                    label = { Text(category.displayName) }
+                    label = { Text(category.getLocalizedName(currentLanguage)) }
                 )
             }
         }
@@ -649,6 +766,13 @@ fun CropSelectionStep(
                 Text(localizedString(StringKey.BACK), modifier = Modifier.padding(vertical = DesignSystem.Spacing.sm))
             }
             
+            OutlinedButton(
+                onClick = onSkip,
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(localizedString(StringKey.SKIP), modifier = Modifier.padding(vertical = DesignSystem.Spacing.sm))
+            }
+            
             Button(
                 onClick = onNext,
                 modifier = Modifier.weight(1f),
@@ -665,7 +789,8 @@ fun LivestockSelectionStep(
     selectedLivestock: List<String>,
     onLivestockToggled: (String) -> Unit,
     onNext: () -> Unit,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onSkip: () -> Unit
 ) {
     var searchQuery by remember { mutableStateOf("") }
     var selectedCategory by remember { mutableStateOf<com.digitalgreen.farmerchat.data.LivestockManager.LivestockCategory?>(null) }
@@ -747,7 +872,7 @@ fun LivestockSelectionStep(
                         selectedPurpose = null
                         searchQuery = ""
                     },
-                    label = { Text("All") }
+                    label = { Text(localizedString(StringKey.ALL)) }
                 )
             }
             items(categories.size) { index ->
@@ -759,7 +884,7 @@ fun LivestockSelectionStep(
                         selectedPurpose = null
                         searchQuery = ""
                     },
-                    label = { Text(category.displayName) }
+                    label = { Text(category.getLocalizedName(currentLanguage)) }
                 )
             }
         }
@@ -838,6 +963,13 @@ fun LivestockSelectionStep(
                 modifier = Modifier.weight(1f)
             ) {
                 Text(localizedString(StringKey.BACK), modifier = Modifier.padding(vertical = DesignSystem.Spacing.sm))
+            }
+            
+            OutlinedButton(
+                onClick = onSkip,
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(localizedString(StringKey.SKIP), modifier = Modifier.padding(vertical = DesignSystem.Spacing.sm))
             }
             
             Button(

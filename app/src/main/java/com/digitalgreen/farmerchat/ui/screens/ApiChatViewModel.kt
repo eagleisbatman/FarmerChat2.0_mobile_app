@@ -71,19 +71,52 @@ class ApiChatViewModel(application: Application) : AndroidViewModel(application)
     private var currentConversationId: String? = null
     private var isStreaming = false
     
+    private var hasInitialized = false
+    
     fun initializeChat(conversationId: String) {
+        // Prevent multiple initializations
+        if (hasInitialized && currentConversationId == conversationId) return
+        
         currentConversationId = conversationId
+        hasInitialized = true
+        
         viewModelScope.launch {
-            loadUserProfile()
-            loadConversation(conversationId)
-            loadMessages(conversationId)
-            loadStarterQuestions()
+            android.util.Log.d("ApiChatViewModel", "Initializing chat with conversationId: $conversationId")
             
-            // Join conversation for real-time updates
-            // repository.joinConversation(conversationId) // TODO: Implement WebSocket support
+            // Set loading state
+            _isLoading.value = true
             
-            // Listen for streaming events
-            // listenForStreamingEvents() // TODO: Implement WebSocket support
+            try {
+                // Ensure WebSocket is connected before loading chat
+                repository.ensureWebSocketConnected()
+                
+                loadUserProfile()
+                loadConversation(conversationId)
+                val messages = loadMessages(conversationId)
+                
+                // Only load starter questions if the conversation has no messages
+                if (messages.isEmpty()) {
+                    android.util.Log.d("ApiChatViewModel", "No messages found, loading starter questions")
+                    loadStarterQuestions()
+                } else {
+                    android.util.Log.d("ApiChatViewModel", "Found ${messages.size} existing messages, skipping starter questions")
+                    _starterQuestions.value = emptyList()
+                    _starterQuestionsLoading.value = false
+                }
+                
+                // Join conversation for real-time updates
+                repository.joinConversation(conversationId)
+                
+                // Listen for streaming events
+                listenForStreamingEvents()
+                
+            } catch (e: Exception) {
+                android.util.Log.e("ApiChatViewModel", "Error initializing chat", e)
+                _error.value = "Failed to initialize chat: ${e.message}"
+            } finally {
+                // Clear loading state
+                _isLoading.value = false
+            }
         }
     }
     
@@ -100,19 +133,42 @@ class ApiChatViewModel(application: Application) : AndroidViewModel(application)
         // Get conversation from conversations list since we don't have individual endpoint
         repository.getConversations().onSuccess { response ->
             val conversation = response.conversations.find { it.id == conversationId }
-            _currentConversation.value = conversation?.toConversation()
+            if (conversation != null) {
+                _currentConversation.value = conversation.toConversation()
+                android.util.Log.d("ApiChatViewModel", "Successfully loaded conversation: ${conversation.id} - ${conversation.title}")
+            } else {
+                android.util.Log.w("ApiChatViewModel", "Conversation with ID $conversationId not found in ${response.conversations.size} conversations")
+                android.util.Log.d("ApiChatViewModel", "Available conversation IDs: ${response.conversations.map { it.id }}")
+                _error.value = "Conversation not found"
+            }
         }.onFailure { e ->
-            android.util.Log.e("ApiChatViewModel", "Failed to load conversation", e)
+            android.util.Log.e("ApiChatViewModel", "Failed to load conversations list", e)
+            _error.value = "Failed to load conversation: ${e.message}"
         }
     }
     
-    private suspend fun loadMessages(conversationId: String) {
+    private suspend fun loadMessages(conversationId: String): List<ChatMessage> {
+        var loadedMessages = emptyList<ChatMessage>()
         repository.getMessages(conversationId).onSuccess { apiMessages ->
-            _messages.value = apiMessages.map { it.toChatMessage() }
+            val chatMessages = apiMessages.map { it.toChatMessage() }
+            _messages.value = chatMessages
+            loadedMessages = chatMessages
+            
+            android.util.Log.d("ApiChatViewModel", "Loaded ${chatMessages.size} messages for conversation $conversationId")
+            
+            // Load follow-up questions from the most recent AI message
+            val lastAiMessage = chatMessages.findLast { !it.isUser }
+            lastAiMessage?.let { aiMessage ->
+                if (aiMessage.followUpQuestions.isNotEmpty()) {
+                    _followUpQuestions.value = aiMessage.followUpQuestions
+                    android.util.Log.d("ApiChatViewModel", "Loaded ${aiMessage.followUpQuestions.size} follow-up questions from last AI message")
+                }
+            }
         }.onFailure { e ->
-            android.util.Log.e("ApiChatViewModel", "Failed to load messages", e)
+            android.util.Log.e("ApiChatViewModel", "Failed to load messages for conversation $conversationId", e)
             _error.value = "Failed to load messages: ${e.message}"
         }
+        return loadedMessages
     }
     
     private suspend fun loadStarterQuestions() {
@@ -154,12 +210,23 @@ class ApiChatViewModel(application: Application) : AndroidViewModel(application)
                     "complete" -> {
                         if (isStreaming) {
                             isStreaming = false
-                            _isLoading.value = false
-                            _currentStreamingMessage.value = ""
-                            _followUpQuestions.value = event.followUpQuestions?.map { it.question } ?: emptyList()
                             
-                            // Reload messages to get the complete conversation
-                            currentConversationId?.let { loadMessages(it) }
+                            // Add the completed message to the list instead of reloading
+                            val completedMessage = ChatMessage(
+                                id = UUID.randomUUID().toString(),
+                                content = _currentStreamingMessage.value,
+                                isUser = false,
+                                timestamp = Date(),
+                                followUpQuestions = event.followUpQuestions?.map { it.question } ?: emptyList(),
+                                user = false // Ensure both fields are set
+                            )
+                            _messages.value = _messages.value + completedMessage
+                            android.util.Log.d("ApiChatViewModel", "Added AI message with isUser=${completedMessage.isUser}")
+                            
+                            // Clear streaming message and update UI
+                            _currentStreamingMessage.value = ""
+                            _isLoading.value = false
+                            _followUpQuestions.value = event.followUpQuestions?.map { it.question } ?: emptyList()
                             
                             // Update conversation title if provided
                             event.title?.let { newTitle ->
@@ -202,13 +269,22 @@ class ApiChatViewModel(application: Application) : AndroidViewModel(application)
                 content = message,
                 isUser = true,
                 timestamp = Date(),
-                isVoiceMessage = false
+                isVoiceMessage = false,
+                user = true // Ensure both fields are set
             )
             _messages.value = _messages.value + userMessage
+            android.util.Log.d("ApiChatViewModel", "Added user message with isUser=${userMessage.isUser}")
             
-            android.util.Log.d("ApiChatViewModel", "Sending message via HTTP...")
+            android.util.Log.d("ApiChatViewModel", "Sending message via WebSocket streaming...")
             
-            // Use HTTP endpoint for now instead of WebSocket
+            // Use WebSocket streaming for real-time responses
+            isStreaming = true
+            _currentStreamingMessage.value = ""
+            repository.startStreamingMessage(message, conversationId)
+            
+            // The response will be handled by listenForStreamingEvents()
+            // Comment out HTTP fallback for now:
+            /*
             repository.sendMessage(message, conversationId).onSuccess { response ->
                 // Add AI response to messages
                 val aiMessage = ChatMessage(
@@ -236,13 +312,14 @@ class ApiChatViewModel(application: Application) : AndroidViewModel(application)
                 // Remove the user message on failure
                 _messages.value = _messages.value.filter { it.id != userMessage.id }
             }
+            */
         }
     }
     
     fun stopStreaming() {
         if (isStreaming) {
             currentConversationId?.let { conversationId ->
-                // repository.stopStreaming(conversationId) // TODO: Implement WebSocket support
+                repository.stopStreaming(conversationId)
             }
             isStreaming = false
             _isLoading.value = false
@@ -298,7 +375,7 @@ class ApiChatViewModel(application: Application) : AndroidViewModel(application)
     override fun onCleared() {
         super.onCleared()
         currentConversationId?.let { conversationId ->
-            // repository.leaveConversation(conversationId) // TODO: Implement WebSocket support
+            repository.leaveConversation(conversationId)
         }
         ttsManager.shutdown()
         speechRecognitionManager.destroy()
