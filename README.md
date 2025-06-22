@@ -1,121 +1,248 @@
-# FarmerChat - AI Assistant for Smallholder Farmers
+# FarmerChat 2.0 - AI-Powered Agricultural Advisory Mobile App
 
-FarmerChat is an Android application that provides AI-powered agricultural advice to smallholder farmers through an intuitive chat interface with voice and text support.
+FarmerChat 2.0 is a modern Android application that provides AI-powered agricultural advice to smallholder farmers through an intuitive chat interface with voice and text support, powered by a Node.js backend and OpenAI integration.
 
-## Features
+## 🏗️ Architecture
 
-- **Multilingual Support**: Supports 8 Indian languages including English, Hindi, Bengali, Telugu, Marathi, Tamil, Gujarati, and Kannada
-- **Voice & Text Input**: Farmers can ask questions using voice or text
-- **Text-to-Speech**: Listen to AI responses for better accessibility
-- **Staged Onboarding**: Value-first approach with simple setup (language, location, crops/livestock selection)
-- **Personalized Advice**: Context-aware responses based on user's location, crops, and livestock
-- **Starter Questions**: Pre-populated relevant questions based on user profile
-- **Follow-up Questions**: AI suggests related questions to explore topics deeper
-- **Feedback System**: Rate and provide feedback on AI responses
-- **Offline-First**: Uses local storage for preferences with Firebase sync
+### Current Stack (2025)
+- **Frontend**: Android (Kotlin + Jetpack Compose)
+- **Backend**: Node.js + TypeScript + Express
+- **Database**: Neon PostgreSQL (Serverless)
+- **AI Provider**: OpenAI (gpt-4o-mini) - Only enabled provider
+- **Authentication**: Firebase Auth (Phone OTP) → JWT tokens
+- **Real-time**: WebSocket (Socket.IO) for streaming AI responses
+- **Repository**: https://github.com/eagleisbatman/FarmerChat2.0_mobile_app
 
-## Setup Instructions
+## ✨ Features
 
-### 1. Prerequisites
-- Android Studio (latest version)
-- Firebase account
-- Google AI (Gemini) API key
+- **Multilingual Support**: 50+ global languages with RTL support
+- **AI-Powered Chat**: OpenAI gpt-4o-mini with streaming responses
+- **Voice & Text Input**: Complete speech recognition and text-to-speech
+- **Phone Authentication**: Firebase OTP with JWT token persistence
+- **Personalized Advice**: Context-aware responses based on location, crops, livestock
+- **Dynamic Starter Questions**: AI-generated questions based on user profile
+- **Real-time Streaming**: WebSocket-powered progressive response rendering
+- **Markdown Support**: Rich text formatting with nested markdown support
+- **Offline-Ready**: JWT token persistence and robust error handling
 
-### 2. Firebase Setup
-The project is already configured with Firebase. The following services are enabled:
-- **Firestore**: For storing user profiles, chat sessions, and feedback
-- **Authentication**: Anonymous authentication for easy onboarding
+## 🚀 Quick Start
 
-### 3. Configuration Steps
+### Prerequisites
+- **Android Studio** (latest version)
+- **Node.js** 18+ and npm
+- **Firebase account** (for phone authentication)
+- **OpenAI API key**
+- **Neon PostgreSQL database**
 
-1. **Add your Gemini API Key**:
-   - Open `ChatViewModel.kt`
-   - Replace `YOUR_API_KEY_HERE` with your actual Gemini API key
-   ```kotlin
-   private val generativeModel = GenerativeModel(
-       modelName = "gemini-pro",
-       apiKey = "YOUR_ACTUAL_API_KEY"
-   )
-   ```
+### 1. Backend Setup
 
-2. **Build and Run**:
-   ```bash
-   ./gradlew build
-   ```
+```bash
+# Clone the repository
+git clone https://github.com/eagleisbatman/FarmerChat2.0_mobile_app.git
+cd FarmerChat2.0_mobile_app
 
-3. **Seed Starter Questions** (Optional):
-   - Use the `StarterQuestionSeeder` utility to populate initial questions in Firestore
-   - This can be called from a temporary admin screen or Firebase console
+# Start backend (REQUIRED - app won't work without it)
+./start-backend.sh  # Auto-kills port 3004, installs deps, starts server
 
-### 4. Project Structure
-
-```
-app/src/main/java/com/digitalgreen/farmerchat/
-├── data/
-│   ├── Models.kt              # Data models
-│   └── FarmerChatRepository.kt # Firebase operations
-├── navigation/
-│   └── Navigation.kt          # App navigation setup
-├── ui/
-│   ├── components/           # Reusable UI components
-│   │   ├── MessageBubble.kt
-│   │   ├── VoiceRecordingButton.kt
-│   │   └── FeedbackDialog.kt
-│   ├── screens/             # App screens
-│   │   ├── SplashScreen.kt
-│   │   ├── OnboardingScreen.kt
-│   │   └── ChatScreen.kt
-│   └── theme/              # Material theme
-├── utils/
-│   ├── PreferencesManager.kt   # Local storage
-│   ├── TextToSpeechManager.kt  # TTS functionality
-│   └── StarterQuestionSeeder.kt # Database seeder
-└── MainActivity.kt
+# Backend runs on port 3004 (Android emulator uses 10.0.2.2:3004)
 ```
 
-### 5. Key Components
+### 2. Environment Configuration
 
-- **Onboarding Flow**: 
-  1. Language selection
-  2. Location selection
-  3. Crops selection (optional)
-  4. Livestock selection (optional)
+Create `backend/.env` with:
 
-- **Chat Features**:
-  - Real-time messaging with Firestore
-  - Voice input with speech recognition
-  - Text-to-speech for responses
-  - Context-aware AI responses
-  - Follow-up question suggestions
+```env
+# Server
+NODE_ENV=development
+PORT=3004
 
-- **Feedback System**:
-  - 5-star rating
-  - Optional text feedback
-  - Stored in Firestore for analysis
+# Database (Neon PostgreSQL)
+DATABASE_URL=your_neon_postgresql_url
+NEON_PROJECT_ID=your_project_id
 
-### 6. Testing
+# AI Configuration (CURRENT SETUP)
+DEFAULT_AI_PROVIDER=openai
+AI_PROVIDERS_ENABLED=openai
+OPENAI_API_KEY=your_openai_api_key
+OPENAI_MODEL=gpt-4o-mini
 
-1. Run the app on an emulator or physical device
-2. Complete the onboarding flow
-3. Try asking questions via text or voice
-4. Test the text-to-speech functionality
-5. Submit feedback on responses
+# Firebase Auth
+FIREBASE_PROJECT_ID=your_project_id
+FIREBASE_PRIVATE_KEY="your_private_key"
+FIREBASE_CLIENT_EMAIL=your_service_account_email
 
-### 7. Deployment
+# JWT
+JWT_SECRET=your_jwt_secret
+JWT_EXPIRES_IN=7d
+```
 
-1. Update `versionCode` and `versionName` in `build.gradle.kts`
-2. Generate signed APK/AAB
-3. Deploy to Google Play Store
+### 3. Android App Setup
 
-## Future Enhancements
+```bash
+# Build and install (with backend running)
+./gradlew clean assembleDebug && ./gradlew installDebug
 
-- [ ] Offline AI model for basic queries
+# The app automatically configures to use localhost:3004 via Android emulator
+```
+
+## 🧩 Current Architecture Details
+
+### AI Integration
+- **Provider**: OpenAI gpt-4o-mini (only enabled provider)
+- **Integration**: Backend AIService handles all AI operations
+- **Streaming**: Real-time response streaming via WebSocket
+- **Multi-provider**: Architecture supports Gemini/Anthropic but they're disabled
+
+### Authentication Flow
+1. **Firebase Phone OTP** → User enters phone number
+2. **Backend JWT Exchange** → Firebase token → JWT + refresh token
+3. **Token Persistence** → DataStore saves tokens across app sessions
+4. **API Authorization** → All API calls use Bearer JWT tokens
+
+### Data Flow
+```
+Android App (Kotlin/Compose)
+    ↓ REST API + WebSocket
+Node.js Backend (TypeScript)
+    ↓ SQL
+Neon PostgreSQL Database
+    ↓ API
+OpenAI (gpt-4o-mini)
+```
+
+### Key Components
+
+#### Backend (`/backend`)
+- **AI Service**: OpenAI integration with streaming
+- **Auth Service**: Firebase ↔ JWT token exchange
+- **Database**: Neon PostgreSQL with schema migrations
+- **WebSocket**: Real-time chat streaming
+- **API Routes**: RESTful endpoints for all operations
+
+#### Android App (`/app`)
+- **API Repository**: Retrofit-based backend communication
+- **ViewModels**: ApiChatViewModel, ApiConversationsViewModel, etc.
+- **WebSocket Client**: Real-time streaming integration
+- **UI Components**: Compose components with markdown support
+- **Utils**: Speech recognition, TTS, JWT token management
+
+## 🔧 Development Workflow
+
+### Starting Development
+```bash
+# 1. Start backend in one terminal
+./start-backend.sh
+
+# 2. Build and deploy Android app in another terminal
+./gradlew clean assembleDebug && ./gradlew installDebug
+
+# 3. View logs (optional)
+adb logcat | grep -E "FarmerChat|ApiChat|NetworkConfig"
+```
+
+### Testing Checklist
+1. **Backend Running**: Check `http://localhost:3004/api/v1/health`
+2. **Phone Auth**: Complete OTP flow (mock implementation)
+3. **Chat Functionality**: Send message → get OpenAI streaming response
+4. **Token Persistence**: Force close app → reopen → should stay logged in
+5. **WebSocket**: Verify streaming responses appear progressively
+
+### Common Issues
+- **"No auth token" error**: Start backend before launching app
+- **Connection refused**: Ensure backend is on port 3004
+- **Chat not loading**: Clear app data and restart with backend running
+
+## 📁 Project Structure
+
+```
+FarmerChat2.0_mobile_app/
+├── app/                          # Android Application
+│   ├── src/main/java/com/digitalgreen/farmerchat/
+│   │   ├── data/                 # Data models and repositories
+│   │   ├── network/              # API services and WebSocket
+│   │   ├── ui/                   # Compose UI components and screens
+│   │   ├── utils/                # Utilities (TTS, Speech, etc.)
+│   │   └── FarmerChatApplication.kt
+│   └── build.gradle.kts
+├── backend/                      # Node.js Backend
+│   ├── src/
+│   │   ├── config/              # Environment configuration
+│   │   ├── controllers/         # Request handlers
+│   │   ├── services/            # Business logic (AI, Auth, etc.)
+│   │   ├── routes/              # API route definitions
+│   │   ├── socket/              # WebSocket handlers
+│   │   └── database/            # Database utilities
+│   ├── database/
+│   │   ├── schema.sql           # Complete database schema
+│   │   └── migrations/          # Database migrations
+│   ├── .env                     # Environment variables
+│   └── package.json
+├── CLAUDE.md                     # Development guide for Claude Code
+├── README.md                     # This file
+└── start-backend.sh              # Backend startup script
+```
+
+## 🌍 Supported Languages
+
+50+ languages including:
+- **South Asian**: Hindi, Bengali, Telugu, Marathi, Tamil, Gujarati, Kannada, Urdu, Punjabi
+- **African**: Swahili, Amharic, Yoruba, Hausa
+- **European**: English, Spanish, French, German, Portuguese, Italian
+- **Asian**: Chinese, Japanese, Korean, Thai, Vietnamese
+- **RTL Support**: Arabic, Hebrew, Urdu
+
+## 🔄 Migration Status
+
+✅ **Completed Migration** (Firebase → Node.js + Neon):
+- Database: Firebase Firestore → Neon PostgreSQL
+- Authentication: Firebase Auth → Firebase + JWT hybrid
+- AI: Direct Gemini → Backend OpenAI integration
+- Real-time: Firestore listeners → WebSocket streaming
+- Architecture: Single Firebase app → Android + Node.js backend
+
+## 🚧 Future Enhancements
+
+- [ ] Multi-AI provider switching (Gemini, Anthropic)
 - [ ] Image recognition for crop disease detection
-- [ ] Weather integration
+- [ ] Weather API integration
 - [ ] Market price information
-- [ ] Community features
+- [ ] Community features and farmer networks
 - [ ] Push notifications for seasonal advice
+- [ ] Offline AI model for basic queries
 
-## Support
+## 📊 API Endpoints
 
-For issues or questions, please contact the Digital Green development team.
+### Authentication
+- `POST /api/v1/auth/verify` - Firebase token → JWT exchange
+- `POST /api/v1/auth/refresh` - Refresh JWT tokens
+
+### Chat
+- `POST /api/v1/chat/send` - Send message and get AI response
+- `GET /api/v1/chat/{conversationId}/messages` - Get chat history
+- WebSocket: Real-time streaming at `ws://localhost:3004`
+
+### User Management
+- `GET /api/v1/users/profile` - Get user profile
+- `PUT /api/v1/users/profile` - Update user profile
+
+### Conversations
+- `GET /api/v1/conversations` - List user conversations
+- `POST /api/v1/conversations` - Create new conversation
+
+## 🔐 Security
+
+- **JWT Authentication**: All API endpoints require valid JWT tokens
+- **Token Expiration**: 7-day expiry with refresh token rotation
+- **Database Security**: User data isolation via user_id foreign keys
+- **API Key Security**: OpenAI key stored in backend environment only
+
+## 📞 Support
+
+For issues, questions, or contributions:
+- **Issues**: GitHub Issues tab
+- **Development**: See `CLAUDE.md` for detailed development guide
+- **Contact**: Digital Green development team
+
+---
+
+**Note**: This is FarmerChat 2.0 with a modern architecture. The previous version used direct Firebase integration, which has been fully migrated to this Node.js + OpenAI backend system.
