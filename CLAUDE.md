@@ -16,10 +16,23 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - ✅ **Token Authorization**: JWT tokens properly persisted and attached to all requests
 - ✅ **Chat Functionality**: Messages send/receive working with OpenAI integration
 - ✅ **All Firebase Removed**: Except Firebase Auth for phone OTP
-- ✅ **Gemini API Removed**: Only OpenAI enabled (gpt-4o-mini)
+- ✅ **AI Provider**: Only OpenAI enabled and active (gpt-4o-mini)
 - ✅ **Phone OTP**: Registration flow already implemented
 
-**AI Configuration**: Using OpenAI gpt-4o-mini model only (no Gemini)
+## 🤖 Current AI Configuration
+
+**Active Setup**: 
+- **Primary Provider**: OpenAI (gpt-4o-mini)
+- **Status**: Only OpenAI is enabled (`AI_PROVIDERS_ENABLED=openai`)
+- **Other Providers**: Gemini and Anthropic API keys exist in config but are **disabled**
+- **Architecture**: Multi-provider support built but not currently used
+
+**Environment Variables**:
+```env
+DEFAULT_AI_PROVIDER=openai
+AI_PROVIDERS_ENABLED=openai  
+OPENAI_MODEL=gpt-4o-mini
+```
 
 **Key Implementation Details**:
 - JWT tokens persist between app sessions using DataStore
@@ -299,7 +312,7 @@ adb shell am start -n com.digitalgreen.farmerchat/.MainActivity
 2. **Chat Functionality**:
    - Tap "+" to create new conversation
    - Starter questions load
-   - Tap a question - should get OpenAI response
+   - Tap a question - should get OpenAI (gpt-4o-mini) response
    - Follow-up questions appear after response
    - Backend shows: `POST /api/v1/chat/send` requests
    - WebSocket connects automatically for streaming
@@ -426,8 +439,8 @@ The app follows **MVVM (Model-View-ViewModel)** architecture with:
 4. **Firebase Services** → Firestore for data, Anonymous Auth for identity
 
 #### AI Integration Architecture
-- **Gemini AI** integration in `ChatViewModel`
-- Streaming responses for real-time UI updates
+- **OpenAI** integration in backend `AIService` and frontend `ChatViewModel`
+- Streaming responses for real-time UI updates via WebSocket
 - Context injection from user profile (location, crops, livestock)
 - Follow-up question extraction from AI responses
 - Intelligent title generation using AI after first exchange
@@ -457,9 +470,9 @@ The app follows **MVVM (Model-View-ViewModel)** architecture with:
 - See `firestore.rules` for complete security implementation
 
 #### API Key Management
-- Gemini API key loaded from `local.properties` at build time
-- Injected into `BuildConfig.GEMINI_API_KEY`
-- Never committed to version control
+- OpenAI API key configured in backend `.env` file
+- Multiple provider keys supported but only OpenAI currently used
+- Keys loaded via environment variables, never committed to version control
 
 #### Voice Features Architecture
 - `SpeechRecognitionManager` handles voice-to-text
@@ -557,7 +570,8 @@ FarmerChat/
 └── FarmerChat-Translation-Tools/ # Translation utilities
 
 ### Backend Features
-- **Multi-AI Provider Support**: Seamlessly switch between Gemini, OpenAI, and Anthropic
+- **OpenAI Integration**: Currently using **OpenAI gpt-4o-mini** as the only enabled AI provider
+- **Multi-Provider Architecture**: Backend supports multiple AI providers (OpenAI, Gemini, Anthropic) but only OpenAI is currently enabled
 - **Neon PostgreSQL**: Serverless PostgreSQL database (replaced Supabase)
 - **WebSocket Support**: Real-time streaming of AI responses via Socket.IO
 - **Redis Caching**: High-performance caching for translations and responses  
@@ -575,7 +589,7 @@ npm run dev           # Start development server
 ```
 
 ### Key Backend Services
-1. **AIService**: Handles multiple AI providers with streaming support
+1. **AIService**: OpenAI integration with streaming support (multi-provider architecture available but only OpenAI enabled)
 2. **CacheService**: Redis-based caching with TTL support
 3. **TranslationService**: Dynamic translation management
 4. **AuthService**: Firebase Auth integration with JWT tokens
@@ -845,11 +859,10 @@ ANTHROPIC_MODEL_CLAUDE4_SONNET=claude-4-sonnet
 
 ### Environment Configuration Template
 ```env
-# Default AI Configuration
-DEFAULT_AI_PROVIDER=anthropic
-DEFAULT_AI_MODEL=claude-4-sonnet
-FALLBACK_AI_PROVIDER=google
-FALLBACK_AI_MODEL=gemini-2.0-flash
+# Current AI Configuration (ACTIVE)
+DEFAULT_AI_PROVIDER=openai
+AI_PROVIDERS_ENABLED=openai
+OPENAI_MODEL=gpt-4o-mini
 
 # Model Selection Strategy
 MODEL_SELECTION_STRATEGY=cost-optimized
