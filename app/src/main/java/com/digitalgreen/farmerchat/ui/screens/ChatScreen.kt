@@ -41,6 +41,7 @@ import com.digitalgreen.farmerchat.ui.components.MessageSkeleton
 import com.digitalgreen.farmerchat.ui.components.StarterQuestionsSkeleton
 import com.digitalgreen.farmerchat.ui.components.TypingIndicator
 import com.digitalgreen.farmerchat.ui.components.AudioRecordingView
+import com.digitalgreen.farmerchat.ui.components.ShareBottomSheet
 import com.digitalgreen.farmerchat.utils.StringsManager.StringKey
 import com.digitalgreen.farmerchat.ui.theme.DesignSystem
 import com.digitalgreen.farmerchat.ui.theme.primaryTextColor
@@ -57,6 +58,7 @@ import java.util.Date
 @Composable
 fun ChatScreen(
     conversationId: String,
+    initialTitle: String? = null,
     onNavigateBack: () -> Unit,
     onNavigateToNewChat: () -> Unit = {},
     viewModel: ApiChatViewModel = viewModel(
@@ -91,7 +93,8 @@ fun ChatScreen(
     val isAudioPlaying by viewModel.isAudioPlaying.collectAsState()
     val audioRecordingError by viewModel.audioRecordingError.collectAsState()
     
-    val conversationTitle = currentConversation?.title 
+    val conversationTitle = initialTitle 
+        ?: currentConversation?.title 
         ?: localizedString(StringKey.NEW_CONVERSATION)
     
     var textInput by remember { mutableStateOf("") }
@@ -99,6 +102,8 @@ fun ChatScreen(
     var feedbackMessageId by remember { mutableStateOf<String?>(null) }
     var showVoiceFeedback by remember { mutableStateOf(false) }
     var showAudioRecording by remember { mutableStateOf(false) }
+    var showShareBottomSheet by remember { mutableStateOf(false) }
+    var shareMessageContent by remember { mutableStateOf<Pair<String, String>?>(null) } // question, answer
     
     val scrollState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
@@ -182,17 +187,17 @@ fun ChatScreen(
                 onBackClick = onNavigateBack,
                 actions = {
                     // New Chat button
-                    IconButton(onClick = onNavigateToNewChat) {
+                    IconButton(
+                        onClick = {
+                            viewModel.createNewConversation { newConversationId ->
+                                android.util.Log.d("ChatScreen", "New conversation created: $newConversationId")
+                                // The ViewModel will automatically switch to the new conversation
+                            }
+                        }
+                    ) {
                         Icon(
                             Icons.Default.Add,
                             contentDescription = localizedString(StringKey.NEW_CONVERSATION),
-                            tint = Color.White
-                        )
-                    }
-                    IconButton(onClick = { /* TODO: More options */ }) {
-                        Icon(
-                            Icons.Default.MoreVert,
-                            contentDescription = localizedString(StringKey.MORE),
                             tint = Color.White
                         )
                     }
@@ -291,6 +296,17 @@ fun ChatScreen(
                                 feedbackMessageId = message.id
                                 showFeedbackDialog = true
                             },
+                            onShare = {
+                                // Find the user question that prompted this AI response
+                                val messageIndex = messages.indexOf(message)
+                                val userQuestion = if (messageIndex > 0 && messages[messageIndex - 1].isUser) {
+                                    messages[messageIndex - 1].content
+                                } else {
+                                    "Question not found"
+                                }
+                                shareMessageContent = Pair(userQuestion, message.content)
+                                showShareBottomSheet = true
+                            },
                             currentLanguageCode = userProfile?.language ?: "en"
                         )
                     }
@@ -307,6 +323,7 @@ fun ChatScreen(
                                 onPlayAudio = { },
                                 isSpeaking = false,
                                 onFeedback = { },
+                                onShare = { }, // No sharing for streaming messages
                                 currentLanguageCode = userProfile?.language ?: "en",
                                 isStreaming = true
                             )
@@ -467,6 +484,15 @@ fun ChatScreen(
                 viewModel.submitFeedback(feedbackMessageId!!, rating, comment)
                 showFeedbackDialog = false
             }
+        )
+    }
+    
+    // Share bottom sheet
+    if (showShareBottomSheet && shareMessageContent != null) {
+        ShareBottomSheet(
+            question = shareMessageContent!!.first,
+            answer = shareMessageContent!!.second,
+            onDismiss = { showShareBottomSheet = false }
         )
     }
 }

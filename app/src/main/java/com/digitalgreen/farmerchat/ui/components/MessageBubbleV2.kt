@@ -26,6 +26,27 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 /**
+ * Detects if a message is a simple greeting that doesn't need feedback
+ */
+private fun isSimpleGreeting(message: String): Boolean {
+    val lowerMessage = message.lowercase().trim()
+    val greetings = listOf(
+        "hi", "hello", "hey", "good morning", "good afternoon", "good evening",
+        "thanks", "thank you", "bye", "goodbye", "ok", "okay", "yes", "no",
+        "sure", "alright", "got it", "understood", "nice", "great", "awesome",
+        "cool", "perfect", "excellent", "wonderful", "amazing", "fantastic"
+    )
+    
+    // Check if the message is exactly one of these greetings or very short
+    return greetings.any { greeting ->
+        lowerMessage == greeting || 
+        lowerMessage == "$greeting!" ||
+        lowerMessage == "$greeting." ||
+        lowerMessage == "$greeting?"
+    } || lowerMessage.length <= 3 // Very short messages like "ok", "yes", "no"
+}
+
+/**
  * Improved message bubble with:
  * - Consistent left/right alignment based on language direction
  * - Reduced width (80% max)
@@ -38,6 +59,7 @@ fun MessageBubbleV2(
     onPlayAudio: () -> Unit,
     isSpeaking: Boolean,
     onFeedback: () -> Unit,
+    onShare: () -> Unit = {},
     isStreaming: Boolean = false,
     currentLanguageCode: String = "en"
 ) {
@@ -141,30 +163,45 @@ fun MessageBubbleV2(
                         Row(
                             horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.xs)
                         ) {
-                            // Voice button
+                            // Voice button with larger touch target
                             IconButton(
                                 onClick = onPlayAudio,
-                                modifier = Modifier.size(28.dp)
+                                modifier = Modifier.size(36.dp) // Increased from 28dp for better touch target
                             ) {
                                 Icon(
                                     imageVector = if (isSpeaking) Icons.Default.Stop else Icons.AutoMirrored.Filled.VolumeUp,
                                     contentDescription = if (isSpeaking) localizedString(StringKey.STOP) else localizedString(StringKey.PLAY),
-                                    modifier = Modifier.size(DesignSystem.IconSize.small),
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = DesignSystem.Opacity.medium)
+                                    modifier = Modifier.size(DesignSystem.IconSize.medium), // Increased from small to medium (24dp)
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = DesignSystem.Opacity.high) // More prominent
                                 )
                             }
                             
-                            // Feedback button
+                            // Share button - always show for AI responses
                             IconButton(
-                                onClick = onFeedback,
-                                modifier = Modifier.size(28.dp)
+                                onClick = onShare,
+                                modifier = Modifier.size(36.dp) // Same size as other buttons
                             ) {
                                 Icon(
-                                    imageVector = Icons.Default.ThumbsUpDown,
-                                    contentDescription = localizedString(StringKey.RATE),
-                                    modifier = Modifier.size(DesignSystem.IconSize.small),
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = DesignSystem.Opacity.medium)
+                                    imageVector = Icons.Default.Share,
+                                    contentDescription = "Share", // TODO: Add to StringsManager
+                                    modifier = Modifier.size(DesignSystem.IconSize.medium),
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = DesignSystem.Opacity.high)
                                 )
+                            }
+                            
+                            // Feedback button with larger touch target - only show for substantial AI responses, not greetings
+                            if (!isSimpleGreeting(message.content)) {
+                                IconButton(
+                                    onClick = onFeedback,
+                                    modifier = Modifier.size(36.dp) // Increased from 28dp for better touch target
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.ThumbsUpDown,
+                                        contentDescription = localizedString(StringKey.RATE),
+                                        modifier = Modifier.size(DesignSystem.IconSize.medium), // Increased from small to medium (24dp)
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = DesignSystem.Opacity.high) // More prominent
+                                    )
+                                }
                             }
                         }
                     }

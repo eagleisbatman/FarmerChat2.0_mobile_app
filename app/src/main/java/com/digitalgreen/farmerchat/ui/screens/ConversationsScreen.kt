@@ -47,7 +47,7 @@ import java.util.*
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ConversationsScreen(
-    onNavigateToChat: (String) -> Unit,
+    onNavigateToChat: (String, String?) -> Unit,
     onNavigateToSettings: () -> Unit,
     startNewChat: Boolean = false,
     viewModel: ApiConversationsViewModel = viewModel(
@@ -108,7 +108,7 @@ fun ConversationsScreen(
     LaunchedEffect(startNewChat) {
         if (startNewChat) {
             viewModel.createNewConversation { conversationId ->
-                onNavigateToChat(conversationId)
+                onNavigateToChat(conversationId, null) // New conversation, no title yet
             }
         }
     }
@@ -240,7 +240,7 @@ fun ConversationsScreen(
                     // Create new conversation
                     viewModel.createNewConversation { conversationId ->
                         android.util.Log.d("ConversationsScreen", "Navigating to chat with conversationId: $conversationId")
-                        onNavigateToChat(conversationId)
+                        onNavigateToChat(conversationId, null) // New conversation, no title yet
                     }
                 },
                 containerColor = MaterialTheme.colorScheme.primary,
@@ -386,7 +386,7 @@ fun ConversationsScreen(
                                     Column {
                                         ConversationItem(
                                             conversation = conversation,
-                                            onClick = { onNavigateToChat(conversation.id) }
+                                            onClick = { onNavigateToChat(conversation.id, conversation.title) }
                                         )
                                         if (index < filteredConversations.size - 1) {
                                             HorizontalDivider(
@@ -509,16 +509,14 @@ fun ConversationItem(
                     Spacer(modifier = Modifier.width(DesignSystem.Spacing.xs))
                 }
                 Text(
-                    // Check if this is the default message and localize it
-                    if (conversation.lastMessage == "Start a conversation..." || 
-                        conversation.lastMessage == "बातचीत शुरू करें..." ||
-                        conversation.lastMessage == "Anza mazungumzo...") {
-                        localizedString(StringKey.START_A_CONVERSATION)
-                    } else {
-                        conversation.lastMessage
-                    },
+                    text = getConversationDisplayText(conversation),
                     fontSize = DesignSystem.Typography.bodyMedium,
-                    color = secondaryTextColor(),
+                    color = if (isEmptyConversation(conversation)) {
+                        // Make "Start Conversation" more prominent
+                        DesignSystem.Colors.Primary
+                    } else {
+                        secondaryTextColor()
+                    },
                     maxLines = if (conversation.tags.isEmpty()) 2 else 1,
                     overflow = TextOverflow.Ellipsis,
                     lineHeight = DesignSystem.Typography.titleMedium
@@ -581,4 +579,29 @@ fun isYesterday(today: Calendar, other: Calendar): Boolean {
 fun isSameWeek(cal1: Calendar, cal2: Calendar): Boolean {
     return cal1.get(Calendar.YEAR) == cal2.get(Calendar.YEAR) &&
             cal1.get(Calendar.WEEK_OF_YEAR) == cal2.get(Calendar.WEEK_OF_YEAR)
+}
+
+/**
+ * Helper function to check if a conversation is empty (has no messages)
+ */
+private fun isEmptyConversation(conversation: Conversation): Boolean {
+    return conversation.messageCount == 0
+}
+
+/**
+ * Helper function to get the appropriate display text for a conversation
+ */
+@Composable 
+private fun getConversationDisplayText(conversation: Conversation): String {
+    return if (isEmptyConversation(conversation)) {
+        // Empty conversation - show "Start Conversation"
+        localizedString(StringKey.START_A_CONVERSATION)
+    } else {
+        // Has messages - show last message or "Continue Conversation" if lastMessage is empty
+        if (conversation.lastMessage.isEmpty()) {
+            localizedString(StringKey.CONTINUE_CONVERSATION)
+        } else {
+            conversation.lastMessage
+        }
+    }
 }

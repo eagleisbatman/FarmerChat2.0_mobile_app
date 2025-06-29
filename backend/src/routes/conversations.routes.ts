@@ -15,10 +15,11 @@ router.get('/', authenticate, async (req: AuthRequest, res) => {
     const search = req.query.search as string;
     
     let query_text = `
-      SELECT id, title, last_message, last_message_time, 
-             last_message_is_user, tags, created_at, updated_at
-      FROM conversations 
-      WHERE user_id = $1
+      SELECT c.id, c.title, c.last_message, c.last_message_time, 
+             c.last_message_is_user, c.tags, c.created_at, c.updated_at,
+             (SELECT COUNT(*) FROM messages m WHERE m.conversation_id = c.id) as message_count
+      FROM conversations c
+      WHERE c.user_id = $1
     `;
     const values = [req.userId];
     let paramIndex = 2;

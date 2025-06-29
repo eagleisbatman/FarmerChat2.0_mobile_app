@@ -61,6 +61,7 @@ object StringsManager {
         DELETE_CONVERSATION,
         SEARCH_CONVERSATIONS,
         START_A_CONVERSATION,
+        CONTINUE_CONVERSATION,
         
         // Chat Screen
         TYPE_MESSAGE,

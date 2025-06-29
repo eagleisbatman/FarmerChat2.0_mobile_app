@@ -113,7 +113,8 @@ data class Conversation(
     val createdAt: Date = Date(),
     val tags: List<String> = emptyList(),
     val englishTags: List<String> = emptyList(), // Tags stored in English for analytics
-    val summary: String? = null // AI-generated conversation summary
+    val summary: String? = null, // AI-generated conversation summary
+    val messageCount: Int = 0 // Total number of messages in the conversation
 ) {
     /**
      * Get the conversation title in the specified language
