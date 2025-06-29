@@ -66,7 +66,7 @@ fun MessageBubbleV2(
                 modifier = Modifier.padding(bottom = DesignSystem.Spacing.xxs)
             ) {
                 Text(
-                    text = if (isUser) "You" else "Farmer Chat",
+                    text = if (isUser) "You" else "FarmerChat",
                     fontSize = DesignSystem.Typography.labelSmall,
                     fontWeight = DesignSystem.Typography.Weight.Medium,
                     color = if (isUser) {
@@ -108,13 +108,14 @@ fun MessageBubbleV2(
                         vertical = DesignSystem.Spacing.sm
                     )
                 ) {
-                    // Message content
+                    // Message content with improved typography
                     if (isUser) {
                         Text(
                             text = if (isStreaming && message.content.isEmpty()) "..." else message.content,
                             color = MaterialTheme.colorScheme.onPrimary,
-                            fontSize = DesignSystem.Typography.bodyLarge,
-                            lineHeight = DesignSystem.Typography.titleMedium,
+                            fontSize = 16.sp, // Bigger, more readable font
+                            lineHeight = 24.sp, // Better line spacing
+                            fontWeight = DesignSystem.Typography.Weight.Normal,
                             modifier = Modifier.animateContentSize()
                         )
                     } else {
@@ -122,6 +123,8 @@ fun MessageBubbleV2(
                             text = if (isStreaming && message.content.isEmpty()) "..." else message.content,
                             modifier = Modifier.animateContentSize(),
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontSize = 16, // Consistent with user messages (Int parameter)
+                            lineHeight = 24, // Better line spacing
                             isStreaming = isStreaming // Pass streaming flag
                         )
                     }

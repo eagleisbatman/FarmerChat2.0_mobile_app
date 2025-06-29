@@ -1,0 +1,22 @@
+{
+  "APP_NAME": "FarmerChat",
+  "BACK": "मागे",
+  "CANCEL": "रद्द करा",
+  "CHOOSE_LANGUAGE": "आपली पसंतीची भाषा निवडा",
+  "CLEAR": "साफ करा",
+  "CONTINUE": "पुढे जा",
+  "CROPS_SUBTITLE": "तुम्ही लावत असलेली सर्व पिके निवडा",
+  "DONE": "पूर्ण",
+  "LANGUAGE_SUBTITLE": "आपण हे नंतर सेटिंग्जमध्ये बदलू शकता",
+  "LIVESTOCK_SUBTITLE": "तुम्ही पाळत असलेली सर्व जनावरे निवडा",
+  "LOCATION_SUBTITLE": "हे आम्हाला स्थान-विशिष्ट सल्ला देण्यास मदत करते",
+  "NAME": "नाव",
+  "NEXT": "पुढील",
+  "OK": "ठीक आहे",
+  "SAVE": "जतन करा",
+  "SEARCH": "शोधा",
+  "SELECT_CROPS": "तुमची पिके निवडा",
+  "SELECT_LIVESTOCK": "तुमची जनावरे निवडा",
+  "SKIP": "वगळा",
+  "WHERE_LOCATED": "आपण कोठे राहता?"
+}

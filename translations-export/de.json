@@ -1,0 +1,22 @@
+{
+  "APP_NAME": "FarmerChat",
+  "BACK": "Zurück",
+  "CANCEL": "Abbrechen",
+  "CHOOSE_LANGUAGE": "Wählen Sie Ihre bevorzugte Sprache",
+  "CLEAR": "Löschen",
+  "CONTINUE": "Weiter",
+  "CROPS_SUBTITLE": "Wählen Sie alle Kulturen aus, die Sie anbauen",
+  "DONE": "Fertig",
+  "LANGUAGE_SUBTITLE": "Sie können dies später in den Einstellungen ändern",
+  "LIVESTOCK_SUBTITLE": "Wählen Sie alle Tiere aus, die Sie halten",
+  "LOCATION_SUBTITLE": "Dies hilft uns, standortspezifische Beratung anzubieten",
+  "NAME": "Name",
+  "NEXT": "Weiter",
+  "OK": "OK",
+  "SAVE": "Speichern",
+  "SEARCH": "Suchen",
+  "SELECT_CROPS": "Wählen Sie Ihre Kulturen",
+  "SELECT_LIVESTOCK": "Wählen Sie Ihre Nutztiere",
+  "SKIP": "Überspringen",
+  "WHERE_LOCATED": "Wo befinden Sie sich?"
+}

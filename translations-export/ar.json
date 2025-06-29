@@ -1,0 +1,22 @@
+{
+  "APP_NAME": "FarmerChat",
+  "BACK": "رجوع",
+  "CANCEL": "إلغاء",
+  "CHOOSE_LANGUAGE": "اختر لغتك المفضلة",
+  "CLEAR": "مسح",
+  "CONTINUE": "متابعة",
+  "CROPS_SUBTITLE": "اختر جميع المحاصيل التي تزرعها",
+  "DONE": "تم",
+  "LANGUAGE_SUBTITLE": "يمكنك تغيير هذا لاحقاً في الإعدادات",
+  "LIVESTOCK_SUBTITLE": "اختر جميع الحيوانات التي تربيها",
+  "LOCATION_SUBTITLE": "هذا يساعدنا في تقديم نصائح خاصة بموقعك",
+  "NAME": "الاسم",
+  "NEXT": "التالي",
+  "OK": "موافق",
+  "SAVE": "حفظ",
+  "SEARCH": "بحث",
+  "SELECT_CROPS": "اختر محاصيلك",
+  "SELECT_LIVESTOCK": "اختر مواشيك",
+  "SKIP": "تخطي",
+  "WHERE_LOCATED": "أين موقعك؟"
+}

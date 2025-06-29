@@ -1,0 +1,22 @@
+{
+  "APP_NAME": "FarmerChat",
+  "BACK": "ወደ ኋላ",
+  "CANCEL": "ሰርዝ",
+  "CHOOSE_LANGUAGE": "የሚፈልጉትን ቋንቋ ይምረጡ",
+  "CLEAR": "አጥፋ",
+  "CONTINUE": "ቀጥል",
+  "CROPS_SUBTITLE": "የሚያመርቱትን ሁሉንም ሰብሎች ይምረጡ",
+  "DONE": "ተጠናቅቋል",
+  "LANGUAGE_SUBTITLE": "ይህንን በኋላ በቅንብሮች ውስጥ መቀየር ይችላሉ",
+  "LIVESTOCK_SUBTITLE": "የሚያረቡትን ሁሉንም እንስሳት ይምረጡ",
+  "LOCATION_SUBTITLE": "ይህ ለአካባቢዎ የሚስማማ ምክር እንድንሰጥዎት ይረዳናል",
+  "NAME": "ስም",
+  "NEXT": "ቀጣይ",
+  "OK": "እሺ",
+  "SAVE": "አስቀምጥ",
+  "SEARCH": "ፈልግ",
+  "SELECT_CROPS": "የሚያመርቱትን ሰብሎች ይምረጡ",
+  "SELECT_LIVESTOCK": "የሚያረቡትን እንስሳት ይምረጡ",
+  "SKIP": "እለፍ",
+  "WHERE_LOCATED": "የት ነው የሚገኙት?"
+}

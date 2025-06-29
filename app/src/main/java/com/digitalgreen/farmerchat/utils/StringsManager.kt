@@ -256,7 +256,52 @@ object StringsManager {
         LIVESTOCK_CATEGORY_SMALL_RUMINANTS,
         LIVESTOCK_CATEGORY_SWINE,
         LIVESTOCK_CATEGORY_AQUACULTURE,
-        LIVESTOCK_CATEGORY_OTHERS
+        LIVESTOCK_CATEGORY_OTHERS,
+        
+        // New selection screen strings
+        WHAT_YOUR_NAME,
+        NAME_SUBTITLE,
+        YOUR_NAME,
+        CROP_TITLE,
+        CROP_SUBTITLE,
+        LIVESTOCK_TITLE,
+        LIVESTOCK_SELECTED,
+        GENDER_TITLE,
+        ROLE_TITLE,
+        FARMER_DESC,
+        EXTENSION_WORKER_DESC,
+        
+        // Audio Recording
+        TAP_TO_RECORD,
+        RECORDING_IN_PROGRESS,
+        PLAY_RECORDING,
+        DISCARD_RECORDING,
+        SEND_FOR_TRANSCRIPTION,
+        
+        // Phone Collection V2
+        SECURE_YOUR_ACCOUNT,
+        PHONE_COLLECTION_SUBTITLE,
+        PHONE_PRIVACY_INFO,
+        DISMISS,
+        
+        // Login/Auth
+        WELCOME_BACK,
+        LOGIN,
+        SECURITY_PIN,
+        DONT_HAVE_ACCOUNT,
+        CREATE_ACCOUNT,
+        FORGOT_PIN,
+        REMEMBER_ME,
+        
+        // Personalization explanations
+        LOCATION_BENEFIT,
+        NAME_BENEFIT,
+        LANGUAGE_BENEFIT,
+        GENDER_BENEFIT,
+        ROLE_BENEFIT,
+        CROPS_BENEFIT,
+        LIVESTOCK_BENEFIT,
+        PERSONALIZATION_TITLE
     }
     
     private val translations = mapOf(
@@ -486,7 +531,52 @@ object StringsManager {
             StringKey.LIVESTOCK_CATEGORY_SMALL_RUMINANTS to "Goats & Sheep",
             StringKey.LIVESTOCK_CATEGORY_SWINE to "Pigs",
             StringKey.LIVESTOCK_CATEGORY_AQUACULTURE to "Fish & Aquaculture",
-            StringKey.LIVESTOCK_CATEGORY_OTHERS to "Other Animals"
+            StringKey.LIVESTOCK_CATEGORY_OTHERS to "Other Animals",
+            
+            // New selection screen strings
+            StringKey.WHAT_YOUR_NAME to "What's your name?",
+            StringKey.NAME_SUBTITLE to "This helps us personalize your experience",
+            StringKey.YOUR_NAME to "Your Name",
+            StringKey.CROP_TITLE to "Select Your Crops",
+            StringKey.CROP_SUBTITLE to "Choose the crops you grow or are interested in",
+            StringKey.LIVESTOCK_TITLE to "Select Your Livestock",
+            StringKey.LIVESTOCK_SELECTED to "livestock selected",
+            StringKey.GENDER_TITLE to "Select Your Gender",
+            StringKey.ROLE_TITLE to "Select Your Role",
+            StringKey.FARMER_DESC to "I grow crops and raise livestock",
+            StringKey.EXTENSION_WORKER_DESC to "I help farmers with agricultural advice",
+            
+            // Audio Recording
+            StringKey.TAP_TO_RECORD to "Tap to record audio",
+            StringKey.RECORDING_IN_PROGRESS to "Recording...",
+            StringKey.PLAY_RECORDING to "Play recording",
+            StringKey.DISCARD_RECORDING to "Discard recording",
+            StringKey.SEND_FOR_TRANSCRIPTION to "Send for transcription",
+            
+            // Phone Collection V2
+            StringKey.SECURE_YOUR_ACCOUNT to "Secure Your Account",
+            StringKey.PHONE_COLLECTION_SUBTITLE to "Add your phone number to recover your account and receive important updates",
+            StringKey.PHONE_PRIVACY_INFO to "Your phone number is encrypted and only used for account recovery",
+            StringKey.DISMISS to "Dismiss",
+            
+            // Login/Auth
+            StringKey.WELCOME_BACK to "Welcome back! Please login to continue",
+            StringKey.LOGIN to "Login",
+            StringKey.SECURITY_PIN to "Security PIN",
+            StringKey.DONT_HAVE_ACCOUNT to "Don't have an account?",
+            StringKey.CREATE_ACCOUNT to "Create Account",
+            StringKey.FORGOT_PIN to "Forgot PIN?",
+            StringKey.REMEMBER_ME to "Remember me",
+            
+            // Personalization benefits
+            StringKey.PERSONALIZATION_TITLE to "Why we ask for this information",
+            StringKey.LOCATION_BENEFIT to "Get weather alerts, local market prices, and region-specific farming advice",
+            StringKey.NAME_BENEFIT to "Receive personalized greetings and build trust with our AI assistant",
+            StringKey.LANGUAGE_BENEFIT to "Get advice in your preferred language for better understanding",
+            StringKey.GENDER_BENEFIT to "Access gender-specific programs and tailored agricultural recommendations",
+            StringKey.ROLE_BENEFIT to "Receive content suited to your expertise level and professional needs",
+            StringKey.CROPS_BENEFIT to "Get crop-specific advice on planting, pest control, and harvest timing",
+            StringKey.LIVESTOCK_BENEFIT to "Receive targeted guidance on animal health, feeding, and breeding"
         ),
         
         // Hindi
@@ -719,7 +809,27 @@ object StringsManager {
             StringKey.LIVESTOCK_CATEGORY_SMALL_RUMINANTS to "बकरी और भेड़",
             StringKey.LIVESTOCK_CATEGORY_SWINE to "सूअर",
             StringKey.LIVESTOCK_CATEGORY_AQUACULTURE to "मछली और जलीय कृषि",
-            StringKey.LIVESTOCK_CATEGORY_OTHERS to "अन्य जानवर"
+            StringKey.LIVESTOCK_CATEGORY_OTHERS to "अन्य जानवर",
+            
+            // New selection screen strings
+            StringKey.WHAT_YOUR_NAME to "आपका नाम क्या है?",
+            StringKey.NAME_SUBTITLE to "यह हमें आपके अनुभव को व्यक्तिगत बनाने में मदद करता है",
+            StringKey.YOUR_NAME to "आपका नाम",
+            StringKey.CROP_TITLE to "अपनी फसलें चुनें",
+            StringKey.CROP_SUBTITLE to "वे फसलें चुनें जो आप उगाते हैं या जिनमें रुचि रखते हैं",
+            StringKey.LIVESTOCK_TITLE to "अपने पशुधन चुनें",
+            StringKey.LIVESTOCK_SELECTED to "पशुधन चयनित",
+            StringKey.GENDER_TITLE to "अपना लिंग चुनें",
+            StringKey.ROLE_TITLE to "अपनी भूमिका चुनें",
+            StringKey.FARMER_DESC to "मैं फसलें उगाता हूं और पशुधन पालता हूं",
+            StringKey.EXTENSION_WORKER_DESC to "मैं किसानों को कृषि सलाह में मदद करता हूं",
+            
+            // Audio Recording
+            StringKey.TAP_TO_RECORD to "ऑडियो रिकॉर्ड करने के लिए टैप करें",
+            StringKey.RECORDING_IN_PROGRESS to "रिकॉर्डिंग...",
+            StringKey.PLAY_RECORDING to "रिकॉर्डिंग चलाएं",
+            StringKey.DISCARD_RECORDING to "रिकॉर्डिंग हटाएं",
+            StringKey.SEND_FOR_TRANSCRIPTION to "ट्रांसक्रिप्शन के लिए भेजें"
         ),
         
         // Swahili
@@ -952,7 +1062,27 @@ object StringsManager {
             StringKey.LIVESTOCK_CATEGORY_SMALL_RUMINANTS to "Mbuzi na Kondoo",
             StringKey.LIVESTOCK_CATEGORY_SWINE to "Nguruwe",
             StringKey.LIVESTOCK_CATEGORY_AQUACULTURE to "Samaki na Uvuvi",
-            StringKey.LIVESTOCK_CATEGORY_OTHERS to "Wanyama Wengine"
+            StringKey.LIVESTOCK_CATEGORY_OTHERS to "Wanyama Wengine",
+            
+            // New selection screen strings
+            StringKey.WHAT_YOUR_NAME to "Jina lako ni nani?",
+            StringKey.NAME_SUBTITLE to "Hii inatusaidia kubinafsisha uzoefu wako",
+            StringKey.YOUR_NAME to "Jina Lako",
+            StringKey.CROP_TITLE to "Chagua Mazao Yako",
+            StringKey.CROP_SUBTITLE to "Chagua mazao unayolima au unayovutiwa nayo",
+            StringKey.LIVESTOCK_TITLE to "Chagua Mifugo Yako",
+            StringKey.LIVESTOCK_SELECTED to "mifugo imechaguliwa",
+            StringKey.GENDER_TITLE to "Chagua Jinsia Yako",
+            StringKey.ROLE_TITLE to "Chagua Jukumu Lako",
+            StringKey.FARMER_DESC to "Nalima mazao na kufuga wanyama",
+            StringKey.EXTENSION_WORKER_DESC to "Nawasaidia wakulima kwa ushauri wa kilimo",
+            
+            // Audio Recording
+            StringKey.TAP_TO_RECORD to "Gusa kurekodi sauti",
+            StringKey.RECORDING_IN_PROGRESS to "Inarekodi...",
+            StringKey.PLAY_RECORDING to "Cheza rekodi",
+            StringKey.DISCARD_RECORDING to "Ondoa rekodi",
+            StringKey.SEND_FOR_TRANSCRIPTION to "Tuma kwa unukuzi"
         )
     )
     

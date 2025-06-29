@@ -29,6 +29,7 @@ class PreferencesManager(private val context: Context) {
         val JWT_TOKEN = stringPreferencesKey("jwt_token")
         val REFRESH_TOKEN = stringPreferencesKey("refresh_token")
         val TOKEN_EXPIRES_AT = longPreferencesKey("token_expires_at")
+        val USER_PHONE = stringPreferencesKey("user_phone")
     }
     
     val hasCompletedOnboarding: Flow<Boolean> = context.dataStore.data
@@ -194,6 +195,19 @@ class PreferencesManager(private val context: Context) {
             preferences.remove(JWT_TOKEN)
             preferences.remove(REFRESH_TOKEN)
             preferences.remove(TOKEN_EXPIRES_AT)
+        }
+    }
+    
+    // Phone authentication
+    suspend fun saveUserPhone(phone: String) {
+        context.dataStore.edit { preferences ->
+            preferences[USER_PHONE] = phone
+        }
+    }
+    
+    fun getUserPhone(): String? {
+        return runBlocking {
+            context.dataStore.data.first()[USER_PHONE]
         }
     }
 }

@@ -1,0 +1,22 @@
+{
+  "APP_NAME": "FarmerChat",
+  "BACK": "Tilbake",
+  "CANCEL": "Avbryt",
+  "CHOOSE_LANGUAGE": "Velg ditt foretrukne språk",
+  "CLEAR": "Tøm",
+  "CONTINUE": "Fortsett",
+  "CROPS_SUBTITLE": "Velg alle vekster du dyrker",
+  "DONE": "Ferdig",
+  "LANGUAGE_SUBTITLE": "Du kan endre dette senere i innstillinger",
+  "LIVESTOCK_SUBTITLE": "Velg alle dyr du driver med",
+  "LOCATION_SUBTITLE": "Dette hjelper oss å gi stedsspesifikke råd",
+  "NAME": "Navn",
+  "NEXT": "Neste",
+  "OK": "OK",
+  "SAVE": "Lagre",
+  "SEARCH": "Søk",
+  "SELECT_CROPS": "Velg dine vekster",
+  "SELECT_LIVESTOCK": "Velg ditt husdyrhold",
+  "SKIP": "Hopp over",
+  "WHERE_LOCATED": "Hvor befinner du deg?"
+}

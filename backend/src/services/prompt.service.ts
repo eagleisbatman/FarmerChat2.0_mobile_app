@@ -74,16 +74,21 @@ Key Information:
 - Location: ${location}
 - Crops: ${crops}
 - Livestock: ${livestock}
-- Language: ${language}
+- Language: ${language} (code: ${languageCode})
 
-Instructions:
-1. Always respond in ${language} language ONLY
-2. Provide practical, actionable advice specific to their location and farming context
-3. Consider local climate, soil conditions, and agricultural practices
-4. Be concise but thorough in your responses
-5. If asked about crops/livestock they don't grow, still provide helpful information
-6. Always be encouraging and supportive
-7. Use simple, clear language that farmers can easily understand
+CRITICAL INSTRUCTIONS:
+1. YOU MUST RESPOND IN ${language.toUpperCase()} LANGUAGE ONLY. DO NOT USE ENGLISH.
+2. EVERY WORD OF YOUR RESPONSE MUST BE IN ${language.toUpperCase()}.
+3. If the user writes in ${language}, you MUST respond in ${language}.
+4. Provide practical, actionable advice specific to their location and farming context
+5. Consider local climate, soil conditions, and agricultural practices
+6. Be concise but thorough in your responses
+7. If asked about crops/livestock they don't grow, still provide helpful information
+8. Always be encouraging and supportive
+9. Use simple, clear language that farmers can easily understand
+10. Include 2-3 relevant emojis in your response to make it more engaging (e.g., 🌱 for crops, 🌾 for harvest, 💧 for water, ☀️ for sun, 🐄 for cattle, 🐓 for poultry, 🌿 for plants, 📅 for timing, ⚠️ for warnings)
+
+IMPORTANT: Your entire response must be in ${language} language. No English words except for technical terms that have no translation.
 
 Remember: You are their trusted agricultural advisor. Help them improve their farming practices and livelihoods.`;
   }
@@ -99,17 +104,25 @@ Remember: You are their trusted agricultural advisor. Help them improve their fa
     const crops = Array.isArray(userProfile?.crops) ? userProfile.crops.join(', ') : 'various crops';
     const livestock = Array.isArray(userProfile?.livestock) ? userProfile.livestock.join(', ') : 'various livestock';
 
-    return `Based on this response to a farmer who grows ${crops} and raises ${livestock}:
+    return `Based on this agricultural advice given to a farmer who grows ${crops} and raises ${livestock}:
 "${responseSnippet}"
 
-Generate 3 follow-up questions that:
-1. Are in ${language} language ONLY
-2. Are SHORT and CONCISE (maximum 40 characters each)
-3. Help the farmer understand the topic better
-4. Are practical and actionable
-5. Build upon the information provided
+Generate 3 follow-up questions that the FARMER would ask to LEARN MORE about this topic.
 
-Output ONLY the 3 questions, one per line, without numbering or bullet points.`;
+Requirements:
+1. Questions MUST be in ${language} language ONLY - NO ENGLISH
+2. SHORT and CONCISE (maximum 40 characters each)
+3. These are questions the FARMER asks TO get more information
+4. Questions should dig deeper into the advice given
+5. Be practical and actionable
+6. Build upon the information provided
+
+Example format (but in ${language}):
+How much fertilizer to use?
+When is best time to apply?
+What are the costs?
+
+Output ONLY the 3 questions in ${language}, one per line, without numbering, bullets, or hyphens.`;
   }
 
   async getTitlePrompt(
@@ -167,16 +180,24 @@ Output ONLY the 4 questions, one per line, without numbering or bullet points.`;
     }
 
     // Specific prompt for users with crops/livestock
-    return `Generate 4 starter questions for a farmer in ${location} who grows ${crops} and raises ${livestock}.
+    return `Generate 4 starter questions that a farmer in ${location} who grows ${crops} and raises ${livestock} would ASK to an agricultural AI assistant.
 
 Requirements:
-1. Generate questions in ${language} language ONLY
+1. Generate questions in ${language} language ONLY - NO ENGLISH
 2. Each question must be SHORT and CONCISE (maximum 60 characters)
 3. Questions MUST be specific to the farmer's crops/livestock listed above
 4. Questions should be seasonally relevant for ${month}
 5. Make questions practical and actionable
+6. These are questions the FARMER asks TO the AI assistant (not questions the AI asks the farmer)
+7. Frame as questions seeking advice, information, or solutions
 
-Output ONLY the 4 questions, one per line, without numbering or bullet points.`;
+Example format (but in ${language}):
+How can I improve wheat yield?
+What fertilizer for sorghum?
+When to plant barley?
+How to prevent cow diseases?
+
+Output ONLY the 4 questions in ${language}, one per line, without numbering, bullets, or hyphens.`;
   }
 
   async createPrompt(prompt: Partial<PromptTemplate>): Promise<PromptTemplate> {

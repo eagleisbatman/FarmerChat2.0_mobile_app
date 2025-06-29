@@ -1,0 +1,22 @@
+{
+  "APP_NAME": "FarmerChat",
+  "BACK": "Zpět",
+  "CANCEL": "Zrušit",
+  "CHOOSE_LANGUAGE": "Vyberte preferovaný jazyk",
+  "CLEAR": "Vymazat",
+  "CONTINUE": "Pokračovat",
+  "CROPS_SUBTITLE": "Vyberte všechny plodiny, které pěstujete",
+  "DONE": "Hotovo",
+  "LANGUAGE_SUBTITLE": "Později můžete změnit v nastavení",
+  "LIVESTOCK_SUBTITLE": "Vyberte všechna zvířata, která chováte",
+  "LOCATION_SUBTITLE": "Pomůže nám to poskytovat rady specifické pro vaši oblast",
+  "NAME": "Jméno",
+  "NEXT": "Další",
+  "OK": "OK",
+  "SAVE": "Uložit",
+  "SEARCH": "Hledat",
+  "SELECT_CROPS": "Vyberte své plodiny",
+  "SELECT_LIVESTOCK": "Vyberte svůj dobytek",
+  "SKIP": "Přeskočit",
+  "WHERE_LOCATED": "Kde se nacházíte?"
+}

@@ -112,3 +112,9 @@ farmer-chat-eagle-*.json
 debug-*.js
 enable-auth.js
 test-connection.js
+app/build/
+backend/*.log
+
+# Firebase config files (contain API keys)
+app/google-services.json
+**/google-services.json

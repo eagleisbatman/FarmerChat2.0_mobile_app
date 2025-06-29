@@ -1,0 +1,22 @@
+{
+  "APP_NAME": "FarmerChat",
+  "BACK": "પાછળ",
+  "CANCEL": "રદ કરો",
+  "CHOOSE_LANGUAGE": "તમારી પસંદગીની ભાષા પસંદ કરો",
+  "CLEAR": "સાફ કરો",
+  "CONTINUE": "ચાલુ રાખો",
+  "CROPS_SUBTITLE": "તમે ઉગાડતા બધા પાક પસંદ કરો",
+  "DONE": "પૂર્ણ",
+  "LANGUAGE_SUBTITLE": "તમે આને પછીથી સેટિંગ્સમાં બદલી શકો છો",
+  "LIVESTOCK_SUBTITLE": "તમે ઉછેરતા બધા પશુઓ પસંદ કરો",
+  "LOCATION_SUBTITLE": "આ અમને સ્થાનિક સલાહ આપવામાં મદદ કરે છે",
+  "NAME": "નામ",
+  "NEXT": "આગળ",
+  "OK": "બરાબર",
+  "SAVE": "સાચવો",
+  "SEARCH": "શોધો",
+  "SELECT_CROPS": "તમારા પાક પસંદ કરો",
+  "SELECT_LIVESTOCK": "તમારા પશુધન પસંદ કરો",
+  "SKIP": "છોડો",
+  "WHERE_LOCATED": "તમે ક્યાં સ્થિત છો?"
+}

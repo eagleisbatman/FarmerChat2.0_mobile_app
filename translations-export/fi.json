@@ -1,0 +1,22 @@
+{
+  "APP_NAME": "FarmerChat",
+  "BACK": "Takaisin",
+  "CANCEL": "Peruuta",
+  "CHOOSE_LANGUAGE": "Valitse haluamasi kieli",
+  "CLEAR": "Tyhjennä",
+  "CONTINUE": "Jatka",
+  "CROPS_SUBTITLE": "Valitse kaikki viljelemäsi kasvit",
+  "DONE": "Valmis",
+  "LANGUAGE_SUBTITLE": "Voit vaihtaa tämän myöhemmin asetuksista",
+  "LIVESTOCK_SUBTITLE": "Valitse kaikki kasvattamasi eläimet",
+  "LOCATION_SUBTITLE": "Tämä auttaa meitä tarjoamaan paikallista neuvontaa",
+  "NAME": "Nimi",
+  "NEXT": "Seuraava",
+  "OK": "OK",
+  "SAVE": "Tallenna",
+  "SEARCH": "Haku",
+  "SELECT_CROPS": "Valitse viljelykasvisi",
+  "SELECT_LIVESTOCK": "Valitse kotieläimesi",
+  "SKIP": "Ohita",
+  "WHERE_LOCATED": "Missä sijaitset?"
+}

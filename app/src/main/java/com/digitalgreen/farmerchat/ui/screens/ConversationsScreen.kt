@@ -1,6 +1,7 @@
 package com.digitalgreen.farmerchat.ui.screens
 
 import androidx.compose.animation.*
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -8,6 +9,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -47,7 +49,6 @@ import java.util.*
 fun ConversationsScreen(
     onNavigateToChat: (String) -> Unit,
     onNavigateToSettings: () -> Unit,
-    onNavigateToPhoneAuth: () -> Unit = {},
     startNewChat: Boolean = false,
     viewModel: ApiConversationsViewModel = viewModel(
         factory = ViewModelProvider.AndroidViewModelFactory.getInstance(LocalContext.current.applicationContext as android.app.Application)
@@ -55,24 +56,33 @@ fun ConversationsScreen(
 ) {
     val conversations by viewModel.conversations.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
-    val shouldShowPhoneAuth by viewModel.shouldShowPhoneAuth.collectAsState()
+    // Phone auth removed - now handled at registration
     var isSearching by remember { mutableStateOf(false) }
     var searchQuery by remember { mutableStateOf("") }
     var selectedTags by remember { mutableStateOf<Set<String>>(emptySet()) }
     var showTagFilter by remember { mutableStateOf(false) }
     val languageCode = currentLanguage()
     
-    // Track if we've loaded data at least once to prevent skeleton on navigation
-    var hasLoadedOnce by remember { mutableStateOf(false) }
+    // Track initial load state
+    var hasInitialized by remember { mutableStateOf(false) }
+    var initialLoadComplete by remember { mutableStateOf(false) }
     
-    LaunchedEffect(conversations) {
-        if (conversations.isNotEmpty() || !isLoading) {
-            hasLoadedOnce = true
+    LaunchedEffect(Unit) {
+        if (!hasInitialized) {
+            hasInitialized = true
+            viewModel.initialize()
         }
     }
     
-    // Only show skeleton on very first load, not on navigation
-    val showSkeleton = isLoading && !hasLoadedOnce
+    // Mark initial load complete when we first get conversations or loading finishes
+    LaunchedEffect(isLoading, conversations) {
+        if (!initialLoadComplete && (!isLoading || conversations.isNotEmpty())) {
+            initialLoadComplete = true
+        }
+    }
+    
+    // Show skeleton only on true initial load
+    val showSkeleton = isLoading && !initialLoadComplete && conversations.isEmpty()
     
     // Get all unique tags from conversations
     val allTags = remember(conversations) {
@@ -103,17 +113,28 @@ fun ConversationsScreen(
         }
     }
     
-    // Handle phone auth navigation
-    LaunchedEffect(shouldShowPhoneAuth) {
-        if (shouldShowPhoneAuth) {
-            onNavigateToPhoneAuth()
-            viewModel.dismissPhoneAuthPrompt()
-        }
-    }
+    // Phone auth removed - now handled at registration
     
     // Initialize the ViewModel when the screen is first displayed
     LaunchedEffect(Unit) {
         viewModel.initialize()
+    }
+    
+    // Refresh conversations when navigating back to this screen
+    // Using a lifecycle-aware observer to detect when screen is resumed
+    val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
+            if (event == androidx.lifecycle.Lifecycle.Event.ON_RESUME) {
+                // Refresh conversations when screen is resumed (e.g., navigating back from chat)
+                viewModel.loadConversations(refresh = false)
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
     }
     
     // Debug logging
@@ -306,8 +327,8 @@ fun ConversationsScreen(
                         modifier = Modifier.fillMaxSize(),
                         verticalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.xxs)
                     ) {
-                        items(5) { // Show 5 skeleton items
-                            ConversationItemSkeleton()
+                        items(5) { index -> // Show 5 skeleton items
+                            ConversationItemSkeleton(index)
                         }
                     }
                 }
@@ -347,20 +368,36 @@ fun ConversationsScreen(
                     }
                 }
                 else -> {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        verticalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.xxs)
+                    // Animate conversation list appearance
+                    AnimatedVisibility(
+                        visible = true,
+                        enter = fadeIn(animationSpec = tween(300))
                     ) {
-                        items(filteredConversations) { conversation ->
-                            ConversationItem(
-                                conversation = conversation,
-                                onClick = { onNavigateToChat(conversation.id) }
-                            )
-                            HorizontalDivider(
-                                modifier = Modifier.padding(start = DesignSystem.Spacing.md),
-                                color = secondaryTextColor().copy(alpha = 0.2f),
-                                thickness = 0.5.dp
-                            )
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize(),
+                            verticalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.xxs)
+                        ) {
+                            itemsIndexed(filteredConversations) { index, conversation ->
+                                // Animate each item with a staggered delay
+                                AnimatedVisibility(
+                                    visible = true,
+                                    enter = fadeIn(animationSpec = tween(300, delayMillis = index * 50))
+                                ) {
+                                    Column {
+                                        ConversationItem(
+                                            conversation = conversation,
+                                            onClick = { onNavigateToChat(conversation.id) }
+                                        )
+                                        if (index < filteredConversations.size - 1) {
+                                            HorizontalDivider(
+                                                modifier = Modifier.padding(start = DesignSystem.Spacing.md),
+                                                color = secondaryTextColor().copy(alpha = 0.2f),
+                                                thickness = 0.5.dp
+                                            )
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
                 }

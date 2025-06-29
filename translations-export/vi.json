@@ -1,0 +1,22 @@
+{
+  "APP_NAME": "FarmerChat",
+  "BACK": "Quay lại",
+  "CANCEL": "Hủy",
+  "CHOOSE_LANGUAGE": "Chọn ngôn ngữ ưa thích",
+  "CLEAR": "Xóa",
+  "CONTINUE": "Tiếp tục",
+  "CROPS_SUBTITLE": "Chọn tất cả các loại cây bạn trồng",
+  "DONE": "Xong",
+  "LANGUAGE_SUBTITLE": "Bạn có thể thay đổi trong phần cài đặt sau",
+  "LIVESTOCK_SUBTITLE": "Chọn tất cả các loại vật nuôi bạn chăn nuôi",
+  "LOCATION_SUBTITLE": "Điều này giúp chúng tôi cung cấp lời khuyên phù hợp với địa phương của bạn",
+  "NAME": "Tên",
+  "NEXT": "Tiếp",
+  "OK": "OK",
+  "SAVE": "Lưu",
+  "SEARCH": "Tìm kiếm",
+  "SELECT_CROPS": "Chọn cây trồng của bạn",
+  "SELECT_LIVESTOCK": "Chọn vật nuôi của bạn",
+  "SKIP": "Bỏ qua",
+  "WHERE_LOCATED": "Bạn đang ở đâu?"
+}

@@ -62,14 +62,17 @@ fun ApiConversation.toConversation(): Conversation {
 
 // Convert API Message to ChatMessage
 fun ApiMessage.toChatMessage(): ChatMessage {
-    android.util.Log.d("ModelAdapters", "Converting ApiMessage: id=${this.id}, isUser=${this.isUser}, content=${this.content.take(50)}")
+    android.util.Log.d("ModelAdapters", "Converting ApiMessage: id=${this.id}, isUser=${this.isUser}, content=${this.content.take(50)}, followUpQuestions=${this.followUpQuestions.size}")
+    if (this.followUpQuestions.isNotEmpty()) {
+        android.util.Log.d("ModelAdapters", "Follow-up questions: ${this.followUpQuestions.map { it.question }}")
+    }
     return try {
         ChatMessage(
             id = this.id,
             content = this.content,
             isUser = this.isUser,
             timestamp = this.createdAt?.let { parseApiDate(it) } ?: Date(),
-            followUpQuestions = this.followUpQuestions.mapNotNull { it?.question }.filter { it.isNotEmpty() },
+            followUpQuestions = this.followUpQuestions.map { it.question },
             user = this.isUser,
             voiceMessage = false
         )

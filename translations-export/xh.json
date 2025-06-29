@@ -1,0 +1,22 @@
+{
+  "APP_NAME": "FarmerChat",
+  "BACK": "Buyela",
+  "CANCEL": "Rhoxisa",
+  "CHOOSE_LANGUAGE": "Khetha ulwimi lwakho olukhetha kakhulu",
+  "CLEAR": "Sula",
+  "CONTINUE": "Qhubeka",
+  "CROPS_SUBTITLE": "Khetha zonke izityalo ozityalayo",
+  "DONE": "Ugqibile",
+  "LANGUAGE_SUBTITLE": "Ungayitshintsha le nto kamva kwiisethingi",
+  "LIVESTOCK_SUBTITLE": "Khetha zonke izilwanyana ozifuyileyo",
+  "LOCATION_SUBTITLE": "Oku kusinceda sikunike iingcebiso ezifanelekileyo ngendawo yakho",
+  "NAME": "Igama",
+  "NEXT": "Okulandelayo",
+  "OK": "Kulungile",
+  "SAVE": "Gcina",
+  "SEARCH": "Khangela",
+  "SELECT_CROPS": "Khetha izityalo zakho",
+  "SELECT_LIVESTOCK": "Khetha imfuyo yakho",
+  "SKIP": "Tsiba",
+  "WHERE_LOCATED": "Ukuphi?"
+}

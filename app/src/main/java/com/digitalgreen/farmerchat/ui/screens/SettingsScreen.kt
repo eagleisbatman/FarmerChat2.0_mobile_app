@@ -34,27 +34,25 @@ fun SettingsScreen(
     onNavigateToOnboarding: () -> Unit,
     onNavigateToCropSelection: () -> Unit,
     onNavigateToLivestockSelection: () -> Unit,
+    onNavigateToLanguageSelection: () -> Unit,
+    onNavigateToNameSelection: () -> Unit,
+    onNavigateToGenderSelection: () -> Unit,
+    onNavigateToRoleSelection: () -> Unit,
     viewModel: ApiSettingsViewModel = viewModel(
         factory = ViewModelProvider.AndroidViewModelFactory.getInstance(LocalContext.current.applicationContext as android.app.Application)
     )
 ) {
     val context = LocalContext.current
     val settingsState by viewModel.settingsState.collectAsState()
-    var showLanguageDialog by remember { mutableStateOf(false) }
     var showAboutDialog by remember { mutableStateOf(false) }
     var showDeleteDataDialog by remember { mutableStateOf(false) }
-    var showNameDialog by remember { mutableStateOf(false) }
     var showLocationDialog by remember { mutableStateOf(false) }
     var showResponseLengthDialog by remember { mutableStateOf(false) }
     var showResetOnboardingDialog by remember { mutableStateOf(false) }
-    var showRoleDialog by remember { mutableStateOf(false) }
-    var showGenderDialog by remember { mutableStateOf(false) }
-    var editableName by remember { mutableStateOf("") }
     var editableLocation by remember { mutableStateOf("") }
     
     // Update editable values when settings state changes
     LaunchedEffect(settingsState) {
-        editableName = settingsState.userName
         editableLocation = settingsState.userLocation
     }
     
@@ -105,10 +103,7 @@ fun SettingsScreen(
                         icon = Icons.Default.Person,
                         title = localizedString(StringKey.NAME),
                         subtitle = settingsState.userName,
-                        onClick = { 
-                            editableName = settingsState.userName
-                            showNameDialog = true 
-                        }
+                        onClick = { onNavigateToNameSelection() }
                     )
                     
                     SettingsItem(
@@ -129,7 +124,7 @@ fun SettingsScreen(
                             "extension_worker" -> localizedString(StringKey.EXTENSION_WORKER)
                             else -> ""
                         },
-                        onClick = { showRoleDialog = true }
+                        onClick = { onNavigateToRoleSelection() }
                     )
                     
                     SettingsItem(
@@ -141,7 +136,7 @@ fun SettingsScreen(
                             "other" -> localizedString(StringKey.OTHER)
                             else -> ""
                         },
-                        onClick = { showGenderDialog = true }
+                        onClick = { onNavigateToGenderSelection() }
                     )
                     
                     SettingsItem(
@@ -167,7 +162,7 @@ fun SettingsScreen(
                         icon = Icons.Default.Language,
                         title = localizedString(StringKey.LANGUAGE),
                         subtitle = settingsState.currentLanguageName,
-                        onClick = { showLanguageDialog = true }
+                        onClick = { onNavigateToLanguageSelection() }
                     )
                     
                     SettingsSwitchItem(
@@ -277,17 +272,6 @@ fun SettingsScreen(
         }
     }
     
-    // Language Selection Dialog
-    if (showLanguageDialog) {
-        LanguageSelectionDialog(
-            currentLanguage = settingsState.currentLanguage,
-            onLanguageSelected = { languageCode ->
-                viewModel.updateLanguage(languageCode)
-                showLanguageDialog = false
-            },
-            onDismiss = { showLanguageDialog = false }
-        )
-    }
     
     // About Dialog
     if (showAboutDialog) {
@@ -331,37 +315,6 @@ fun SettingsScreen(
         )
     }
     
-    // Name Edit Dialog
-    if (showNameDialog) {
-        AlertDialog(
-            onDismissRequest = { showNameDialog = false },
-            title = { Text(localizedString(StringKey.EDIT_NAME)) },
-            text = {
-                TextField(
-                    value = editableName,
-                    onValueChange = { editableName = it },
-                    placeholder = { Text(localizedString(StringKey.ENTER_YOUR_NAME)) },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
-                )
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        viewModel.updateUserName(editableName)
-                        showNameDialog = false
-                    }
-                ) {
-                    Text(localizedString(StringKey.OK))
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showNameDialog = false }) {
-                    Text(localizedString(StringKey.CANCEL))
-                }
-            }
-        )
-    }
     
     // Location Edit Dialog
     if (showLocationDialog) {
@@ -489,92 +442,6 @@ fun SettingsScreen(
         )
     }
     
-    // Role Selection Dialog
-    if (showRoleDialog) {
-        AlertDialog(
-            onDismissRequest = { showRoleDialog = false },
-            title = { Text(localizedString(StringKey.SELECT_ROLE)) },
-            text = {
-                Column {
-                    listOf(
-                        "farmer" to StringKey.FARMER,
-                        "extension_worker" to StringKey.EXTENSION_WORKER
-                    ).forEach { (value, stringKey) ->
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable {
-                                    viewModel.updateUserRole(value)
-                                    showRoleDialog = false
-                                }
-                                .padding(vertical = DesignSystem.Spacing.md),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            RadioButton(
-                                selected = settingsState.userRole == value,
-                                onClick = {
-                                    viewModel.updateUserRole(value)
-                                    showRoleDialog = false
-                                }
-                            )
-                            Spacer(modifier = Modifier.width(DesignSystem.Spacing.sm))
-                            Text(text = localizedString(stringKey))
-                        }
-                    }
-                }
-            },
-            confirmButton = {},
-            dismissButton = {
-                TextButton(onClick = { showRoleDialog = false }) {
-                    Text(localizedString(StringKey.CLOSE))
-                }
-            }
-        )
-    }
-    
-    // Gender Selection Dialog
-    if (showGenderDialog) {
-        AlertDialog(
-            onDismissRequest = { showGenderDialog = false },
-            title = { Text(localizedString(StringKey.SELECT_GENDER)) },
-            text = {
-                Column {
-                    listOf(
-                        "male" to StringKey.MALE,
-                        "female" to StringKey.FEMALE,
-                        "other" to StringKey.OTHER
-                    ).forEach { (value, stringKey) ->
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable {
-                                    viewModel.updateUserGender(value)
-                                    showGenderDialog = false
-                                }
-                                .padding(vertical = DesignSystem.Spacing.md),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            RadioButton(
-                                selected = settingsState.userGender == value,
-                                onClick = {
-                                    viewModel.updateUserGender(value)
-                                    showGenderDialog = false
-                                }
-                            )
-                            Spacer(modifier = Modifier.width(DesignSystem.Spacing.sm))
-                            Text(text = localizedString(stringKey))
-                        }
-                    }
-                }
-            },
-            confirmButton = {},
-            dismissButton = {
-                TextButton(onClick = { showGenderDialog = false }) {
-                    Text(localizedString(StringKey.CLOSE))
-                }
-            }
-        )
-    }
 }
 
 @Composable

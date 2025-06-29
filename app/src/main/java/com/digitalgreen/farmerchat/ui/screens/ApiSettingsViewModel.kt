@@ -92,6 +92,10 @@ class ApiSettingsViewModel(application: Application) : AndroidViewModel(applicat
             loadCachedSettings()
             
             try {
+                // Load preferences first to get the source of truth for language
+                val savedLanguage = preferencesManager.getSelectedLanguage()
+                val languageName = LanguageManager.getLanguageByCode(savedLanguage)?.name ?: "English"
+                
                 // Load user profile from API
                 repository.getUserProfile().onSuccess { apiUser ->
                     _settingsState.update { state ->
@@ -102,38 +106,16 @@ class ApiSettingsViewModel(application: Application) : AndroidViewModel(applicat
                             userGender = apiUser.gender ?: "",
                             selectedCrops = apiUser.crops,
                             selectedLivestock = apiUser.livestock,
-                            currentLanguage = apiUser.language,
+                            // Don't use API language - use local preference
+                            currentLanguage = savedLanguage,
+                            currentLanguageName = languageName,
                             responseLength = apiUser.responseLength
                         )
                     }
                 }
                 
-                // Load preferences
-                val savedLanguage = preferencesManager.getSelectedLanguage()
-                val languageName = LanguageManager.getLanguageByCode(savedLanguage)?.name ?: "English"
-                
-                val voiceResponsesEnabled = preferencesManager.getVoiceResponsesEnabled()
-                val voiceInputEnabled = preferencesManager.getVoiceInputEnabled()
-                val formattedResponsesEnabled = preferencesManager.getFormattedResponsesEnabled()
-                
-                // Get app version
-                val appVersion = try {
-                    "${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})"
-                } catch (e: Exception) {
-                    "1.0.0"
-                }
-                
-                _settingsState.update { state ->
-                    state.copy(
-                        currentLanguage = savedLanguage,
-                        currentLanguageName = languageName,
-                        voiceResponsesEnabled = voiceResponsesEnabled,
-                        voiceInputEnabled = voiceInputEnabled,
-                        formattedResponsesEnabled = formattedResponsesEnabled,
-                        appVersion = appVersion,
-                        isLoading = false
-                    )
-                }
+                // Update loading state to false after API call completes
+                _settingsState.update { it.copy(isLoading = false) }
             } catch (e: Exception) {
                 _settingsState.update { it.copy(isLoading = false) }
             }
@@ -247,6 +229,24 @@ class ApiSettingsViewModel(application: Application) : AndroidViewModel(applicat
             
             // Update via API
             repository.updateUserProfile(gender = gender)
+        }
+    }
+    
+    fun updateSelectedCrops(crops: List<String>) {
+        viewModelScope.launch {
+            _settingsState.update { it.copy(selectedCrops = crops) }
+            
+            // Update via API
+            repository.updateUserProfile(crops = crops)
+        }
+    }
+    
+    fun updateSelectedLivestock(livestock: List<String>) {
+        viewModelScope.launch {
+            _settingsState.update { it.copy(selectedLivestock = livestock) }
+            
+            // Update via API
+            repository.updateUserProfile(livestock = livestock)
         }
     }
 }
