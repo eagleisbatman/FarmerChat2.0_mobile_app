@@ -508,8 +508,12 @@ fun ConversationItem(
                     )
                     Spacer(modifier = Modifier.width(DesignSystem.Spacing.xs))
                 }
+                val displayText = getConversationDisplayText(conversation)
+                // Debug logging
+                android.util.Log.d("ConversationsScreen", "Conversation ${conversation.id}: messageCount=${conversation.messageCount}, lastMessage='${conversation.lastMessage}', displayText='$displayText'")
+                
                 Text(
-                    text = getConversationDisplayText(conversation),
+                    text = displayText,
                     fontSize = DesignSystem.Typography.bodyMedium,
                     color = if (isEmptyConversation(conversation)) {
                         // Make "Start Conversation" more prominent
@@ -597,11 +601,7 @@ private fun getConversationDisplayText(conversation: Conversation): String {
         // Empty conversation - show "Start Conversation"
         localizedString(StringKey.START_A_CONVERSATION)
     } else {
-        // Has messages - show last message or "Continue Conversation" if lastMessage is empty
-        if (conversation.lastMessage.isEmpty()) {
-            localizedString(StringKey.CONTINUE_CONVERSATION)
-        } else {
-            conversation.lastMessage
-        }
+        // Has messages - always show "Continue Conversation", not the message text
+        localizedString(StringKey.CONTINUE_CONVERSATION)
     }
 }
