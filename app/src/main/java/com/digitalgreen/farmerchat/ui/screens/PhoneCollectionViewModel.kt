@@ -48,6 +48,35 @@ class PhoneCollectionViewModel(application: Application) : AndroidViewModel(appl
         }
     }
     
+    fun savePhoneNumber(phoneNumber: String) {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isLoading = true, error = null)
+            
+            try {
+                // Update user profile with phone number only (no PIN for V2)
+                val result = repository.updateUserProfile(phone = phoneNumber)
+                
+                result.onSuccess {
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false,
+                        isSaved = true,
+                        error = null
+                    )
+                }.onFailure { e ->
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false,
+                        error = "Failed to save phone number: ${e.message}"
+                    )
+                }
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    error = "Error: ${e.message}"
+                )
+            }
+        }
+    }
+    
     fun clearError() {
         _uiState.value = _uiState.value.copy(error = null)
     }

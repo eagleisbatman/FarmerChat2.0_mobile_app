@@ -10,6 +10,7 @@ import com.digitalgreen.farmerchat.utils.PreferencesManager
 import com.digitalgreen.farmerchat.utils.SpeechRecognitionManager
 import com.digitalgreen.farmerchat.utils.TextToSpeechManager
 import com.digitalgreen.farmerchat.utils.StringProvider
+import com.digitalgreen.farmerchat.utils.AudioRecordingManager
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.util.*
@@ -21,6 +22,7 @@ class ApiChatViewModel(application: Application) : AndroidViewModel(application)
     private val stringProvider = StringProvider.create(application)
     private val ttsManager = TextToSpeechManager(application)
     private val speechRecognitionManager = SpeechRecognitionManager(application, stringProvider)
+    private val audioRecordingManager = AudioRecordingManager(application)
     
     // UI State
     private val _messages = MutableStateFlow<List<ChatMessage>>(emptyList())
@@ -52,7 +54,7 @@ class ApiChatViewModel(application: Application) : AndroidViewModel(application)
     private val _currentMessage = MutableStateFlow("")
     val currentMessage: StateFlow<String> = _currentMessage
     
-    // Voice recognition state
+    // Voice recognition state (legacy - for direct speech-to-text)
     val isRecording: StateFlow<Boolean> = speechRecognitionManager.isListening
     val isSpeaking: StateFlow<Boolean> = ttsManager.isSpeaking
     val speechError: StateFlow<String?> = speechRecognitionManager.error
@@ -60,6 +62,15 @@ class ApiChatViewModel(application: Application) : AndroidViewModel(application)
     val voiceConfidenceScore: StateFlow<Float> = speechRecognitionManager.confidenceScore
     val voiceConfidenceLevel: SpeechRecognitionManager.ConfidenceLevel 
         get() = speechRecognitionManager.getConfidenceLevel()
+    
+    // Audio recording state (new - for record, playback, then transcribe)
+    val audioRecordingState: StateFlow<AudioRecordingManager.RecordingState> = audioRecordingManager.recordingState
+    val audioRecordingDuration: StateFlow<Int> = audioRecordingManager.recordingDuration
+    val audioPlaybackProgress: StateFlow<Float> = audioRecordingManager.playbackProgress
+    val audioLevel: StateFlow<Float> = audioRecordingManager.audioLevel
+    val isAudioRecording: StateFlow<Boolean> = audioRecordingManager.isRecording
+    val isAudioPlaying: StateFlow<Boolean> = audioRecordingManager.isPlaying
+    val audioRecordingError: StateFlow<String?> = audioRecordingManager.error
     
     // Starter questions loading state
     private val _starterQuestionsLoading = MutableStateFlow(false)
@@ -162,6 +173,10 @@ class ApiChatViewModel(application: Application) : AndroidViewModel(application)
                 if (aiMessage.followUpQuestions.isNotEmpty()) {
                     _followUpQuestions.value = aiMessage.followUpQuestions
                     android.util.Log.d("ApiChatViewModel", "Loaded ${aiMessage.followUpQuestions.size} follow-up questions from last AI message")
+                } else {
+                    android.util.Log.d("ApiChatViewModel", "Last AI message has no follow-up questions")
+                    // If backend didn't return follow-up questions, generate them
+                    generateFollowUpQuestions(aiMessage.content)
                 }
             }
         }.onFailure { e ->
@@ -231,6 +246,15 @@ class ApiChatViewModel(application: Application) : AndroidViewModel(application)
                             // Update conversation title if provided
                             event.title?.let { newTitle ->
                                 _currentConversation.value = _currentConversation.value?.copy(title = newTitle)
+                            }
+                            
+                            // Update conversation's last message in the repository
+                            currentConversationId?.let { convId ->
+                                repository.updateConversationLastMessage(
+                                    conversationId = convId,
+                                    message = completedMessage.content,
+                                    isUser = false
+                                )
                             }
                         }
                     }
@@ -336,7 +360,7 @@ class ApiChatViewModel(application: Application) : AndroidViewModel(application)
         }
     }
     
-    // Voice recognition methods
+    // Voice recognition methods (legacy - direct speech-to-text)
     fun startRecording() {
         val profile = _userProfile.value
         speechRecognitionManager.startListening(
@@ -359,6 +383,72 @@ class ApiChatViewModel(application: Application) : AndroidViewModel(application)
         speechRecognitionManager.clearError()
     }
     
+    // Audio recording methods (new - record, playback, transcribe)
+    fun startAudioRecording() {
+        audioRecordingManager.startRecording()
+    }
+    
+    fun stopAudioRecording() {
+        audioRecordingManager.stopRecording()
+    }
+    
+    fun playPauseAudioRecording() {
+        when (audioRecordingManager.recordingState.value) {
+            AudioRecordingManager.RecordingState.RECORDED,
+            AudioRecordingManager.RecordingState.PAUSED -> audioRecordingManager.startPlayback()
+            AudioRecordingManager.RecordingState.PLAYING -> audioRecordingManager.pausePlayback()
+            else -> { /* Do nothing */ }
+        }
+    }
+    
+    fun discardAudioRecording() {
+        audioRecordingManager.discardRecording()
+    }
+    
+    fun sendAudioForTranscription() {
+        val audioFile = audioRecordingManager.getCurrentRecordingFile()
+        if (audioFile != null && audioFile.exists()) {
+            viewModelScope.launch {
+                _isLoading.value = true
+                _error.value = null
+                
+                try {
+                    val profile = _userProfile.value
+                    val language = profile?.language ?: "en"
+                    
+                    // Transcribe audio
+                    repository.transcribeAudio(audioFile, language).fold(
+                        onSuccess = { transcription ->
+                            // Set the transcribed text as the current message
+                            _currentMessage.value = transcription
+                            
+                            // Discard the recording
+                            audioRecordingManager.discardRecording()
+                            
+                            _isLoading.value = false
+                            
+                            // Optionally, auto-send the message
+                            // sendMessage(transcription)
+                        },
+                        onFailure = { e ->
+                            android.util.Log.e("ApiChatViewModel", "Failed to transcribe audio", e)
+                            _error.value = "Failed to transcribe audio: ${e.message}"
+                            _isLoading.value = false
+                        }
+                    )
+                } catch (e: Exception) {
+                    android.util.Log.e("ApiChatViewModel", "Error transcribing audio", e)
+                    _error.value = "Error transcribing audio: ${e.message}"
+                    _isLoading.value = false
+                }
+            }
+        }
+    }
+    
+    fun clearAudioRecordingError() {
+        audioRecordingManager.clearError()
+    }
+    
     fun speakMessage(message: String) {
         val profile = _userProfile.value
         ttsManager.speak(message, profile?.language ?: "en")
@@ -372,6 +462,24 @@ class ApiChatViewModel(application: Application) : AndroidViewModel(application)
         _error.value = null
     }
     
+    private fun generateFollowUpQuestions(lastAiResponse: String) {
+        viewModelScope.launch {
+            android.util.Log.d("ApiChatViewModel", "Generating follow-up questions for response")
+            val profile = _userProfile.value
+            val language = profile?.language ?: "en"
+            
+            repository.generateFollowUpQuestions(lastAiResponse, language).onSuccess { questions ->
+                if (questions.isNotEmpty()) {
+                    _followUpQuestions.value = questions.map { it.question }
+                    android.util.Log.d("ApiChatViewModel", "Generated ${questions.size} follow-up questions")
+                }
+            }.onFailure { e ->
+                android.util.Log.e("ApiChatViewModel", "Failed to generate follow-up questions", e)
+                _followUpQuestions.value = emptyList()
+            }
+        }
+    }
+    
     override fun onCleared() {
         super.onCleared()
         currentConversationId?.let { conversationId ->
@@ -379,5 +487,6 @@ class ApiChatViewModel(application: Application) : AndroidViewModel(application)
         }
         ttsManager.shutdown()
         speechRecognitionManager.destroy()
+        audioRecordingManager.release()
     }
 }

@@ -208,11 +208,20 @@ suspend inline fun <T> safeApiCall(
             val errorMsg = response.errorBody()?.string() ?: "Unknown error"
             Log.e("API_ERROR", "HTTP ${response.code()}: $errorMsg")
             
+            // Parse error message from backend
+            val actualErrorMessage = try {
+                // Try to parse JSON error response
+                val errorJson = org.json.JSONObject(errorMsg)
+                errorJson.optString("message", errorMsg)
+            } catch (e: Exception) {
+                errorMsg
+            }
+            
             // Special handling for 401 errors
             if (response.code() == 401) {
-                Result.failure(UnauthorizedException("Authentication required"))
+                Result.failure(UnauthorizedException(actualErrorMessage))
             } else {
-                Result.failure(Exception("HTTP ${response.code()}: $errorMsg"))
+                Result.failure(Exception("HTTP ${response.code()}: $actualErrorMessage"))
             }
         }
     } catch (e: Exception) {

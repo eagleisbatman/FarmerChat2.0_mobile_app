@@ -2,8 +2,20 @@ package com.digitalgreen.farmerchat.network
 
 import retrofit2.Response
 import retrofit2.http.*
+import okhttp3.MultipartBody
+import okhttp3.RequestBody
+import com.google.gson.annotations.SerializedName
 
 interface AuthApiService {
+    @POST("auth/device")
+    suspend fun authenticateDevice(@Body request: DeviceAuthRequest): Response<ApiResponse<AuthResponse>>
+    
+    @POST("auth/login")
+    suspend fun loginWithPhone(@Body request: Map<String, String>): Response<ApiResponse<AuthResponse>>
+    
+    @POST("auth/register")
+    suspend fun registerWithPhone(@Body request: Map<String, String>): Response<ApiResponse<AuthResponse>>
+    
     @POST("auth/verify")
     suspend fun verifyFirebaseToken(@Body request: AuthRequest): Response<ApiResponse<AuthResponse>>
     
@@ -12,6 +24,12 @@ interface AuthApiService {
     
     @GET("auth/config")
     suspend fun getAuthConfig(): Response<ApiResponse<Map<String, Any>>>
+    
+    @POST("auth/phone/request-otp")
+    suspend fun requestPhoneOTP(@Body request: PhoneOTPRequest): Response<ApiResponse<OTPResponse>>
+    
+    @POST("auth/phone/verify-otp")
+    suspend fun verifyPhoneOTP(@Body request: VerifyOTPRequest): Response<ApiResponse<VerifyOTPResponse>>
 }
 
 interface UserApiService {
@@ -68,7 +86,22 @@ interface ChatApiService {
         @Path("messageId") messageId: String,
         @Body request: RateMessageRequest
     ): Response<ApiResponse<Unit>>
+    
+    @POST("chat/generate-followup")
+    suspend fun generateFollowUpQuestions(@Body request: GenerateFollowUpRequest): Response<ApiResponse<List<FollowUpQuestion>>>
+    
+    @Multipart
+    @POST("chat/transcribe")
+    suspend fun transcribeAudio(
+        @Part audio: MultipartBody.Part,
+        @Part("language") language: RequestBody
+    ): Response<ApiResponse<AudioTranscriptionResponse>>
 }
+
+data class AudioTranscriptionResponse(
+    @SerializedName("transcription") val transcription: String,
+    @SerializedName("language") val language: String
+)
 
 interface TranslationApiService {
     @GET("translations/{languageCode}")

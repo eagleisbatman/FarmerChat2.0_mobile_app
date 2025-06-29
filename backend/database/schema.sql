@@ -1,11 +1,11 @@
--- FarmerChat Database Schema for Supabase
+-- FarmerChat Database Schema for Neon PostgreSQL
 
 -- Enable required extensions
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
--- Users table (extends Supabase auth.users)
+-- Users table (standalone for Neon PostgreSQL)
 CREATE TABLE IF NOT EXISTS users (
-    id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     email TEXT,
     phone TEXT,
     name TEXT,
@@ -22,6 +22,11 @@ CREATE TABLE IF NOT EXISTS users (
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Add missing columns if they don't exist
+ALTER TABLE users ADD COLUMN IF NOT EXISTS firebase_uid TEXT UNIQUE;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS device_id TEXT UNIQUE;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS pin TEXT;
 
 -- Conversations table
 CREATE TABLE IF NOT EXISTS conversations (
@@ -216,66 +221,9 @@ CREATE TRIGGER update_prompts_updated_at BEFORE UPDATE ON prompts
 CREATE TRIGGER update_starter_questions_updated_at BEFORE UPDATE ON starter_questions
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
--- Row Level Security (RLS) Policies
-
--- Enable RLS on all tables
-ALTER TABLE users ENABLE ROW LEVEL SECURITY;
-ALTER TABLE conversations ENABLE ROW LEVEL SECURITY;
-ALTER TABLE messages ENABLE ROW LEVEL SECURITY;
-ALTER TABLE feedback ENABLE ROW LEVEL SECURITY;
-ALTER TABLE api_usage ENABLE ROW LEVEL SECURITY;
-ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
-
--- Users can only access their own data
-CREATE POLICY users_policy ON users
-    FOR ALL USING (auth.uid() = id);
-
-CREATE POLICY conversations_policy ON conversations
-    FOR ALL USING (auth.uid() = user_id);
-
-CREATE POLICY messages_policy ON messages
-    FOR ALL USING (
-        EXISTS (
-            SELECT 1 FROM conversations
-            WHERE conversations.id = messages.conversation_id
-            AND conversations.user_id = auth.uid()
-        )
-    );
-
-CREATE POLICY feedback_policy ON feedback
-    FOR ALL USING (auth.uid() = user_id);
-
-CREATE POLICY api_usage_policy ON api_usage
-    FOR ALL USING (auth.uid() = user_id);
-
-CREATE POLICY notifications_policy ON notifications
-    FOR ALL USING (auth.uid() = user_id);
-
--- Public read access for translations and starter questions
-CREATE POLICY translations_read_policy ON ui_translations
-    FOR SELECT USING (true);
-
-CREATE POLICY crop_translations_read_policy ON crop_translations
-    FOR SELECT USING (true);
-
-CREATE POLICY livestock_translations_read_policy ON livestock_translations
-    FOR SELECT USING (true);
-
-CREATE POLICY translation_metadata_read_policy ON translation_metadata
-    FOR SELECT USING (true);
-
-CREATE POLICY starter_questions_read_policy ON starter_questions
-    FOR SELECT USING (is_active = true);
-
--- Admin write access for translations (requires admin role)
-CREATE POLICY translations_write_policy ON ui_translations
-    FOR ALL USING (
-        EXISTS (
-            SELECT 1 FROM auth.users
-            WHERE auth.users.id = auth.uid()
-            AND auth.users.raw_user_meta_data->>'role' = 'admin'
-        )
-    );
+-- Note: Row Level Security (RLS) disabled for Neon PostgreSQL
+-- Security is handled at the application level via JWT token validation
+-- and user_id filtering in application queries
 
 -- Insert default translation languages
 INSERT INTO translation_metadata (language_code, language_name, native_name, is_rtl) VALUES

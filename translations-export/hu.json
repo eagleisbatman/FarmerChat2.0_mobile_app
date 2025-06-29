@@ -1,0 +1,22 @@
+{
+  "APP_NAME": "FarmerChat",
+  "BACK": "Vissza",
+  "CANCEL": "Mégse",
+  "CHOOSE_LANGUAGE": "Válassza ki a kívánt nyelvet",
+  "CLEAR": "Törlés",
+  "CONTINUE": "Folytatás",
+  "CROPS_SUBTITLE": "Válassza ki az összes termesztett növényt",
+  "DONE": "Kész",
+  "LANGUAGE_SUBTITLE": "Ezt később módosíthatja a beállításokban",
+  "LIVESTOCK_SUBTITLE": "Válassza ki az összes tenyésztett állatot",
+  "LOCATION_SUBTITLE": "Ez segít nekünk helyszín-specifikus tanácsokat adni",
+  "NAME": "Név",
+  "NEXT": "Következő",
+  "OK": "OK",
+  "SAVE": "Mentés",
+  "SEARCH": "Keresés",
+  "SELECT_CROPS": "Válassza ki a növényeit",
+  "SELECT_LIVESTOCK": "Válassza ki az állatállományát",
+  "SKIP": "Kihagyás",
+  "WHERE_LOCATED": "Hol található?"
+}

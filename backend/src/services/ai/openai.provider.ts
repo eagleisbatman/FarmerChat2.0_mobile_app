@@ -31,6 +31,25 @@ export class OpenAIProvider extends BaseAIProvider {
     ];
   }
   
+  async transcribeAudio(audioBuffer: Buffer, language?: string): Promise<string> {
+    try {
+      // Create a File object from the buffer
+      const file = new File([audioBuffer], 'audio.m4a', { type: 'audio/m4a' });
+      
+      const transcription = await this.openai.audio.transcriptions.create({
+        file: file,
+        model: 'whisper-1',
+        language: language, // Optional: specify language code like 'en', 'hi', 'sw', etc.
+        response_format: 'text',
+      });
+      
+      return transcription as string;
+    } catch (error) {
+      logger.error('OpenAI audio transcription error:', error);
+      throw new Error('Failed to transcribe audio');
+    }
+  }
+  
   async generateResponse(messages: AIMessage[]): Promise<AIResponse> {
     try {
       const completion = await this.openai.chat.completions.create({

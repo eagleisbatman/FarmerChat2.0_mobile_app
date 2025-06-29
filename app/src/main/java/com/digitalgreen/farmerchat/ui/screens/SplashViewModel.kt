@@ -5,18 +5,19 @@ import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.digitalgreen.farmerchat.FarmerChatApplication
+import com.digitalgreen.farmerchat.network.ApiUser
 import com.digitalgreen.farmerchat.utils.PreferencesManager
 import com.digitalgreen.farmerchat.utils.NavigationHelper
-import com.google.firebase.auth.FirebaseAuth
+import com.digitalgreen.farmerchat.utils.DeviceIdManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
 
 class SplashViewModel(application: Application) : AndroidViewModel(application) {
     private val preferencesManager = PreferencesManager(application)
     private val repository = (application as FarmerChatApplication).repository
+    private val deviceIdManager = DeviceIdManager(application)
     
     private val _hasCompletedOnboarding = MutableStateFlow<Boolean?>(null)
     val hasCompletedOnboarding: StateFlow<Boolean?> = _hasCompletedOnboarding
@@ -28,54 +29,59 @@ class SplashViewModel(application: Application) : AndroidViewModel(application) 
     val navigationDecision: StateFlow<NavigationHelper.NavigationDecision?> = _navigationDecision
     
     init {
-        authenticateUser()
+        checkAuthenticationStatus()
     }
     
-    private fun authenticateUser() {
+    private fun checkAuthenticationStatus() {
         viewModelScope.launch {
             try {
                 Log.d("SplashViewModel", "=== SPLASH INIT START ===")
                 _authenticationState.value = AuthState.Loading
                 
-                // Step 1: Sign in anonymously with Firebase
-                val firebaseAuth = FirebaseAuth.getInstance()
-                val currentUser = firebaseAuth.currentUser
+                // Check if we have a saved JWT token
+                val savedToken = preferencesManager.getJwtToken()
+                val isTokenExpired = preferencesManager.isTokenExpired()
                 
-                if (currentUser == null) {
-                    Log.d("SplashViewModel", "No Firebase user, signing in anonymously")
-                    firebaseAuth.signInAnonymously().await()
-                    Log.d("SplashViewModel", "Firebase anonymous signin completed")
+                if (savedToken != null && !isTokenExpired) {
+                    Log.d("SplashViewModel", "Found valid saved token")
+                    
+                    // Validate token with backend
+                    val userResult = repository.getUserProfile()
+                    
+                    userResult.fold(
+                        onSuccess = { user ->
+                            Log.d("SplashViewModel", "✅ Token valid, user: ${user.id}")
+                            _authenticationState.value = AuthState.Authenticated
+                            
+                            // Check if user has completed onboarding
+                            val profileComplete = isUserProfileComplete(user)
+                            Log.d("SplashViewModel", "User profile complete: $profileComplete")
+                            
+                            if (profileComplete) {
+                                preferencesManager.setOnboardingCompleted(true)
+                                _hasCompletedOnboarding.value = true
+                                
+                                // Determine navigation
+                                val decision = NavigationHelper.determineAppLaunchNavigation(repository, preferencesManager)
+                                _navigationDecision.value = decision
+                            } else {
+                                _hasCompletedOnboarding.value = false
+                            }
+                        },
+                        onFailure = { error ->
+                            Log.e("SplashViewModel", "Token validation failed", error)
+                            // Token is invalid, need to login
+                            _authenticationState.value = AuthState.NotAuthenticated
+                            preferencesManager.clearAuthTokens()
+                        }
+                    )
                 } else {
-                    Log.d("SplashViewModel", "Firebase user already exists: ${currentUser.uid}")
+                    Log.d("SplashViewModel", "No valid token found")
+                    _authenticationState.value = AuthState.NotAuthenticated
                 }
-                
-                // Step 2: Authenticate with backend API - REQUIRED for app to function
-                Log.d("SplashViewModel", "Starting backend authentication...")
-                
-                val authResult = repository.authenticateWithFirebase()
-                
-                authResult.fold(
-                    onSuccess = { authResponse ->
-                        Log.d("SplashViewModel", "✅ Backend auth SUCCESS - token: ${authResponse.token.take(10)}...")
-                        Log.d("SplashViewModel", "User ID: ${authResponse.user.id}")
-                        Log.d("SplashViewModel", "Expires in: ${authResponse.expiresIn}s")
-                        
-                        _authenticationState.value = AuthState.Authenticated
-                        
-                        // Only check onboarding after successful authentication
-                        checkOnboardingStatus()
-                    },
-                    onFailure = { error ->
-                        Log.e("SplashViewModel", "❌ Backend auth FAILED", error)
-                        // Stay on splash screen with error - don't proceed without backend
-                        _authenticationState.value = AuthState.Error(error.message ?: "Cannot connect to server")
-                        // Don't check onboarding - stay on splash screen
-                    }
-                )
             } catch (e: Exception) {
-                Log.e("SplashViewModel", "Error during initialization", e)
-                _authenticationState.value = AuthState.Error(e.message ?: "Unknown error")
-                // Don't check onboarding - stay on splash screen with error
+                Log.e("SplashViewModel", "Error during authentication check", e)
+                _authenticationState.value = AuthState.NotAuthenticated
             }
         }
     }
@@ -101,12 +107,32 @@ class SplashViewModel(application: Application) : AndroidViewModel(application) 
     }
     
     fun retryAuthentication() {
-        authenticateUser()
+        checkAuthenticationStatus()
+    }
+    
+    private fun isUserProfileComplete(user: ApiUser): Boolean {
+        // A user has completed onboarding if they have:
+        // 1. Selected a language (not just default "en")
+        // 2. Selected crops or livestock
+        // 3. Provided their name
+        // 4. Selected a role (farmer or extension worker)
+        
+        val hasLanguage = user.language != "en" || user.language.isNotEmpty()
+        val hasCropsOrLivestock = user.crops.isNotEmpty() || user.livestock.isNotEmpty()
+        val hasName = !user.name.isNullOrBlank()
+        val hasRole = !user.role.isNullOrBlank()
+        
+        Log.d("SplashViewModel", "Profile check - Language: $hasLanguage, Crops/Livestock: $hasCropsOrLivestock, Name: $hasName, Role: $hasRole")
+        Log.d("SplashViewModel", "User details - Name: ${user.name}, Language: ${user.language}, Crops: ${user.crops.size}, Livestock: ${user.livestock.size}, Role: ${user.role}")
+        
+        // User is considered to have completed onboarding if they have all required fields
+        return hasLanguage && hasCropsOrLivestock && hasName && hasRole
     }
     
     sealed class AuthState {
         object Loading : AuthState()
         object Authenticated : AuthState()
+        object NotAuthenticated : AuthState()
         data class Error(val message: String) : AuthState()
     }
 }

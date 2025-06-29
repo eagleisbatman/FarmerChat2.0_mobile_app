@@ -1,0 +1,22 @@
+{
+  "APP_NAME": "FarmerChat",
+  "BACK": "Koma Baya",
+  "CANCEL": "Soke",
+  "CHOOSE_LANGUAGE": "Zaɓi yaren da kake so",
+  "CLEAR": "Share",
+  "CONTINUE": "Ci gaba",
+  "CROPS_SUBTITLE": "Zaɓi duk amfanin da kake noma",
+  "DONE": "An gama",
+  "LANGUAGE_SUBTITLE": "Za ka iya canza wannan daga cikin saitunan",
+  "LIVESTOCK_SUBTITLE": "Zaɓi duk dabbobin da kake kiwo",
+  "LOCATION_SUBTITLE": "Wannan yana taimaka mana ba da shawarwari na musamman ga yankinku",
+  "NAME": "Suna",
+  "NEXT": "Na gaba",
+  "OK": "To",
+  "SAVE": "Ajiye",
+  "SEARCH": "Bincika",
+  "SELECT_CROPS": "Zaɓi amfanin gonarka",
+  "SELECT_LIVESTOCK": "Zaɓi dabbobinka",
+  "SKIP": "Tsallake",
+  "WHERE_LOCATED": "A ina kake?"
+}

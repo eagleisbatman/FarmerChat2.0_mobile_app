@@ -67,15 +67,15 @@ object DesignSystem {
         val titleMedium: TextUnit = 20.sp
         val titleSmall: TextUnit = 18.sp
         
-        // Body
-        val bodyLarge: TextUnit = 16.sp
-        val bodyMedium: TextUnit = 14.sp
-        val bodySmall: TextUnit = 12.sp
+        // Body - Increased for better readability
+        val bodyLarge: TextUnit = 18.sp  // Was 16.sp
+        val bodyMedium: TextUnit = 16.sp  // Was 14.sp
+        val bodySmall: TextUnit = 14.sp   // Was 12.sp
         
         // Label
-        val labelLarge: TextUnit = 14.sp
-        val labelMedium: TextUnit = 12.sp
-        val labelSmall: TextUnit = 11.sp
+        val labelLarge: TextUnit = 15.sp  // Was 14.sp
+        val labelMedium: TextUnit = 13.sp  // Was 12.sp
+        val labelSmall: TextUnit = 12.sp   // Was 11.sp
         
         // Font Weights
         object Weight {

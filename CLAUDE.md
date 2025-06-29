@@ -79,7 +79,7 @@ OPENAI_MODEL=gpt-4o-mini
 
 ### Backend Server Management
 
-#### Quick Start Script
+#### 🚀 Quick Start Script (RECOMMENDED)
 ```bash
 # Use the automated startup script:
 ./start-backend.sh
@@ -104,35 +104,65 @@ npm run dev
 # Never use ports 3000, 3002, etc. - always use 3004
 ```
 
-#### Port Management Commands
+#### ✅ Server Health Check Commands
 ```bash
+# Check if backend is running and healthy
+curl -s http://localhost:3004/health
+
+# Expected response:
+# {"status":"healthy","timestamp":"...","environment":"development","version":"v1"}
+
 # Check what's running on port 3004
 lsof -i:3004
 
+# Comprehensive server status check
+echo "🔍 Backend Status:" && \
+curl -s http://localhost:3004/health | jq . 2>/dev/null || echo "❌ Backend not responding" && \
+echo "📡 Port 3004:" && \
+lsof -i:3004 | head -2 || echo "❌ No process on port 3004"
+```
+
+#### Port Management Commands
+```bash
 # Kill process on port 3004 (macOS/Linux)
 lsof -ti:3004 | xargs kill -9 2>/dev/null || true
 
 # Alternative: Find and kill Node.js processes
 ps aux | grep node | grep -v grep | awk '{print $2}' | xargs kill -9 2>/dev/null || true
 
-# Check if backend is responding
-curl http://localhost:3004/health
-
 # One-liner to kill port and start backend
 lsof -ti:3004 | xargs kill -9 2>/dev/null || true && cd backend && npm run dev
 ```
 
-### Building and Running
+### 📱 Mobile App Building and Running
 
-#### Complete Build and Deploy Process (USE THIS BY DEFAULT)
+#### 🎯 Complete Build and Deploy Process (USE THIS BY DEFAULT)
 ```bash
-# ALWAYS use this sequence after making code changes:
+# STEP 1: Ensure backend is running first
+curl -s http://localhost:3004/health || echo "⚠️ Start backend first: ./start-backend.sh"
+
+# STEP 2: Build and deploy app (ALWAYS use this sequence after making code changes)
 ./gradlew clean assembleDebug && ./gradlew installDebug
 
 # This command:
 # 1. Cleans previous build artifacts
-# 2. Builds a fresh debug APK
+# 2. Builds a fresh debug APK  
 # 3. Installs it on the running emulator/device
+# 4. App should auto-launch to onboarding screen (for new users) or conversations (returning users)
+```
+
+#### 🔄 App Launch and Initial Screen Behavior
+```bash
+# After installation, the app will:
+# 1. First launch: Show language selection → onboarding flow → conversations
+# 2. Subsequent launches: Direct to conversations screen (if authenticated)
+# 3. If no backend: Show "No auth token available" error
+
+# Force launch app manually (if doesn't auto-start):
+adb shell am start -n com.digitalgreen.farmerchat/.MainActivity
+
+# Check app logs for troubleshooting:
+adb logcat | grep -E "FarmerChat|ApiChat|NetworkConfig"
 ```
 
 #### Individual Commands (for specific needs)
@@ -198,7 +228,7 @@ adb devices
 adb wait-for-device
 ```
 
-#### Complete Development Workflow
+#### 🔧 Complete Development Workflow (Full Testing Setup)
 ```bash
 # 1. Start backend (in one terminal)
 cd backend
@@ -212,8 +242,20 @@ adb wait-for-device
 # 3. Build and deploy app (in main terminal)
 ./gradlew clean assembleDebug && ./gradlew installDebug
 
-# 4. View logs (optional)
-adb logcat | grep -E "FarmerChat|ApiChat|NetworkConfig"
+# 4. Verify everything is working
+echo "🔍 System Status Check:"
+echo "Backend:" && curl -s http://localhost:3004/health | jq .status 2>/dev/null || echo "❌ Backend down"
+echo "App:" && adb shell pm list packages | grep farmerchat && echo "✅ App installed" || echo "❌ App not installed"
+echo "Logs:" && adb logcat | grep -E "FarmerChat|ApiChat|NetworkConfig" | head -5
+```
+
+#### 📋 Quick Status Check (Use Before Testing)
+```bash
+# One-liner to check everything is ready for testing
+echo "🚀 Pre-test Status:" && \
+echo "Backend: $(curl -s http://localhost:3004/health | jq -r .status 2>/dev/null || echo '❌ Down')" && \
+echo "App: $(adb shell pm list packages | grep farmerchat > /dev/null && echo '✅ Installed' || echo '❌ Not installed')" && \
+echo "Device: $(adb devices | grep -v List | wc -l | tr -d ' ') connected"
 ```
 
 #### Quick Development Commands (One-Liners)
@@ -260,19 +302,35 @@ adb shell ps | grep farmerchat
 pkill -9 node && adb shell am force-stop com.digitalgreen.farmerchat && adb shell pm clear com.digitalgreen.farmerchat
 ```
 
-### Testing the App
+### 🧪 Testing the App
 
-#### Quick Test After Changes
+#### ⚡ Quick Test After Changes (DEFAULT TESTING FLOW)
 ```bash
-# BACKEND MUST BE RUNNING FIRST!
-# Start backend in one terminal:
-./start-backend.sh
+# STEP 1: Ensure backend is running (CRITICAL!)
+curl -s http://localhost:3004/health || echo "⚠️ Backend down! Run: ./start-backend.sh"
 
-# Then in another terminal, build and deploy:
+# STEP 2: Build and deploy app
 ./gradlew clean assembleDebug && ./gradlew installDebug
 
-# The app should auto-launch. If not:
+# STEP 3: Launch app (should auto-launch, but force if needed)
 adb shell am start -n com.digitalgreen.farmerchat/.MainActivity
+
+# STEP 4: Monitor for issues
+adb logcat | grep -E "FarmerChat|ApiChat|NetworkConfig|JWT"
+```
+
+#### 🎯 Audio Recording Feature Testing (NEW)
+```bash
+# Test the new audio recording → transcription workflow:
+# 1. Navigate to any chat conversation
+# 2. Tap the microphone button 
+# 3. Should show AudioRecordingView with record button
+# 4. Record audio → shows waveform visualization
+# 5. Stop recording → can play/discard/send for transcription
+# 6. Send → should transcribe via OpenAI Whisper and populate text field
+
+# Check audio transcription logs:
+adb logcat | grep -E "AudioRecording|transcribe|Whisper"
 ```
 
 #### Common Issues and Solutions
@@ -390,14 +448,22 @@ adb logcat | grep "HTTP"
 
 ### Database Management
 
-#### Clear Database (Fresh Start)
-```bash
-# Using Neon MCP tool (preferred)
-# Run: TRUNCATE TABLE messages, conversations, users CASCADE
+#### 🚨 CRITICAL DATABASE RULES 🚨
+**NEVER DELETE OR TRUNCATE TRANSLATION/MASTER DATA TABLES:**
+- `crop_translations` - Contains 2915+ crop translations
+- `livestock_translations` - Contains 1080+ livestock translations  
+- `ui_translations` - Contains 10335+ UI translations
+- `translation_metadata` - Contains 53+ language metadata
+- `starter_questions`, `prompts`, `prompt_versions` - System data
 
-# Or using psql:
-cd backend
-psql $DATABASE_URL -c "TRUNCATE TABLE messages, conversations, users CASCADE"
+**ONLY CLEAR USER-SPECIFIC DATA WHEN NEEDED:**
+```sql
+-- Clear specific user data (preferred)
+DELETE FROM users WHERE phone = 'specific_phone_number';
+DELETE FROM messages WHERE user_id = 'specific_user_id';
+DELETE FROM conversations WHERE user_id = 'specific_user_id';
+
+-- NEVER use TRUNCATE on translation tables!
 ```
 
 #### Note on Prompts
@@ -976,3 +1042,125 @@ interface FarmerChatAPI {
 - **Centralized Translations**: Manage all translations from backend
 - **Better Error Handling**: Consistent error responses across platforms
 - **Cost Optimization**: Route queries to appropriate models based on complexity
+
+## 🚀 Future Architecture Plans (Post-MVP)
+
+### Regional Feature Modules with App Bundles
+
+**Target**: After MVP completion, implement dynamic feature delivery based on user regions.
+
+#### Why App Bundles?
+- Single app listing on Play Store
+- Region-specific features delivered dynamically
+- Reduced app size (users only get relevant features)
+- Better maintenance and A/B testing capabilities
+
+#### Implementation Strategy
+
+1. **Dynamic Feature Modules Structure**
+```kotlin
+// app/build.gradle.kts
+android {
+    dynamicFeatures = listOf(
+        ":features:ethiopia",
+        ":features:kenya", 
+        ":features:india",
+        ":features:market_prices",
+        ":features:government_schemes",
+        ":features:weather_alerts"
+    )
+}
+```
+
+2. **Conditional Delivery Configuration**
+```xml
+<!-- Example: Ethiopia-specific features -->
+<dist:module dist:title="@string/ethiopia_features">
+    <dist:delivery>
+        <dist:install-time>
+            <dist:conditions>
+                <dist:user-countries dist:include="true">
+                    <dist:country dist:code="ET"/>
+                </dist:user-countries>
+            </dist:conditions>
+        </dist:install-time>
+    </dist:delivery>
+</dist:module>
+```
+
+3. **Feature Examples by Region**
+- **East Africa (KE, UG, TZ)**: Market prices, weather alerts, cooperative features
+- **India (IN)**: Government schemes, MSP prices, Kisan credit features  
+- **Ethiopia (ET)**: Local language support, specific crop calendars
+- **West Africa**: French language priority, ECOWAS trade features
+
+#### API Versioning Strategy
+
+**Required Backend Changes**:
+
+1. **Versioned Endpoints**
+```
+/api/v1/chat/send         (current MVP)
+/api/v2/chat/send         (with regional context)
+/api/v2/india/schemes     (India-specific)
+/api/v2/kenya/markets     (Kenya-specific)
+```
+
+2. **Region-Aware Middleware**
+```typescript
+// Detect region from request headers
+app.use((req, res, next) => {
+    req.region = req.headers['x-user-region'] || 'global';
+    req.apiVersion = req.path.split('/')[2]; // v1, v2, etc
+    next();
+});
+```
+
+3. **Backward Compatibility Approach**
+- Keep v1 endpoints frozen after MVP
+- All new features go to v2 with region support
+- Deprecation notices with 6-month timeline
+- Feature flags for gradual rollout
+
+4. **Database Schema Evolution**
+```sql
+-- Add region-specific tables
+CREATE TABLE regional_features (
+    id UUID PRIMARY KEY,
+    region_code VARCHAR(2),
+    feature_name VARCHAR(100),
+    is_enabled BOOLEAN DEFAULT true
+);
+
+-- Region-specific data
+CREATE TABLE market_prices_kenya (
+    -- Kenya-specific market data
+);
+
+CREATE TABLE gov_schemes_india (
+    -- India-specific government schemes
+);
+```
+
+#### Challenges to Address
+1. **API Complexity**: Multiple versions and regions increase complexity
+2. **Testing**: Need comprehensive testing for each region/version combo
+3. **Data Sync**: Keeping regional data synchronized
+4. **Rollback Strategy**: How to handle feature rollbacks per region
+5. **Analytics**: Tracking usage across different feature modules
+6. **Offline Support**: Ensuring features work offline
+
+#### Migration Timeline (Post-MVP)
+1. **Phase 1**: API v2 architecture (2 weeks)
+2. **Phase 2**: App Bundle setup (1 week)  
+3. **Phase 3**: First regional module (2 weeks)
+4. **Phase 4**: Testing and rollout (2 weeks)
+5. **Phase 5**: Additional regions (ongoing)
+
+#### Success Metrics
+- App size reduction: Target 40-60% smaller for most users
+- Feature adoption: Track usage per region
+- Load time: Faster initial app launch
+- Crash rate: Monitor per feature module
+
+### Note: This is a POST-MVP initiative. Current focus remains on core functionality.

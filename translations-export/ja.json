@@ -1,0 +1,22 @@
+{
+  "APP_NAME": "FarmerChat",
+  "BACK": "戻る",
+  "CANCEL": "キャンセル",
+  "CHOOSE_LANGUAGE": "使用言語を選択してください",
+  "CLEAR": "クリア",
+  "CONTINUE": "続ける",
+  "CROPS_SUBTITLE": "栽培している作物をすべて選択してください",
+  "DONE": "完了",
+  "LANGUAGE_SUBTITLE": "設定で後から変更できます",
+  "LIVESTOCK_SUBTITLE": "飼育している動物をすべて選択してください",
+  "LOCATION_SUBTITLE": "地域に適した農業アドバイスを提供するために必要です",
+  "NAME": "お名前",
+  "NEXT": "次へ",
+  "OK": "OK",
+  "SAVE": "保存",
+  "SEARCH": "検索",
+  "SELECT_CROPS": "作物を選択してください",
+  "SELECT_LIVESTOCK": "家畜を選択してください",
+  "SKIP": "スキップ",
+  "WHERE_LOCATED": "お住まいの地域を教えてください"
+}

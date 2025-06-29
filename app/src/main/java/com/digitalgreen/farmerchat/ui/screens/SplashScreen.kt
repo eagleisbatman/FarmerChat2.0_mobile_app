@@ -25,6 +25,7 @@ import kotlinx.coroutines.delay
 
 @Composable
 fun SplashScreen(
+    onNavigateToLogin: () -> Unit,
     onNavigateToOnboarding: () -> Unit,
     onNavigateToChat: (conversationId: String?) -> Unit,
     onNavigateToConversations: () -> Unit,
@@ -35,25 +36,39 @@ fun SplashScreen(
     val navigationDecision by viewModel.navigationDecision.collectAsState()
     
     // Handle navigation based on authentication and onboarding state
-    LaunchedEffect(hasCompletedOnboarding, authState, navigationDecision) {
-        // Only navigate when authenticated AND we know onboarding status
-        if (authState is SplashViewModel.AuthState.Authenticated && hasCompletedOnboarding != null) {
-            delay(1500) // Show splash briefly after successful auth
-            
-            if (hasCompletedOnboarding == true) {
-                // Use smart navigation decision
-                navigationDecision?.let { decision ->
-                    if (decision.shouldGoToChat && decision.conversationId != null) {
-                        onNavigateToChat(decision.conversationId)
+    LaunchedEffect(authState, hasCompletedOnboarding, navigationDecision) {
+        when (authState) {
+            is SplashViewModel.AuthState.NotAuthenticated -> {
+                delay(1500) // Show splash briefly
+                onNavigateToLogin()
+            }
+            is SplashViewModel.AuthState.Authenticated -> {
+                if (hasCompletedOnboarding != null) {
+                    delay(1500) // Show splash briefly after successful auth
+                    
+                    if (hasCompletedOnboarding == true) {
+                        // Use smart navigation decision
+                        navigationDecision?.let { decision ->
+                            if (decision.shouldGoToChat && decision.conversationId != null) {
+                                onNavigateToChat(decision.conversationId)
+                            } else {
+                                onNavigateToConversations()
+                            }
+                        } ?: onNavigateToConversations() // Fallback to conversations if no decision
                     } else {
-                        onNavigateToConversations()
+                        onNavigateToOnboarding()
                     }
-                } ?: onNavigateToConversations() // Fallback to conversations if no decision
-            } else {
-                onNavigateToOnboarding()
+                }
+            }
+            is SplashViewModel.AuthState.Loading -> {
+                // Stay on splash screen
+            }
+            is SplashViewModel.AuthState.Error -> {
+                // Show error and navigate to login after delay
+                delay(2000)
+                onNavigateToLogin()
             }
         }
-        // If auth fails, stay on splash screen showing error
     }
     
     Box(
@@ -140,6 +155,9 @@ fun SplashScreen(
                 }
                 is SplashViewModel.AuthState.Authenticated -> {
                     // Show nothing extra when authenticated
+                }
+                is SplashViewModel.AuthState.NotAuthenticated -> {
+                    // Show nothing extra when not authenticated
                 }
             }
         }

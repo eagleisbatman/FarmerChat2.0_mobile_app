@@ -1,12 +1,29 @@
-import express from 'express';
+import express, { Response, NextFunction } from 'express';
 import { AIService, ChatRequest } from '../services/ai.service';
 import { AuthRequest, authenticate } from '../middleware/auth';
 import { AppError } from '../middleware/errorHandler';
 import { logger } from '../utils/logger';
 import { query } from '../database';
+import multer from 'multer';
 
 const router = express.Router();
 const aiService = new AIService();
+
+// Configure multer for audio file uploads
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 25 * 1024 * 1024, // 25MB limit for audio files
+  },
+  fileFilter: (req, file, cb) => {
+    // Accept audio files
+    if (file.mimetype.startsWith('audio/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only audio files are allowed'));
+    }
+  },
+});
 
 // Send chat message
 router.post('/send', authenticate, async (req: AuthRequest, res) => {
@@ -106,9 +123,18 @@ router.get('/:conversationId/messages', authenticate, async (req: AuthRequest, r
       [conversationId, limit, offset]
     );
 
+    // Transform follow_up_questions from string[] to object[]
+    const messages = messagesResult.rows.map(message => ({
+      ...message,
+      follow_up_questions: (message.follow_up_questions || []).map((q: string, idx: number) => ({
+        id: `fq_${message.id}_${idx}`,
+        question: q
+      }))
+    }));
+
     res.json({
       success: true,
-      data: messagesResult.rows  // API expects data to be the array directly
+      data: messages  // API expects data to be the array directly
     });
   } catch (error) {
     logger.error('Chat history error:', error);
@@ -200,6 +226,65 @@ router.post('/messages/:messageId/rate', authenticate, async (req: AuthRequest, 
       success: false,
       error: error instanceof Error ? error.message : 'Failed to save rating'
     });
+  }
+});
+
+// Generate follow-up questions for a message
+router.post('/generate-followup', authenticate, async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const { message, language } = req.body;
+    
+    if (!message) {
+      throw new AppError('Message is required', 400);
+    }
+    
+    if (!req.user) {
+      throw new AppError('User not found', 404);
+    }
+    
+    const userLanguage = language || req.user.language || 'en';
+    
+    const questions = await aiService.extractFollowUpQuestions(
+      message,
+      userLanguage,
+      req.user
+    );
+    
+    res.json({
+      success: true,
+      data: questions
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Transcribe audio
+router.post('/transcribe', authenticate, upload.single('audio'), async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    if (!req.file) {
+      throw new AppError('Audio file is required', 400);
+    }
+    
+    const { language } = req.body;
+    const audioBuffer = req.file.buffer;
+    
+    // Get user language if not specified
+    const userLanguage = language || req.user?.profile?.language || 'en';
+    
+    // Transcribe audio using OpenAI Whisper
+    const transcription = await aiService.transcribeAudio(audioBuffer, userLanguage);
+    
+    res.json({
+      success: true,
+      data: {
+        transcription,
+        language: userLanguage
+      }
+    });
+  } catch (error) {
+    logger.error('Audio transcription error:', error);
+    next(error);
   }
 });
 

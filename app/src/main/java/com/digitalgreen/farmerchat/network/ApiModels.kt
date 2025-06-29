@@ -16,6 +16,32 @@ data class AuthRequest(
     @SerializedName("deviceInfo") val deviceInfo: DeviceInfo? = null
 )
 
+data class DeviceAuthRequest(
+    @SerializedName("deviceId") val deviceId: String,
+    @SerializedName("deviceInfo") val deviceInfo: DeviceInfo? = null
+)
+
+data class PhoneOTPRequest(
+    @SerializedName("phoneNumber") val phoneNumber: String,
+    @SerializedName("userId") val userId: String
+)
+
+data class VerifyOTPRequest(
+    @SerializedName("phoneNumber") val phoneNumber: String,
+    @SerializedName("otp") val otp: String,
+    @SerializedName("userId") val userId: String
+)
+
+data class OTPResponse(
+    @SerializedName("success") val success: Boolean,
+    @SerializedName("message") val message: String
+)
+
+data class VerifyOTPResponse(
+    @SerializedName("success") val success: Boolean,
+    @SerializedName("verified") val verified: Boolean
+)
+
 data class DeviceInfo(
     @SerializedName("deviceId") val deviceId: String,
     @SerializedName("platform") val platform: String = "android",
@@ -33,7 +59,8 @@ data class AuthResponse(
 // User Models
 data class ApiUser(
     @SerializedName("id") val id: String,
-    @SerializedName("firebaseUid") val firebaseUid: String,
+    @SerializedName("firebaseUid") val firebaseUid: String? = null, // Made optional for device auth
+    @SerializedName("deviceId") val deviceId: String? = null, // New field for device auth
     @SerializedName("phone") val phone: String? = null,
     @SerializedName("email") val email: String? = null,
     @SerializedName("name") val name: String? = null,
@@ -176,5 +203,10 @@ data class ApiUsage(
 data class StarterQuestionsRequest(
     @SerializedName("crops") val crops: List<String>? = null,
     @SerializedName("livestock") val livestock: List<String>? = null,
+    @SerializedName("language") val language: String = "en"
+)
+
+data class GenerateFollowUpRequest(
+    @SerializedName("message") val message: String,
     @SerializedName("language") val language: String = "en"
 )

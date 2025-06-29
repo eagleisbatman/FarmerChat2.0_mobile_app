@@ -91,8 +91,20 @@ export class AIService {
     // Log usage
     await provider.logUsage(request.userId, response.model || provider.getDefaultModel(), response.usage);
     
-    // Save messages to database
-    await this.saveMessages(request.conversationId, request.message, response.content);
+    // Extract follow-up questions before saving
+    const followUpQuestions = await this.extractFollowUpQuestions(
+      response.content,
+      request.userProfile?.language || 'en',
+      request.userProfile
+    );
+    
+    // Save messages to database with follow-up questions as string array
+    await this.saveMessages(
+      request.conversationId, 
+      request.message, 
+      response.content,
+      followUpQuestions.map(fq => fq.question)
+    );
     
     return response;
   }
@@ -124,8 +136,20 @@ export class AIService {
     // Log usage
     await provider.logUsage(request.userId, response.model || provider.getDefaultModel(), response.usage);
     
-    // Save messages to database
-    await this.saveMessages(request.conversationId, request.message, response.content);
+    // Extract follow-up questions before saving
+    const followUpQuestions = await this.extractFollowUpQuestions(
+      response.content,
+      request.userProfile?.language || 'en',
+      request.userProfile
+    );
+    
+    // Save messages to database with follow-up questions as string array
+    await this.saveMessages(
+      request.conversationId, 
+      request.message, 
+      response.content,
+      followUpQuestions.map(fq => fq.question)
+    );
     
     return response;
   }
@@ -136,19 +160,11 @@ export class AIService {
     userProfile?: any
   ): Promise<FollowUpQuestion[]> {
     const provider = this.getProvider();
-    const languageName = this.getLanguageName(userLanguage);
     
-    const prompt = `Based on this agricultural advice response, generate 3 short follow-up questions that a farmer might ask.
-    
-Response: ${response}
-
-Requirements:
-1. Generate questions in ${languageName} language ONLY
-2. Each question must be SHORT and CONCISE (maximum 40 characters)
-3. Questions should be practical and actionable
-4. Focus on the farmer's specific context if provided
-
-Output format: Return only the 3 questions, one per line, no numbering or bullets.`;
+    // Use PromptService for consistent prompt generation
+    const { PromptService } = await import('./prompt.service');
+    const promptService = new PromptService();
+    const prompt = await promptService.getFollowUpPrompt(response, userProfile, userLanguage);
     
     const messages: AIMessage[] = [
       { role: 'user', content: prompt }
@@ -225,14 +241,21 @@ Output: Return only the title, nothing else.`;
   private async saveMessages(
     conversationId: string,
     userMessage: string,
-    assistantMessage: string
+    assistantMessage: string,
+    followUpQuestions?: string[]
   ): Promise<void> {
+    // Insert user message
     await query(
       `INSERT INTO messages (conversation_id, content, is_user, created_at)
-       VALUES 
-       ($1, $2, true, NOW()),
-       ($1, $3, false, NOW())`,
-      [conversationId, userMessage, assistantMessage]
+       VALUES ($1, $2, true, NOW())`,
+      [conversationId, userMessage]
+    );
+    
+    // Insert assistant message with follow-up questions
+    await query(
+      `INSERT INTO messages (conversation_id, content, is_user, follow_up_questions, created_at)
+       VALUES ($1, $2, false, $3, NOW())`,
+      [conversationId, assistantMessage, followUpQuestions || []]
     );
     
     // Update conversation last message
@@ -496,6 +519,24 @@ If input is "जैविक खाद" → output "Organic fertilizer"`;
       );
     } catch (error) {
       logger.error('Failed to store conversation analytics:', error);
+    }
+  }
+  
+  async transcribeAudio(audioBuffer: Buffer, language?: string): Promise<string> {
+    // Currently only OpenAI supports audio transcription
+    const openaiProvider = this.providers.get('openai') as any;
+    
+    if (!openaiProvider || !openaiProvider.transcribeAudio) {
+      throw new Error('Audio transcription is not available. OpenAI provider is required.');
+    }
+    
+    try {
+      const transcription = await openaiProvider.transcribeAudio(audioBuffer, language);
+      logger.info('Audio transcription successful', { language, length: transcription.length });
+      return transcription;
+    } catch (error) {
+      logger.error('Failed to transcribe audio:', error);
+      throw error;
     }
   }
 }

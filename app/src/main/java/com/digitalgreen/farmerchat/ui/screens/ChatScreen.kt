@@ -40,6 +40,7 @@ import com.digitalgreen.farmerchat.ui.components.localizedString
 import com.digitalgreen.farmerchat.ui.components.MessageSkeleton
 import com.digitalgreen.farmerchat.ui.components.StarterQuestionsSkeleton
 import com.digitalgreen.farmerchat.ui.components.TypingIndicator
+import com.digitalgreen.farmerchat.ui.components.AudioRecordingView
 import com.digitalgreen.farmerchat.utils.StringsManager.StringKey
 import com.digitalgreen.farmerchat.ui.theme.DesignSystem
 import com.digitalgreen.farmerchat.ui.theme.primaryTextColor
@@ -81,6 +82,15 @@ fun ChatScreen(
     val starterQuestionsLoading by viewModel.starterQuestionsLoading.collectAsState()
     val starterQuestionsError by viewModel.starterQuestionsError.collectAsState()
     
+    // Audio recording states
+    val audioRecordingState by viewModel.audioRecordingState.collectAsState()
+    val audioRecordingDuration by viewModel.audioRecordingDuration.collectAsState()
+    val audioPlaybackProgress by viewModel.audioPlaybackProgress.collectAsState()
+    val audioLevel by viewModel.audioLevel.collectAsState()
+    val isAudioRecording by viewModel.isAudioRecording.collectAsState()
+    val isAudioPlaying by viewModel.isAudioPlaying.collectAsState()
+    val audioRecordingError by viewModel.audioRecordingError.collectAsState()
+    
     val conversationTitle = currentConversation?.title 
         ?: localizedString(StringKey.NEW_CONVERSATION)
     
@@ -88,6 +98,7 @@ fun ChatScreen(
     var showFeedbackDialog by remember { mutableStateOf(false) }
     var feedbackMessageId by remember { mutableStateOf<String?>(null) }
     var showVoiceFeedback by remember { mutableStateOf(false) }
+    var showAudioRecording by remember { mutableStateOf(false) }
     
     val scrollState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
@@ -122,11 +133,19 @@ fun ChatScreen(
         }
     }
     
-    // Handle recognized text
+    // Handle recognized text from legacy speech recognition
     LaunchedEffect(recognizedText) {
         if (recognizedText.isNotEmpty() && !isRecording) {
             textInput = recognizedText
             viewModel.clearRecognizedText()
+        }
+    }
+    
+    // Handle transcribed text from audio recording
+    val currentMessage by viewModel.currentMessage.collectAsState()
+    LaunchedEffect(currentMessage) {
+        if (currentMessage.isNotEmpty() && !showAudioRecording) {
+            textInput = currentMessage
         }
     }
     
@@ -143,6 +162,17 @@ fun ChatScreen(
     // Initialize with conversation ID
     LaunchedEffect(conversationId) {
         viewModel.initializeChat(conversationId)
+    }
+    
+    // Show audio recording error as snackbar
+    LaunchedEffect(audioRecordingError) {
+        audioRecordingError?.let { error ->
+            coroutineScope.launch {
+                // Show error briefly
+                delay(3000)
+                viewModel.clearAudioRecordingError()
+            }
+        }
     }
     
     Scaffold(
@@ -241,7 +271,7 @@ fun ChatScreen(
                         // Show skeleton when messages are loading
                         if (messages.isEmpty() && isLoading) {
                             items(3) { index ->
-                                MessageSkeleton(isUser = index % 2 == 0)
+                                MessageSkeleton(isUser = false) // All skeletons left-aligned
                             }
                         }
                         
@@ -283,12 +313,7 @@ fun ChatScreen(
                         }
                     }
                     
-                    // Show typing indicator when loading (but not when streaming)
-                    if (isLoading && currentStreamingMessage.isEmpty()) {
-                        item {
-                            TypingIndicator()
-                        }
-                    }
+                    // Don't show typing indicator as we already have skeletons
                 }
             }
         }
@@ -314,110 +339,41 @@ fun ChatScreen(
                 }
             }
             
-            // Voice recording feedback
+            // Audio recording view
             AnimatedVisibility(
-                visible = showVoiceFeedback,
+                visible = showAudioRecording,
                 enter = slideInVertically() + fadeIn(),
                 exit = slideOutVertically() + fadeOut()
             ) {
-                Surface(
-                    modifier = Modifier.fillMaxWidth(),
-                    color = MaterialTheme.colorScheme.primaryContainer,
-                    shadowElevation = DesignSystem.Elevation.medium
-                ) {
-                    Column(
-                        modifier = Modifier.padding(DesignSystem.Spacing.md),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Mic,
-                                contentDescription = null,
-                                tint = if (isRecording) Color.Red else MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(DesignSystem.IconSize.medium)
-                            )
-                            Spacer(modifier = Modifier.width(DesignSystem.Spacing.sm))
-                            Text(
-                                text = if (isRecording) {
-                                    localizedString(StringKey.LISTENING)
-                                } else {
-                                    localizedString(StringKey.PROCESSING)
-                                },
-                                fontWeight = DesignSystem.Typography.Weight.Medium
-                            )
-                        }
-                        
-                        if (recognizedText.isNotEmpty() && isRecording) {
-                            Spacer(modifier = Modifier.height(DesignSystem.Spacing.sm))
-                            Text(
-                                text = recognizedText,
-                                fontSize = DesignSystem.Typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = DesignSystem.Opacity.high - 0.17f),
-                                textAlign = TextAlign.Center
-                            )
-                            
-                            // Confidence indicator
-                            if (speechConfidence > 0) {
-                                Spacer(modifier = Modifier.height(DesignSystem.Spacing.xs))
-                                Row(
-                                    horizontalArrangement = Arrangement.Center,
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    val confidenceLevel = when {
-                                        speechConfidence >= 0.8f -> SpeechRecognitionManager.ConfidenceLevel.HIGH
-                                        speechConfidence >= 0.5f -> SpeechRecognitionManager.ConfidenceLevel.MEDIUM
-                                        else -> SpeechRecognitionManager.ConfidenceLevel.LOW
-                                    }
-                                    
-                                    LinearProgressIndicator(
-                                        progress = speechConfidence,
-                                        modifier = Modifier
-                                            .width(100.dp)
-                                            .height(DesignSystem.Spacing.xs)
-                                            .clip(RoundedCornerShape(DesignSystem.Spacing.xxs)),
-                                        color = when (confidenceLevel) {
-                                            SpeechRecognitionManager.ConfidenceLevel.HIGH -> DesignSystem.Colors.Success
-                                            SpeechRecognitionManager.ConfidenceLevel.MEDIUM -> DesignSystem.Colors.Warning
-                                            SpeechRecognitionManager.ConfidenceLevel.LOW -> DesignSystem.Colors.Error
-                                        }
-                                    )
-                                    Spacer(modifier = Modifier.width(DesignSystem.Spacing.sm))
-                                    Text(
-                                        text = when (confidenceLevel) {
-                                            SpeechRecognitionManager.ConfidenceLevel.HIGH -> localizedString(StringKey.CONFIDENCE_HIGH)
-                                            SpeechRecognitionManager.ConfidenceLevel.MEDIUM -> localizedString(StringKey.CONFIDENCE_MEDIUM)
-                                            SpeechRecognitionManager.ConfidenceLevel.LOW -> localizedString(StringKey.CONFIDENCE_LOW)
-                                        },
-                                        fontSize = DesignSystem.Typography.bodySmall,
-                                        color = when (confidenceLevel) {
-                                            SpeechRecognitionManager.ConfidenceLevel.HIGH -> DesignSystem.Colors.Success
-                                            SpeechRecognitionManager.ConfidenceLevel.MEDIUM -> DesignSystem.Colors.Warning
-                                            SpeechRecognitionManager.ConfidenceLevel.LOW -> DesignSystem.Colors.Error
-                                        },
-                                        fontWeight = DesignSystem.Typography.Weight.Medium
-                                    )
-                                }
-                            }
-                        }
-                        
-                        speechError?.let { error ->
-                            Spacer(modifier = Modifier.height(DesignSystem.Spacing.sm))
-                            Text(
-                                text = error,
-                                fontSize = DesignSystem.Typography.bodySmall,
-                                color = MaterialTheme.colorScheme.error,
-                                textAlign = TextAlign.Center
-                            )
-                        }
+                AudioRecordingView(
+                    recordingState = audioRecordingState,
+                    recordingDuration = audioRecordingDuration,
+                    playbackProgress = audioPlaybackProgress,
+                    audioLevel = audioLevel,
+                    isRecording = isAudioRecording,
+                    isPlaying = isAudioPlaying,
+                    onStartRecording = {
+                        viewModel.startAudioRecording()
+                    },
+                    onStopRecording = {
+                        viewModel.stopAudioRecording()
+                    },
+                    onPlayPause = {
+                        viewModel.playPauseAudioRecording()
+                    },
+                    onDiscard = {
+                        viewModel.discardAudioRecording()
+                        showAudioRecording = false
+                    },
+                    onSendForTranscription = {
+                        viewModel.sendAudioForTranscription()
+                        showAudioRecording = false
                     }
-                }
+                )
             }
             
-            // Input area - only show when not loading and starter questions are loaded (if first message)
-            val showInputControls = !isLoading && (messages.isNotEmpty() || (!starterQuestionsLoading && starterQuestions.isNotEmpty()))
+            // Input area - only show when not loading and starter questions are loaded (if first message) and not showing audio recording
+            val showInputControls = !isLoading && (messages.isNotEmpty() || (!starterQuestionsLoading && starterQuestions.isNotEmpty())) && !showAudioRecording
             
             AnimatedVisibility(
                 visible = showInputControls,
@@ -465,14 +421,10 @@ fun ChatScreen(
                         
                         // Voice recording button
                         VoiceRecordingButton(
-                            isRecording = isRecording,
+                            isRecording = false, // Not using legacy recording
                             onClick = {
                                 if (recordAudioPermission.status.isGranted) {
-                                    if (isRecording) {
-                                        viewModel.stopRecording()
-                                    } else {
-                                        viewModel.startRecording()
-                                    }
+                                    showAudioRecording = true
                                 } else {
                                     recordAudioPermission.launchPermissionRequest()
                                 }

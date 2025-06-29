@@ -38,15 +38,22 @@ class ApiConversationsViewModel(application: Application) : AndroidViewModel(app
     private val _isRefreshing = MutableStateFlow(false)
     val isRefreshing: StateFlow<Boolean> = _isRefreshing
     
-    private val _shouldShowPhoneAuth = MutableStateFlow(false)
-    val shouldShowPhoneAuth: StateFlow<Boolean> = _shouldShowPhoneAuth
+    // Phone auth removed - now handled at registration
+    
+    // Track last refresh time to avoid excessive API calls
+    private var lastRefreshTime = 0L
+    private val MIN_REFRESH_INTERVAL = 5000L // 5 seconds
+    
+    // Track initialization state
+    private var hasInitialized = false
     
     // Remove init block to prevent premature API calls
     // Call initialize() from the UI when ready
     
     fun initialize() {
         // Only initialize once
-        if (_isLoading.value || _conversations.value.isNotEmpty()) return
+        if (hasInitialized) return
+        hasInitialized = true
         
         viewModelScope.launch {
             _isLoading.value = true
@@ -69,6 +76,13 @@ class ApiConversationsViewModel(application: Application) : AndroidViewModel(app
     }
     
     fun loadConversations(refresh: Boolean = false, initialLoad: Boolean = false) {
+        // Avoid excessive API calls
+        val currentTime = System.currentTimeMillis()
+        if (!refresh && !initialLoad && (currentTime - lastRefreshTime) < MIN_REFRESH_INTERVAL) {
+            android.util.Log.d("ApiConversationsViewModel", "Skipping refresh - too soon since last refresh")
+            return
+        }
+        
         viewModelScope.launch {
             if (refresh) {
                 _isRefreshing.value = true
@@ -86,6 +100,7 @@ class ApiConversationsViewModel(application: Application) : AndroidViewModel(app
                 search = query
             ).onSuccess { response ->
                 _conversations.value = response.conversations.map { it.toConversation() }
+                lastRefreshTime = System.currentTimeMillis()
             }.onFailure { e ->
                 android.util.Log.e("ApiConversationsViewModel", "Failed to load conversations", e)
                 _error.value = "Failed to load conversations: ${e.message}"
@@ -149,9 +164,7 @@ class ApiConversationsViewModel(application: Application) : AndroidViewModel(app
         */
     }
     
-    fun dismissPhoneAuthPrompt() {
-        _shouldShowPhoneAuth.value = false
-    }
+    // Phone auth removed - now handled at registration
     
     fun deleteConversation(conversationId: String) {
         viewModelScope.launch {
