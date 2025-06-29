@@ -60,6 +60,7 @@ const ALL_STRING_KEYS = {
   DELETE_CONVERSATION: "Delete Conversation",
   SEARCH_CONVERSATIONS: "Search conversations",
   START_A_CONVERSATION: "Start a conversation...",
+  CONTINUE_CONVERSATION: "Continue conversation",
   
   // Chat Screen
   TYPE_MESSAGE: "Type a message",

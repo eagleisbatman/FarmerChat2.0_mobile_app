@@ -2,6 +2,16 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## 🚫 CRITICAL DEVELOPMENT RULES
+
+### NO SHORTCUTS POLICY
+1. **NEVER take shortcuts** - Always follow the proper process
+2. **NEVER create temporary files** - Use existing scripts and infrastructure
+3. **NEVER bypass established workflows** - Follow the documented procedures
+4. **ALWAYS use existing scripts** - Check the scripts folder before creating new files
+5. **ALWAYS run proper translation scripts** - Use the backend translation system for all UI strings
+6. **ALWAYS follow the complete build process** - No partial solutions or workarounds
+
 ## 🚨 Firebase to Node.js/Neon PostgreSQL Migration Status
 
 ### ✅ Migration Successfully Completed!

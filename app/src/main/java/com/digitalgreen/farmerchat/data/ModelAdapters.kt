@@ -49,14 +49,18 @@ fun ApiConversation.toConversation(): Conversation {
     return Conversation(
         id = this.id,
         title = this.title,
-        lastMessage = this.lastMessage ?: "Start a conversation...",
-        lastMessageTime = this.lastMessageTime?.let { parseApiDate(it) } ?: Date(),
-        lastMessageIsUser = this.lastMessageIsUser,
-        userId = "", // Will be filled by repository
-        createdAt = this.createdAt?.let { parseApiDate(it) } ?: Date(),
+        lastMessage = this.lastMessage ?: this.last_message ?: "", // Use empty string instead of hardcoded placeholder
+        lastMessageTime = parseApiDate(this.lastMessageTime ?: this.last_message_time ?: "") ?: Date(),
+        lastMessageIsUser = this.lastMessageIsUser || this.last_message_is_user,
         tags = this.tags,
-        englishTags = this.english_tags ?: this.englishTags ?: emptyList(),
-        summary = this.summary
+        englishTags = this.englishTags ?: this.english_tags ?: emptyList(),
+        summary = this.summary ?: "",
+        hasUnreadMessages = false, // This should be calculated based on last read time
+        unreadCount = 0,
+        localizedTitles = emptyMap(), // API doesn't provide localized titles yet
+        messageCount = this.messageCount, // Pass through the message count
+        userId = "", // Will be filled by repository
+        createdAt = this.createdAt?.let { parseApiDate(it) } ?: Date()
     )
 }
 

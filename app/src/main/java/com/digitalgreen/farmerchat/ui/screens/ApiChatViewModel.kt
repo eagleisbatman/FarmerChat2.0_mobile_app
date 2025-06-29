@@ -10,6 +10,7 @@ import com.digitalgreen.farmerchat.utils.PreferencesManager
 import com.digitalgreen.farmerchat.utils.SpeechRecognitionManager
 import com.digitalgreen.farmerchat.utils.TextToSpeechManager
 import com.digitalgreen.farmerchat.utils.StringProvider
+import com.digitalgreen.farmerchat.utils.StringsManager
 import com.digitalgreen.farmerchat.utils.AudioRecordingManager
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -337,6 +338,42 @@ class ApiChatViewModel(application: Application) : AndroidViewModel(application)
                 _messages.value = _messages.value.filter { it.id != userMessage.id }
             }
             */
+        }
+    }
+    
+    fun createNewConversation(onSuccess: (String) -> Unit) {
+        viewModelScope.launch {
+            android.util.Log.d("ApiChatViewModel", "Starting createNewConversation from chat screen")
+            _isLoading.value = true
+            _error.value = null
+            
+            val placeholderTitle = stringProvider.getString(StringsManager.StringKey.START_A_CONVERSATION)
+            android.util.Log.d("ApiChatViewModel", "Creating conversation with title: $placeholderTitle")
+            
+            repository.createConversation(title = placeholderTitle).onSuccess { conversation ->
+                android.util.Log.d("ApiChatViewModel", "Conversation created successfully: ${conversation.id}")
+                
+                // Completely clear all current state to prevent title retention
+                _messages.value = emptyList()
+                _currentStreamingMessage.value = ""
+                _followUpQuestions.value = emptyList()
+                _currentConversation.value = null  // Clear current conversation completely
+                _starterQuestions.value = emptyList()
+                _starterQuestionsLoading.value = false
+                _starterQuestionsError.value = null
+                
+                // Reset initialization flag to allow fresh initialization
+                hasInitialized = false
+                currentConversationId = null
+                
+                // Initialize with the new conversation
+                initializeChat(conversation.id)
+                onSuccess(conversation.id)
+            }.onFailure { exception ->
+                android.util.Log.e("ApiChatViewModel", "Failed to create conversation", exception)
+                _error.value = exception.message ?: "Failed to create conversation"
+                _isLoading.value = false
+            }
         }
     }
     

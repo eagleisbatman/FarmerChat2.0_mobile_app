@@ -37,7 +37,9 @@ sealed class Screen(val route: String) {
         fun createRoute(startNewChat: Boolean = false) = if (startNewChat) "conversations?startNewChat=true" else "conversations"
     }
     object Chat : Screen("chat/{conversationId}") {
-        fun createRoute(conversationId: String) = "chat/$conversationId"
+        fun createRoute(conversationId: String, title: String? = null) = 
+            if (title != null) "chat/$conversationId?title=${java.net.URLEncoder.encode(title, "UTF-8")}" 
+            else "chat/$conversationId"
     }
     object Settings : Screen("settings")
     object CropSelection : Screen("crop_selection") {
@@ -157,8 +159,8 @@ fun FarmerChatNavigation(
         ) { backStackEntry ->
             val startNewChat = backStackEntry.arguments?.getBoolean("startNewChat") ?: false
             ConversationsScreen(
-                onNavigateToChat = { conversationId ->
-                    navController.navigate(Screen.Chat.createRoute(conversationId))
+                onNavigateToChat = { conversationId, title ->
+                    navController.navigate(Screen.Chat.createRoute(conversationId, title))
                 },
                 onNavigateToSettings = {
                     navController.navigate(Screen.Settings.route)
@@ -168,22 +170,33 @@ fun FarmerChatNavigation(
         }
         
         composable(
-            Screen.Chat.route,
-            arguments = listOf(navArgument("conversationId") { type = NavType.StringType })
+            Screen.Chat.route + "?title={title}",
+            arguments = listOf(
+                navArgument("conversationId") { type = NavType.StringType },
+                navArgument("title") { 
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                }
+            )
         ) { backStackEntry ->
             val conversationId = backStackEntry.arguments?.getString("conversationId") ?: ""
+            val encodedTitle = backStackEntry.arguments?.getString("title")
+            val title = encodedTitle?.let { java.net.URLDecoder.decode(it, "UTF-8") }
+            
             ChatScreen(
                 conversationId = conversationId,
+                initialTitle = title,
                 onNavigateBack = {
                     // Navigate to conversations without startNewChat parameter
                     navController.navigate(Screen.Conversations.route) {
-                        popUpTo(Screen.Chat.route) { inclusive = true }
+                        popUpTo(Screen.Chat.route + "?title={title}") { inclusive = true }
                         launchSingleTop = true
                     }
                 },
                 onNavigateToNewChat = {
                     navController.navigate(Screen.Conversations.createRoute(startNewChat = true)) {
-                        popUpTo(Screen.Chat.route) { inclusive = true }
+                        popUpTo(Screen.Chat.route + "?title={title}") { inclusive = true }
                         launchSingleTop = true
                     }
                 }

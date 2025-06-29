@@ -93,8 +93,12 @@ data class ApiConversation(
     @SerializedName("id") val id: String,
     @SerializedName("title") val title: String,
     @SerializedName("lastMessage") val lastMessage: String? = null,
+    @SerializedName("last_message") val last_message: String? = null, // Backend uses snake_case
     @SerializedName("lastMessageTime") val lastMessageTime: String? = null,
+    @SerializedName("last_message_time") val last_message_time: String? = null, // Backend uses snake_case
     @SerializedName("lastMessageIsUser") val lastMessageIsUser: Boolean = false,
+    @SerializedName("last_message_is_user") val last_message_is_user: Boolean = false, // Backend uses snake_case
+    @SerializedName("message_count") val messageCount: Int = 0,
     @SerializedName("tags") val tags: List<String> = emptyList(),
     @SerializedName("englishTags") val englishTags: List<String>? = null,
     @SerializedName("english_tags") val english_tags: List<String>? = null, // Backend uses snake_case
