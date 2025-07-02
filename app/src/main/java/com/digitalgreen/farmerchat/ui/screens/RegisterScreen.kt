@@ -486,7 +486,7 @@ private fun PINStep(
                     shape = RoundedCornerShape(12.dp),
                     isError = uiState.confirmPin.isNotEmpty() && uiState.confirmPin != uiState.pin,
                     supportingText = if (uiState.confirmPin.isNotEmpty() && uiState.confirmPin != uiState.pin) {
-                        { Text("PINs do not match") }
+                        { Text(localizedString(StringKey.ERROR_PIN_MISMATCH)) }
                     } else null,
                     modifier = Modifier
                         .fillMaxWidth()

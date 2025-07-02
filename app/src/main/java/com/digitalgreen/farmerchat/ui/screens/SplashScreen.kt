@@ -149,7 +149,7 @@ fun SplashScreen(
                                 contentColor = DesignSystem.Colors.Primary
                             )
                         ) {
-                            Text("Retry", fontWeight = DesignSystem.Typography.Weight.Medium)
+                            Text(localizedString(StringKey.RETRY), fontWeight = DesignSystem.Typography.Weight.Medium)
                         }
                     }
                 }

@@ -267,6 +267,38 @@ object StringsManager {
         VIEW_PRIVACY_POLICY,
         VIEW_TERMS,
         
+        // Placeholders
+        PHONE_NUMBER_PLACEHOLDER,
+        PIN_PLACEHOLDER,
+        SEARCH_LANGUAGES_PLACEHOLDER,
+        SEARCH_LANGUAGES_FULL_PLACEHOLDER,
+        
+        // Additional Error Messages
+        ERROR_SEND_VERIFICATION,
+        ERROR_VERIFY_CODE,
+        ERROR_RESET_PIN,
+        ERROR_PHONE_REQUIRED,
+        ERROR_VERIFICATION_REQUIRED,
+        ERROR_PIN_LENGTH,
+        ERROR_PIN_MISMATCH,
+        ERROR_INVALID_VERIFICATION,
+        ERROR_REQUIRED_FIELDS,
+        ERROR_SAVE_PROFILE,
+        ERROR_UNEXPECTED,
+        ERROR_UNKNOWN,
+        
+        // UI Messages
+        REQUIRED_FIELD_INDICATOR,
+        COPIED_TO_CLIPBOARD,
+        FEATURE_COMING_SOON,
+        
+        // Network/API Errors
+        ERROR_NO_NETWORK,
+        ERROR_SERVER_TIMEOUT,
+        ERROR_INVALID_CREDENTIALS,
+        ERROR_SESSION_EXPIRED,
+        ERROR_RATE_LIMITED,
+        
         // Crop Categories
         CROP_CATEGORY_CEREALS,
         CROP_CATEGORY_PULSES,
@@ -634,7 +666,39 @@ object StringsManager {
             StringKey.TERMS_ACCEPTANCE_REQUIRED to "You must accept the terms to continue",
             StringKey.BY_CONTINUING_AGREE to "By continuing, you agree to our",
             StringKey.VIEW_PRIVACY_POLICY to "View Privacy Policy",
-            StringKey.VIEW_TERMS to "View Terms & Conditions"
+            StringKey.VIEW_TERMS to "View Terms & Conditions",
+            
+            // Placeholders
+            StringKey.PHONE_NUMBER_PLACEHOLDER to "1234567890",
+            StringKey.PIN_PLACEHOLDER to "123456",
+            StringKey.SEARCH_LANGUAGES_PLACEHOLDER to "Search languages...",
+            StringKey.SEARCH_LANGUAGES_FULL_PLACEHOLDER to "Search from 50+ languages...",
+            
+            // Additional Error Messages
+            StringKey.ERROR_SEND_VERIFICATION to "Failed to send verification code",
+            StringKey.ERROR_VERIFY_CODE to "Failed to verify code",
+            StringKey.ERROR_RESET_PIN to "Failed to reset PIN",
+            StringKey.ERROR_PHONE_REQUIRED to "Please enter your phone number",
+            StringKey.ERROR_VERIFICATION_REQUIRED to "Please enter the verification code",
+            StringKey.ERROR_PIN_LENGTH to "PIN must be 6 digits",
+            StringKey.ERROR_PIN_MISMATCH to "PINs do not match",
+            StringKey.ERROR_INVALID_VERIFICATION to "Invalid verification code",
+            StringKey.ERROR_REQUIRED_FIELDS to "Please complete all required fields",
+            StringKey.ERROR_SAVE_PROFILE to "Failed to save profile. Please try again.",
+            StringKey.ERROR_UNEXPECTED to "An unexpected error occurred. Please try again.",
+            StringKey.ERROR_UNKNOWN to "Unknown error",
+            
+            // UI Messages
+            StringKey.REQUIRED_FIELD_INDICATOR to " *",
+            StringKey.COPIED_TO_CLIPBOARD to "Copied to clipboard",
+            StringKey.FEATURE_COMING_SOON to "This feature is coming soon",
+            
+            // Network/API Errors
+            StringKey.ERROR_NO_NETWORK to "No internet connection. Please check your connection.",
+            StringKey.ERROR_SERVER_TIMEOUT to "Server timeout. Please try again.",
+            StringKey.ERROR_INVALID_CREDENTIALS to "Invalid credentials. Please try again.",
+            StringKey.ERROR_SESSION_EXPIRED to "Your session has expired. Please login again.",
+            StringKey.ERROR_RATE_LIMITED to "Too many requests. Please try again later."
         ),
         
         // Hindi

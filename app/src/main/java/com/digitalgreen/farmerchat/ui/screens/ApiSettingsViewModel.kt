@@ -175,7 +175,7 @@ class ApiSettingsViewModel(application: Application) : AndroidViewModel(applicat
     
     suspend fun exportUserData(context: Context) {
         // TODO: Implement export using API data
-        Toast.makeText(context, "Export feature coming soon", Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, stringProvider.getString(StringKey.FEATURE_COMING_SOON), Toast.LENGTH_SHORT).show()
     }
     
     fun logout() {

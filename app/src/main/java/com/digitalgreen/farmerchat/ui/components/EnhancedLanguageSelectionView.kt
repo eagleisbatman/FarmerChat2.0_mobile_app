@@ -59,7 +59,7 @@ fun EnhancedLanguageSelectionView(
             value = searchQuery,
             onValueChange = { searchQuery = it },
             label = { Text(localizedString(StringKey.SEARCH)) },
-            placeholder = { Text("Search from 50+ languages...") },
+            placeholder = { Text(localizedString(StringKey.SEARCH_LANGUAGES_FULL_PLACEHOLDER)) },
             leadingIcon = {
                 Icon(Icons.Default.Search, contentDescription = localizedString(StringKey.SEARCH))
             },

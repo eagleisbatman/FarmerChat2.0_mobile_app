@@ -201,7 +201,7 @@ private fun copyToClipboard(context: Context, question: String, answer: String) 
     clipboard.setPrimaryClip(clip)
     
     // Show a toast
-    android.widget.Toast.makeText(context, "Copied to clipboard", android.widget.Toast.LENGTH_SHORT).show()
+    android.widget.Toast.makeText(context, localizedString(StringKey.COPIED_TO_CLIPBOARD), android.widget.Toast.LENGTH_SHORT).show()
 }
 
 private fun shareToOtherApps(context: Context, question: String, answer: String) {

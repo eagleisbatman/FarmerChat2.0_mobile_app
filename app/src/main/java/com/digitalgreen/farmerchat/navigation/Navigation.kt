@@ -2,6 +2,7 @@ package com.digitalgreen.farmerchat.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -30,6 +31,8 @@ import com.digitalgreen.farmerchat.ui.screens.RoleSelectionScreen
 import com.digitalgreen.farmerchat.ui.screens.ForgotPinScreen
 import com.digitalgreen.farmerchat.ui.screens.PrivacyPolicyScreen
 import com.digitalgreen.farmerchat.ui.screens.TermsConditionsScreen
+import com.digitalgreen.farmerchat.utils.PreferencesManager
+import com.digitalgreen.farmerchat.utils.LocationLanguageMapper
 
 sealed class Screen(val route: String) {
     object Splash : Screen("splash")
@@ -344,7 +347,15 @@ fun FarmerChatNavigation(
                 )
             } else {
                 // Regular language selection from settings
-                LanguageSelectionScreen(navController = navController)
+                val context = LocalContext.current
+                val preferencesManager = remember { PreferencesManager(context) }
+                val userLocation = preferencesManager.getUserLocation() ?: ""
+                val suggestedLanguages = LocationLanguageMapper.getLocationBasedLanguages(userLocation)
+                
+                LanguageSelectionScreen(
+                    navController = navController,
+                    suggestedLanguages = suggestedLanguages
+                )
             }
         }
         
