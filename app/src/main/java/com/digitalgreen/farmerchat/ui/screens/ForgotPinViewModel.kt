@@ -80,7 +80,7 @@ class ForgotPinViewModel(application: Application) : AndroidViewModel(applicatio
                 if (_uiState.value.phoneNumber.isEmpty()) {
                     _uiState.update { 
                         it.copy(
-                            phoneError = "Please enter your phone number",
+                            phoneError = "Please enter your phone number", // TODO: Use StringKey.ERROR_PHONE_REQUIRED
                             isLoading = false
                         )
                     }

@@ -418,7 +418,7 @@ fun UnifiedOnboardingScreen(
                         label = { 
                             Row {
                                 Text(localizedString(StringKey.NAME))
-                                Text(" *", color = MaterialTheme.colorScheme.error)
+                                Text(localizedString(StringKey.REQUIRED_FIELD_INDICATOR), color = MaterialTheme.colorScheme.error)
                             }
                         },
                         leadingIcon = {
@@ -695,7 +695,7 @@ private fun ProfileField(
                 Row {
                     Text(label)
                     if (isRequired) {
-                        Text(" *", color = MaterialTheme.colorScheme.error)
+                        Text(localizedString(StringKey.REQUIRED_FIELD_INDICATOR), color = MaterialTheme.colorScheme.error)
                     }
                 }
             },

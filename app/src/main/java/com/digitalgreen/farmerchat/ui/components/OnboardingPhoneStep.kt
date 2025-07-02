@@ -153,7 +153,7 @@ fun OnboardingPhoneStep(
                             .weight(1f)
                             .focusRequester(phoneNumberFocusRequester),
                         label = { Text("Phone Number") },
-                        placeholder = { Text("1234567890") },
+                        placeholder = { Text(localizedString(StringKey.PHONE_NUMBER_PLACEHOLDER)) },
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(
                             keyboardType = KeyboardType.Phone,
@@ -209,7 +209,7 @@ fun OnboardingPhoneStep(
                         .fillMaxWidth()
                         .focusRequester(pinFocusRequester),
                     label = { Text("Create PIN") },
-                    placeholder = { Text("123456") },
+                    placeholder = { Text(localizedString(StringKey.PIN_PLACEHOLDER)) },
                     singleLine = true,
                     visualTransformation = PasswordVisualTransformation(),
                     keyboardOptions = KeyboardOptions(
@@ -231,7 +231,7 @@ fun OnboardingPhoneStep(
                         .fillMaxWidth()
                         .focusRequester(confirmPinFocusRequester),
                     label = { Text("Confirm PIN") },
-                    placeholder = { Text("123456") },
+                    placeholder = { Text(localizedString(StringKey.PIN_PLACEHOLDER)) },
                     singleLine = true,
                     visualTransformation = PasswordVisualTransformation(),
                     keyboardOptions = KeyboardOptions(

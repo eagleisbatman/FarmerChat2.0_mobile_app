@@ -100,7 +100,7 @@ fun SmartLanguageSelector(
             value = searchQuery,
             onValueChange = { searchQuery = it },
             modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text("Search languages...") },
+            placeholder = { Text(localizedString(StringKey.SEARCH_LANGUAGES_PLACEHOLDER)) },
             leadingIcon = {
                 Icon(
                     imageVector = Icons.Default.Search,
