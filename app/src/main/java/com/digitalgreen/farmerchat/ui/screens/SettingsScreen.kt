@@ -38,6 +38,8 @@ fun SettingsScreen(
     onNavigateToNameSelection: () -> Unit,
     onNavigateToGenderSelection: () -> Unit,
     onNavigateToRoleSelection: () -> Unit,
+    onNavigateToPrivacyPolicy: () -> Unit,
+    onNavigateToTermsConditions: () -> Unit,
     viewModel: ApiSettingsViewModel = viewModel(
         factory = ViewModelProvider.AndroidViewModelFactory.getInstance(LocalContext.current.applicationContext as android.app.Application)
     )
@@ -246,6 +248,24 @@ fun SettingsScreen(
                         title = localizedString(StringKey.HELP_FEEDBACK),
                         subtitle = localizedString(StringKey.HELP_FEEDBACK_DESC),
                         onClick = { /* TODO: Open help/feedback */ }
+                    )
+                    
+                    SettingsItem(
+                        icon = Icons.Default.PrivacyTip,
+                        title = localizedString(StringKey.PRIVACY_POLICY),
+                        subtitle = localizedString(StringKey.VIEW_PRIVACY_POLICY),
+                        onClick = {
+                            onNavigateToPrivacyPolicy()
+                        }
+                    )
+                    
+                    SettingsItem(
+                        icon = Icons.Default.Article,
+                        title = localizedString(StringKey.TERMS_CONDITIONS),
+                        subtitle = localizedString(StringKey.VIEW_TERMS),
+                        onClick = {
+                            onNavigateToTermsConditions()
+                        }
                     )
                     
                     SettingsItem(

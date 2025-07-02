@@ -239,6 +239,34 @@ object StringsManager {
         INVALID_PHONE_NUMBER,
         INVALID_OTP,
         
+        // PIN Recovery
+        FORGOT_PIN,
+        FORGOT_PIN_ENTER_PHONE,
+        FORGOT_PIN_VERIFY_IDENTITY,
+        FORGOT_PIN_CREATE_NEW,
+        SEND_VERIFICATION_CODE,
+        VERIFICATION_CODE,
+        ENTER_VERIFICATION_CODE,
+        VERIFICATION_CODE_SENT,
+        RESEND_CODE,
+        NEW_PIN,
+        ENTER_NEW_PIN,
+        CONFIRM_NEW_PIN,
+        RESET_PIN,
+        SHOW_PIN,
+        HIDE_PIN,
+        PIN_RESET_SUCCESS,
+        
+        // Privacy and Terms
+        PRIVACY_POLICY,
+        TERMS_CONDITIONS,
+        ACCEPT_TERMS,
+        DECLINE_TERMS,
+        TERMS_ACCEPTANCE_REQUIRED,
+        BY_CONTINUING_AGREE,
+        VIEW_PRIVACY_POLICY,
+        VIEW_TERMS,
+        
         // Crop Categories
         CROP_CATEGORY_CEREALS,
         CROP_CATEGORY_PULSES,
@@ -578,7 +606,35 @@ object StringsManager {
             StringKey.GENDER_BENEFIT to "Access gender-specific programs and tailored agricultural recommendations",
             StringKey.ROLE_BENEFIT to "Receive content suited to your expertise level and professional needs",
             StringKey.CROPS_BENEFIT to "Get crop-specific advice on planting, pest control, and harvest timing",
-            StringKey.LIVESTOCK_BENEFIT to "Receive targeted guidance on animal health, feeding, and breeding"
+            StringKey.LIVESTOCK_BENEFIT to "Receive targeted guidance on animal health, feeding, and breeding",
+            
+            // PIN Recovery
+            StringKey.FORGOT_PIN to "Forgot PIN?",
+            StringKey.FORGOT_PIN_ENTER_PHONE to "Enter your registered phone number to reset your PIN",
+            StringKey.FORGOT_PIN_VERIFY_IDENTITY to "We've sent a verification code to your phone",
+            StringKey.FORGOT_PIN_CREATE_NEW to "Create a new 6-digit PIN for your account",
+            StringKey.SEND_VERIFICATION_CODE to "Send Verification Code",
+            StringKey.VERIFICATION_CODE to "Verification Code",
+            StringKey.ENTER_VERIFICATION_CODE to "Enter verification code",
+            StringKey.VERIFICATION_CODE_SENT to "Verification code sent to your phone",
+            StringKey.RESEND_CODE to "Resend Code",
+            StringKey.NEW_PIN to "New PIN",
+            StringKey.ENTER_NEW_PIN to "Enter new 6-digit PIN",
+            StringKey.CONFIRM_NEW_PIN to "Confirm new PIN",
+            StringKey.RESET_PIN to "Reset PIN",
+            StringKey.SHOW_PIN to "Show PIN",
+            StringKey.HIDE_PIN to "Hide PIN",
+            StringKey.PIN_RESET_SUCCESS to "Your PIN has been reset successfully",
+            
+            // Privacy and Terms
+            StringKey.PRIVACY_POLICY to "Privacy Policy",
+            StringKey.TERMS_CONDITIONS to "Terms & Conditions",
+            StringKey.ACCEPT_TERMS to "Accept",
+            StringKey.DECLINE_TERMS to "Decline",
+            StringKey.TERMS_ACCEPTANCE_REQUIRED to "You must accept the terms to continue",
+            StringKey.BY_CONTINUING_AGREE to "By continuing, you agree to our",
+            StringKey.VIEW_PRIVACY_POLICY to "View Privacy Policy",
+            StringKey.VIEW_TERMS to "View Terms & Conditions"
         ),
         
         // Hindi

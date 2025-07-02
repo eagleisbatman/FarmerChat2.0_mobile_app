@@ -44,6 +44,7 @@ import kotlinx.coroutines.delay
 @Composable
 fun LoginScreen(
     onNavigateToRegister: () -> Unit,
+    onNavigateToForgotPin: () -> Unit,
     onLoginSuccess: (Boolean) -> Unit, // Boolean indicates if profile is complete
     viewModel: LoginViewModel = viewModel(
         factory = ViewModelProvider.AndroidViewModelFactory.getInstance(
@@ -263,6 +264,20 @@ fun LoginScreen(
                         isError = uiState.error != null
                     )
                 }
+            }
+            
+            // Forgot PIN link
+            TextButton(
+                onClick = onNavigateToForgotPin,
+                modifier = Modifier
+                    .align(Alignment.End)
+                    .padding(top = DesignSystem.Spacing.sm)
+            ) {
+                Text(
+                    text = localizedString(StringKey.FORGOT_PIN),
+                    color = DesignSystem.Colors.Primary,
+                    style = DesignSystem.Typography.bodyMedium
+                )
             }
             
             // Error Message
