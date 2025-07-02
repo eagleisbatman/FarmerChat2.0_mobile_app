@@ -4,12 +4,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with th
 
 ## 📁 Modular Documentation Structure
 
-For better performance, instructions are split into focused files:
+For better performance and organization, domain-specific instructions are in their respective directories:
 
-- **[CLAUDE-backend.md](./CLAUDE-backend.md)** - Backend server, API endpoints, Node.js configuration
-- **[CLAUDE-mobile.md](./CLAUDE-mobile.md)** - Android app, UI/UX, build commands, testing
-- **[CLAUDE-database.md](./CLAUDE-database.md)** - Neon PostgreSQL, schema, queries, migrations
-- **[CLAUDE-test-automation.md](./CLAUDE-test-automation.md)** - Comprehensive automated testing system (replaces manual screenshots)
+- **[backend/CLAUDE.md](./backend/CLAUDE.md)** - Backend server, API endpoints, Node.js configuration
+- **[backend/CLAUDE-database.md](./backend/CLAUDE-database.md)** - Neon PostgreSQL, schema, queries, migrations
+- **[app/CLAUDE.md](./app/CLAUDE.md)** - Android app, UI/UX, build commands, testing
 
 ## 🚫 CRITICAL DEVELOPMENT RULES
 
@@ -75,9 +74,9 @@ mcp__neon__run_sql({
 ## 📋 Common Tasks
 
 For detailed instructions on specific tasks, refer to the appropriate file:
-- Backend development → See [CLAUDE-backend.md](./CLAUDE-backend.md)
-- Mobile app changes → See [CLAUDE-mobile.md](./CLAUDE-mobile.md)
-- Database operations → See [CLAUDE-database.md](./CLAUDE-database.md)
+- Backend development → See [backend/CLAUDE.md](./backend/CLAUDE.md)
+- Mobile app changes → See [app/CLAUDE.md](./app/CLAUDE.md)
+- Database operations → See [backend/CLAUDE-database.md](./backend/CLAUDE-database.md)
 
 ## 🔧 Environment Info
 - Working directory: /Users/eagleisbatman/digitalgreen_projects/FarmerChat
