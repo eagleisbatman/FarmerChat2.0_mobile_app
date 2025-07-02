@@ -27,6 +27,9 @@ import com.digitalgreen.farmerchat.ui.screens.LanguageSelectionScreen
 import com.digitalgreen.farmerchat.ui.screens.NameSelectionScreen
 import com.digitalgreen.farmerchat.ui.screens.GenderSelectionScreen
 import com.digitalgreen.farmerchat.ui.screens.RoleSelectionScreen
+import com.digitalgreen.farmerchat.ui.screens.ForgotPinScreen
+import com.digitalgreen.farmerchat.ui.screens.PrivacyPolicyScreen
+import com.digitalgreen.farmerchat.ui.screens.TermsConditionsScreen
 
 sealed class Screen(val route: String) {
     object Splash : Screen("splash")
@@ -47,6 +50,11 @@ sealed class Screen(val route: String) {
     }
     object LivestockSelection : Screen("livestock_selection") {
         fun createRoute(fromOnboarding: Boolean = false) = "livestock_selection?fromOnboarding=$fromOnboarding"
+    }
+    object ForgotPin : Screen("forgot_pin")
+    object PrivacyPolicy : Screen("privacy_policy")
+    object TermsConditions : Screen("terms_conditions") {
+        fun createRoute(showAccept: Boolean = false) = "terms_conditions?showAccept=$showAccept"
     }
     object PhoneCollection : Screen("phone_collection")
     object LanguageSelection : Screen("language_selection")
@@ -98,6 +106,9 @@ fun FarmerChatNavigation(
             LoginScreen(
                 onNavigateToRegister = {
                     navController.navigate(Screen.Register.route)
+                },
+                onNavigateToForgotPin = {
+                    navController.navigate(Screen.ForgotPin.route)
                 },
                 onLoginSuccess = { profileComplete ->
                     if (profileComplete) {
@@ -230,6 +241,12 @@ fun FarmerChatNavigation(
                 },
                 onNavigateToRoleSelection = {
                     navController.navigate(Screen.RoleSelection.route)
+                },
+                onNavigateToPrivacyPolicy = {
+                    navController.navigate(Screen.PrivacyPolicy.route)
+                },
+                onNavigateToTermsConditions = {
+                    navController.navigate(Screen.TermsConditions.route)
                 }
             )
         }
@@ -352,6 +369,53 @@ fun FarmerChatNavigation(
                 onNavigateBack = {
                     navController.popBackStack()
                 }
+            )
+        }
+        
+        composable(Screen.ForgotPin.route) {
+            ForgotPinScreen(
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+                onPinReset = {
+                    // Navigate back to login after successful PIN reset
+                    navController.navigate(Screen.Login.route) {
+                        popUpTo(Screen.ForgotPin.route) { inclusive = true }
+                    }
+                }
+            )
+        }
+        
+        composable(Screen.PrivacyPolicy.route) {
+            PrivacyPolicyScreen(
+                onNavigateBack = {
+                    navController.popBackStack()
+                }
+            )
+        }
+        
+        composable(
+            route = Screen.TermsConditions.route + "?showAccept={showAccept}",
+            arguments = listOf(
+                navArgument("showAccept") {
+                    type = NavType.BoolType
+                    defaultValue = false
+                }
+            )
+        ) { backStackEntry ->
+            val showAccept = backStackEntry.arguments?.getBoolean("showAccept") ?: false
+            
+            TermsConditionsScreen(
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+                onAccept = if (showAccept) {
+                    {
+                        // Mark terms as accepted and continue
+                        navController.popBackStack()
+                    }
+                } else null,
+                showAcceptButton = showAccept
             )
         }
     }
