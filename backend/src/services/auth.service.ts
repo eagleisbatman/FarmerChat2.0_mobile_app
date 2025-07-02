@@ -1,9 +1,9 @@
 import jwt from 'jsonwebtoken';
+import bcrypt from 'bcrypt';
 import { query, transaction } from '../database';
 import { config } from '../config';
 import { logger } from '../utils/logger';
 import { AppError } from '../middleware/errorHandler';
-import { FirebaseService } from './firebase.service';
 
 export interface User {
   id: string;
@@ -33,68 +33,11 @@ export interface AuthToken {
 }
 
 export class AuthService {
-  private firebase: FirebaseService;
-  
   constructor() {
-    this.firebase = FirebaseService.getInstance();
+    // No Firebase initialization needed
   }
   
-  // Note: Firebase Auth phone OTP is handled client-side
-  // This endpoint returns Firebase config for the client
-  async getAuthConfig(): Promise<{ firebaseConfig: any; message: string }> {
-    return {
-      firebaseConfig: this.firebase.getClientConfig(),
-      message: 'Use Firebase Auth on client side for phone OTP'
-    };
-  }
   
-  // Verify Firebase ID token from client
-  async verifyFirebaseToken(idToken: string): Promise<AuthToken> {
-    try {
-      // Verify the ID token from Firebase
-      const decodedToken = await this.firebase.verifyIdToken(idToken);
-      
-      if (!decodedToken.uid) {
-        throw new AppError('Invalid token', 400);
-      }
-      
-      // Extract phone number or email
-      const phoneNumber = decodedToken.phone_number;
-      const email = decodedToken.email;
-      const identifier = phoneNumber || email || decodedToken.uid;
-      
-      // Get or create user in our database
-      const user = await this.getOrCreateUser(decodedToken.uid, identifier);
-      
-      // Generate JWT tokens for our backend
-      const accessToken = this.generateAccessToken(user);
-      const refreshToken = this.generateRefreshToken(user);
-      
-      return {
-        accessToken,
-        refreshToken,
-        expiresIn: 7 * 24 * 60 * 60, // 7 days in seconds
-        user
-      };
-    } catch (error: any) {
-      logger.error('Error verifying Firebase token:', {
-        message: error.message,
-        code: error.code,
-        stack: error.stack,
-        fullError: JSON.stringify(error, null, 2)
-      });
-      if (error.code === 'auth/id-token-expired') {
-        throw new AppError('Token expired', 401);
-      }
-      if (error.code === 'auth/invalid-id-token') {
-        throw new AppError('Invalid token', 401);
-      }
-      if (error.code === 'auth/argument-error') {
-        throw new AppError('Invalid token format', 401);
-      }
-      throw new AppError(`Failed to verify token: ${error.message || 'Unknown error'}`, 500);
-    }
-  }
   
   async refreshToken(refreshToken: string): Promise<AuthToken> {
     try {
@@ -134,46 +77,6 @@ export class AuthService {
     }
   }
   
-  private async getOrCreateUser(
-    firebaseUid: string,
-    identifier: string
-  ): Promise<User> {
-    const isEmail = identifier.includes('@');
-    const isPhone = identifier.startsWith('+') || /^\d+$/.test(identifier);
-    
-    return transaction(async (client) => {
-      // Check if user exists by Firebase UID
-      const existingResult = await client.query(
-        'SELECT * FROM users WHERE firebase_uid = $1',
-        [firebaseUid]
-      );
-      
-      if (existingResult.rows.length > 0) {
-        return existingResult.rows[0];
-      }
-      
-      // Create new user with a proper UUID
-      let query = 'INSERT INTO users (firebase_uid';
-      let values = [firebaseUid];
-      let paramCount = 1;
-      
-      if (isEmail) {
-        query += ', email';
-        values.push(identifier);
-        paramCount++;
-      } else if (isPhone) {
-        query += ', phone';
-        values.push(identifier);
-        paramCount++;
-      }
-      
-      query += `) VALUES ($1${paramCount > 1 ? ', $2' : ''}) RETURNING *`;
-      
-      const newUserResult = await client.query(query, values);
-      
-      return newUserResult.rows[0];
-    });
-  }
   
   private generateAccessToken(user: User): string {
     const payload = {
@@ -258,16 +161,23 @@ export class AuthService {
     try {
       logger.info(`Login attempt for phone: ${phone}`);
       
-      // Normalize phone number - handle multiple country codes
-      const phoneVariants = [phone];
+      // Normalize phone number - remove spaces, hyphens, and other formatting
+      const normalizedPhone = phone.replace(/[\s\-\(\)]/g, '');
       
       // If phone doesn't start with +, reject it
-      if (!phone.startsWith('+')) {
+      if (!normalizedPhone.startsWith('+')) {
         throw new AppError('Phone number must include country code (e.g., +91, +1, +44)', 400);
       }
       
-      // Also try without the + for backward compatibility
-      phoneVariants.push(phone.substring(1));
+      // Create variants for backward compatibility
+      const phoneVariants = [
+        normalizedPhone,                    // +919591705649
+        normalizedPhone.substring(1),       // 919591705649
+        phone,                              // Original format (might have hyphens)
+        phone.replace(/[\s\-\(\)]/g, '') // Cleaned original
+      ];
+      
+      logger.info(`Trying phone variants: ${phoneVariants.join(', ')}`);
       
       // Get user by phone (try all variants)
       const userResult = await query<User & { pin: string }>(
@@ -286,8 +196,9 @@ export class AuthService {
         throw new AppError('No PIN set for this account. Please complete registration.', 403);
       }
       
-      // For now, we're storing PIN in plain text (in production, use bcrypt)
-      if (user.pin !== pin) {
+      // Verify PIN using bcrypt
+      const isPinValid = await bcrypt.compare(pin, user.pin);
+      if (!isPinValid) {
         throw new AppError('Invalid phone number or PIN', 401);
       }
       
@@ -316,7 +227,7 @@ export class AuthService {
   }
   
   // Register with phone and PIN
-  async registerWithPhone(phone: string, pin: string, firebaseIdToken?: string): Promise<AuthToken> {
+  async registerWithPhone(phone: string, pin: string): Promise<AuthToken> {
     try {
       logger.info(`Registration for phone: ${phone}`);
       
@@ -344,12 +255,15 @@ export class AuthService {
         if (!existingUser.pin) {
           logger.info(`User exists without PIN, allowing PIN setup for phone: ${phone}`);
           
+          // Hash the PIN
+          const hashedPin = await bcrypt.hash(pin, 10);
+          
           // Update the user's PIN
           const updateResult = await query<User>(
             `UPDATE users SET pin = $1, updated_at = NOW() 
              WHERE id = $2 
              RETURNING id, phone, firebase_uid, email, name, language, location, location_info, crops, livestock, preferences, role, gender, created_at, updated_at`,
-            [pin, existingUser.id]
+            [hashedPin, existingUser.id]
           );
           
           const user = updateResult.rows[0];
@@ -371,23 +285,17 @@ export class AuthService {
         throw new AppError('Phone number already registered. Please login.', 409);
       }
       
-      // Verify Firebase token if provided
-      let firebaseUid: string | undefined;
-      if (firebaseIdToken) {
-        try {
-          const decodedToken = await this.firebase.verifyIdToken(firebaseIdToken);
-          firebaseUid = decodedToken.uid;
-        } catch (error) {
-          logger.warn('Firebase token verification failed during registration', error);
-        }
-      }
+      // Firebase token no longer supported
+      
+      // Hash the PIN
+      const hashedPin = await bcrypt.hash(pin, 10);
       
       // Create new user with PIN
       const createResult = await query<User>(
-        `INSERT INTO users (phone, pin, firebase_uid, language, crops, livestock, preferences, created_at, updated_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW())
+        `INSERT INTO users (phone, pin, language, crops, livestock, preferences, created_at, updated_at)
+         VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
          RETURNING id, phone, firebase_uid, email, name, language, location, location_info, crops, livestock, preferences, role, gender, created_at, updated_at`,
-        [phone, pin, firebaseUid || null, 'en', [], [], {}]
+        [phone, hashedPin, 'en', [], [], {}]
       );
       
       const user = createResult.rows[0];

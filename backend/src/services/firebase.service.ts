@@ -7,17 +7,16 @@ export class FirebaseService {
   private app: admin.app.App;
   
   private constructor() {
-    // Initialize Firebase Admin SDK
+    // Initialize Firebase Admin SDK for FCM only
     if (!admin.apps.length) {
       this.app = admin.initializeApp({
         credential: admin.credential.cert({
           projectId: config.firebase.projectId,
           privateKey: config.firebase.privateKey,
           clientEmail: config.firebase.clientEmail
-        }),
-        databaseURL: config.firebase.databaseURL
+        })
       });
-      logger.info('Firebase Admin SDK initialized');
+      logger.info('Firebase Admin SDK initialized for FCM');
     } else {
       this.app = admin.app();
     }
@@ -30,47 +29,8 @@ export class FirebaseService {
     return FirebaseService.instance;
   }
   
-  getAuth(): admin.auth.Auth {
-    return admin.auth(this.app);
-  }
-  
   getMessaging(): admin.messaging.Messaging {
     return admin.messaging(this.app);
-  }
-  
-  // Phone OTP verification
-  async verifyIdToken(idToken: string): Promise<admin.auth.DecodedIdToken> {
-    try {
-      const decodedToken = await this.getAuth().verifyIdToken(idToken);
-      return decodedToken;
-    } catch (error) {
-      logger.error('Error verifying ID token:', error);
-      throw error;
-    }
-  }
-  
-  // Get user by phone number
-  async getUserByPhoneNumber(phoneNumber: string): Promise<admin.auth.UserRecord | null> {
-    try {
-      const userRecord = await this.getAuth().getUserByPhoneNumber(phoneNumber);
-      return userRecord;
-    } catch (error: any) {
-      if (error.code === 'auth/user-not-found') {
-        return null;
-      }
-      throw error;
-    }
-  }
-  
-  // Create custom token for server-side auth
-  async createCustomToken(uid: string, claims?: object): Promise<string> {
-    try {
-      const customToken = await this.getAuth().createCustomToken(uid, claims);
-      return customToken;
-    } catch (error) {
-      logger.error('Error creating custom token:', error);
-      throw error;
-    }
   }
   
   // Send FCM notification
@@ -125,14 +85,10 @@ export class FirebaseService {
     }
   }
   
-  // Get Firebase config for client
-  getClientConfig() {
+  // Get FCM config for client (only messaging sender ID needed)
+  getFCMConfig() {
     return {
-      apiKey: config.firebase.apiKey,
-      authDomain: config.firebase.authDomain,
-      projectId: config.firebase.projectId,
-      messagingSenderId: config.firebase.messagingSenderId,
-      appId: config.firebase.appId
+      messagingSenderId: config.firebase.messagingSenderId
     };
   }
 }

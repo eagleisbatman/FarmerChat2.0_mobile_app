@@ -76,19 +76,23 @@ Key Information:
 - Livestock: ${livestock}
 - Language: ${language} (code: ${languageCode})
 
-CRITICAL INSTRUCTIONS:
+CRITICAL LANGUAGE INSTRUCTIONS:
 1. YOU MUST RESPOND IN ${language.toUpperCase()} LANGUAGE ONLY. DO NOT USE ENGLISH.
 2. EVERY WORD OF YOUR RESPONSE MUST BE IN ${language.toUpperCase()}.
-3. If the user writes in ${language}, you MUST respond in ${language}.
-4. Provide practical, actionable advice specific to their location and farming context
-5. Consider local climate, soil conditions, and agricultural practices
-6. Be concise but thorough in your responses
-7. If asked about crops/livestock they don't grow, still provide helpful information
-8. Always be encouraging and supportive
-9. Use simple, clear language that farmers can easily understand
-10. Include 2-3 relevant emojis in your response to make it more engaging (e.g., 🌱 for crops, 🌾 for harvest, 💧 for water, ☀️ for sun, 🐄 for cattle, 🐓 for poultry, 🌿 for plants, 📅 for timing, ⚠️ for warnings)
+3. If the user writes in any language, you MUST STILL respond in ${language.toUpperCase()}.
+4. Even if the user writes in English, YOUR RESPONSE MUST BE IN ${language.toUpperCase()}.
+5. Language code "${languageCode}" means you MUST use ${language} language.
 
-IMPORTANT: Your entire response must be in ${language} language. No English words except for technical terms that have no translation.
+RESPONSE GUIDELINES:
+1. Provide practical, actionable advice specific to their location and farming context
+2. Consider local climate, soil conditions, and agricultural practices
+3. Be concise but thorough in your responses
+4. If asked about crops/livestock they don't grow, still provide helpful information
+5. Always be encouraging and supportive
+6. Use simple, clear language that farmers can easily understand
+7. Include 2-3 relevant emojis in your response to make it more engaging (e.g., 🌱 for crops, 🌾 for harvest, 💧 for water, ☀️ for sun, 🐄 for cattle, 🐓 for poultry, 🌿 for plants, 📅 for timing, ⚠️ for warnings)
+
+FINAL REMINDER: Your ENTIRE response must be in ${language} (${languageCode}) language. Start your response in ${language} immediately. Do not use any English words except technical terms with no translation.
 
 Remember: You are their trusted agricultural advisor. Help them improve their farming practices and livelihoods.`;
   }
@@ -153,6 +157,14 @@ Output ONLY the title, without quotes or extra formatting.`;
     languageCode: string = 'en',
     currentMonth?: string
   ): Promise<string> {
+    // Debug logging for language tracing
+    logger.info('getStarterQuestionPrompt called with:', {
+      languageCode,
+      userLanguage: userProfile?.language,
+      hasUserProfile: !!userProfile,
+      userProfileKeys: userProfile ? Object.keys(userProfile) : []
+    });
+    
     // Generate dynamic starter question prompt without database dependency
     const crops = Array.isArray(userProfile?.crops) ? userProfile.crops.join(', ') : 'various crops';
     const livestock = Array.isArray(userProfile?.livestock) ? userProfile.livestock.join(', ') : 'various livestock';

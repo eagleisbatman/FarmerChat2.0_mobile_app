@@ -31,10 +31,12 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^0.54.0",
     "@google/generative-ai": "^0.24.1",
+    "@types/bcrypt": "^5.0.2",
     "@types/pg": "^8.15.4",
     "@types/swagger-jsdoc": "^6.0.4",
     "@types/swagger-ui-express": "^4.1.8",
     "axios": "^1.10.0",
+    "bcrypt": "^6.0.0",
     "compression": "^1.8.0",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",

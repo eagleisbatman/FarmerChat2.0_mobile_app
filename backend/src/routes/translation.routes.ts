@@ -22,7 +22,10 @@ router.get('/:languageCode', optionalAuth, async (req: Request, res: Response, n
     
     const translations = await translationService.getTranslations(languageCode);
     
-    res.json(translations);
+    res.json({
+      success: true,
+      data: translations
+    });
   } catch (error) {
     next(error);
   }
@@ -33,7 +36,10 @@ router.get('/languages', optionalAuth, async (req: Request, res: Response, next:
   try {
     const languages = await translationService.getSupportedLanguages();
     
-    res.json(languages);
+    res.json({
+      success: true,
+      data: languages
+    });
   } catch (error) {
     next(error);
   }
