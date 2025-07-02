@@ -46,7 +46,7 @@ router.post('/login', async (req: Request, res: Response, next: NextFunction) =>
  */
 router.post('/register', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { phone, pin, firebaseIdToken } = req.body;
+    const { phone, pin } = req.body;
     
     if (!phone || !pin) {
       throw new AppError('Phone number and PIN are required', 400);
@@ -58,7 +58,7 @@ router.post('/register', async (req: Request, res: Response, next: NextFunction)
     
     logger.info(`Registration request for phone: ${phone}`);
     
-    const result = await authService.registerWithPhone(phone, pin, firebaseIdToken);
+    const result = await authService.registerWithPhone(phone, pin);
     
     res.json({
       success: true,
@@ -134,33 +134,5 @@ router.post('/phone/verify-otp', async (req: Request, res: Response, next: NextF
   }
 });
 
-/**
- * Legacy Firebase endpoint - will be removed
- * Temporarily kept for backward compatibility
- */
-router.post('/verify', async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const { idToken } = req.body;
-    
-    if (!idToken) {
-      throw new AppError('ID token is required', 400);
-    }
-    
-    const result = await authService.verifyFirebaseToken(idToken);
-    
-    // Wrap response in expected format and rename accessToken to token
-    res.json({
-      success: true,
-      data: {
-        token: result.accessToken,
-        refreshToken: result.refreshToken,
-        expiresIn: result.expiresIn,
-        user: result.user
-      }
-    });
-  } catch (error) {
-    next(error);
-  }
-});
 
 export default router;

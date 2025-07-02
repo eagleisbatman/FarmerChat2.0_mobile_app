@@ -28,7 +28,7 @@ const upload = multer({
 // Send chat message
 router.post('/send', authenticate, async (req: AuthRequest, res) => {
   try {
-    const { message, conversationId } = req.body;
+    const { message, conversationId, language } = req.body;
     
     if (!message || !conversationId) {
       throw new AppError('Message and conversationId are required', 400);
@@ -37,11 +37,17 @@ router.post('/send', authenticate, async (req: AuthRequest, res) => {
     // Get user profile for context
     const userProfile = req.user;
     
+    // Use language from request if provided, otherwise fall back to user profile
+    const requestLanguage = language || userProfile?.language || 'en';
+    
     const chatRequest: ChatRequest = {
       message,
       conversationId,
       userId: req.userId!,
-      userProfile,
+      userProfile: {
+        ...userProfile,
+        language: requestLanguage
+      },
     };
 
     // Generate AI response
@@ -50,8 +56,11 @@ router.post('/send', authenticate, async (req: AuthRequest, res) => {
     // Extract follow-up questions
     const followUpQuestions = await aiService.extractFollowUpQuestions(
       response.content,
-      userProfile?.language || 'en',
-      userProfile
+      requestLanguage,
+      {
+        ...userProfile,
+        language: requestLanguage
+      }
     );
 
     // Generate title if this is the first message in conversation
@@ -65,7 +74,7 @@ router.post('/send', authenticate, async (req: AuthRequest, res) => {
       title = await aiService.generateConversationTitle(
         message,
         response.content,
-        userProfile?.language || 'en'
+        requestLanguage
       );
       
       // Update conversation title
@@ -149,7 +158,17 @@ router.get('/:conversationId/messages', authenticate, async (req: AuthRequest, r
 router.post('/starter-questions', authenticate, async (req: AuthRequest, res) => {
   try {
     const userProfile = req.user;
-    const { languageCode = userProfile?.language || 'en' } = req.body;
+    // Accept both 'language' and 'languageCode' for flexibility
+    const { languageCode, language } = req.body;
+    const selectedLanguage = languageCode || language || userProfile?.language || 'en';
+    
+    // Debug logging to trace language issue
+    logger.info('Starter questions request:', {
+      bodyContent: req.body,
+      userLanguage: userProfile?.language,
+      selectedLanguage: selectedLanguage,
+      headers: req.headers
+    });
 
     // Use prompt service for starter question generation
     const { PromptService } = await import('../services/prompt.service');
@@ -157,11 +176,23 @@ router.post('/starter-questions', authenticate, async (req: AuthRequest, res) =>
     
     const prompt = await promptService.getStarterQuestionPrompt(
       userProfile,
-      languageCode
+      selectedLanguage
     );
+    
+    // Add language-specific system prompt for better compliance
+    const systemPrompt = `You are an AI that MUST generate responses ONLY in ${selectedLanguage === 'hi' ? 'Hindi (हिंदी)' : selectedLanguage === 'sw' ? 'Swahili' : selectedLanguage} language. 
+DO NOT use any English words except technical terms with no translation.
+The user's selected language is ${selectedLanguage}.`;
 
-    // Generate questions using AI
+    logger.info('Generating starter questions with prompt:', {
+      systemPrompt: systemPrompt.substring(0, 100) + '...',
+      userPrompt: prompt.substring(0, 100) + '...',
+      language: selectedLanguage
+    });
+
+    // Generate questions using AI with system prompt
     const response = await aiService.getProvider().generateResponse([
+      { role: 'system', content: systemPrompt },
       { role: 'user', content: prompt }
     ]);
 
@@ -270,21 +301,103 @@ router.post('/transcribe', authenticate, upload.single('audio'), async (req: Aut
     const audioBuffer = req.file.buffer;
     
     // Get user language if not specified
-    const userLanguage = language || req.user?.profile?.language || 'en';
+    const userLanguage = language || req.user?.language || 'en';
     
-    // Transcribe audio using OpenAI Whisper
-    const transcription = await aiService.transcribeAudio(audioBuffer, userLanguage);
-    
-    res.json({
-      success: true,
-      data: {
-        transcription,
-        language: userLanguage
-      }
+    logger.info('=== BACKEND TRANSCRIPTION START ===');
+    logger.info('Transcription request details:', {
+      fileSize: audioBuffer.length,
+      fileSizeKB: (audioBuffer.length / 1024).toFixed(2) + ' KB',
+      mimeType: req.file.mimetype,
+      originalName: req.file.originalname,
+      language: userLanguage,
+      userId: req.userId,
+      userLanguage: req.user?.language,
+      hasAuthHeader: !!req.headers.authorization
     });
-  } catch (error) {
+    
+    // Log first few bytes to verify it's an audio file
+    const audioHeader = audioBuffer.slice(0, 20).toString('hex');
+    logger.info('Audio file header (hex):', audioHeader);
+    
+    try {
+      // Transcribe audio using OpenAI Whisper
+      logger.info('Calling AI service transcribeAudio...');
+      const transcription = await aiService.transcribeAudio(audioBuffer, userLanguage);
+      
+      logger.info('=== TRANSCRIPTION SUCCESS ===');
+      logger.info('Transcription result:', {
+        text: transcription,
+        length: transcription.length,
+        language: userLanguage
+      });
+      
+      res.json({
+        success: true,
+        data: {
+          transcription,
+          language: userLanguage
+        }
+      });
+    } catch (transcribeError: any) {
+      logger.error('=== TRANSCRIPTION ERROR IN TRY BLOCK ===', {
+        error: transcribeError.message,
+        stack: transcribeError.stack
+      });
+      throw transcribeError;
+    }
+  } catch (error: any) {
     logger.error('Audio transcription error:', error);
-    next(error);
+    
+    // Parse custom error types
+    if (error.message?.includes(':')) {
+      const [errorType, errorMessage] = error.message.split(':', 2);
+      
+      const errorResponses: { [key: string]: { status: number; userMessage: string } } = {
+        'LANGUAGE_MISMATCH': {
+          status: 422,
+          userMessage: `Please speak in ${req.user?.language === 'hi' ? 'हिंदी' : req.user?.language === 'sw' ? 'Kiswahili' : 'the selected language'}. ${errorMessage}`
+        },
+        'EMPTY_TRANSCRIPTION': {
+          status: 422,
+          userMessage: 'Could not hear clearly. Please speak louder and try again.'
+        },
+        'TOO_SHORT': {
+          status: 422,
+          userMessage: 'Message too short. Please speak a complete sentence.'
+        },
+        'AUDIO_TOO_LARGE': {
+          status: 413,
+          userMessage: 'Recording is too long. Please record a shorter message (max 2 minutes).'
+        },
+        'INVALID_AUDIO': {
+          status: 400,
+          userMessage: 'Audio format not supported. Please try recording again.'
+        },
+        'TRANSCRIPTION_FAILED': {
+          status: 500,
+          userMessage: 'Could not process audio. Please try again.'
+        }
+      };
+      
+      const errorResponse = errorResponses[errorType] || {
+        status: 500,
+        userMessage: 'Transcription failed. Please try again.'
+      };
+      
+      res.status(errorResponse.status).json({
+        success: false,
+        error: errorResponse.userMessage,
+        errorType: errorType
+      });
+      return; // Ensure function returns void
+    }
+    
+    // Default error response
+    res.status(500).json({
+      success: false,
+      error: 'Failed to transcribe audio. Please try again.',
+      errorType: 'UNKNOWN'
+    });
   }
 });
 

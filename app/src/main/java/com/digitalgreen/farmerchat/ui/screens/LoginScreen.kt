@@ -32,6 +32,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.material3.LocalTextStyle
+import androidx.compose.ui.platform.testTag
 import com.digitalgreen.farmerchat.ui.theme.DesignSystem
 import com.digitalgreen.farmerchat.ui.theme.primaryTextColor
 import com.digitalgreen.farmerchat.ui.theme.secondaryTextColor
@@ -156,7 +157,8 @@ fun LoginScreen(
                         textStyle = LocalTextStyle.current.copy(fontSize = 18.sp),  // Larger input text
                         modifier = Modifier
                             .fillMaxWidth()
-                            .focusRequester(phoneNumberFocusRequester),
+                            .focusRequester(phoneNumberFocusRequester)
+                            .testTag("phoneNumberInput"),
                         placeholder = {
                             Text(
                                 "+91 9876543210",
@@ -219,7 +221,8 @@ fun LoginScreen(
                         textStyle = LocalTextStyle.current.copy(fontSize = 18.sp),  // Larger input text
                         modifier = Modifier
                             .fillMaxWidth()
-                            .focusRequester(pinFocusRequester),
+                            .focusRequester(pinFocusRequester)
+                            .testTag("pinInput"),
                         placeholder = {
                             Text(
                                 "••••••",
@@ -308,7 +311,8 @@ fun LoginScreen(
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(56.dp),
+                    .height(56.dp)
+                    .testTag("loginButton"),
                 enabled = phoneNumber.startsWith("+") && phoneNumber.length >= 10 && pin.length == 6 && !uiState.isLoading,
                 shape = RoundedCornerShape(16.dp),
                 colors = ButtonDefaults.buttonColors(
@@ -345,7 +349,8 @@ fun LoginScreen(
                 )
                 TextButton(
                     onClick = onNavigateToRegister,
-                    enabled = !uiState.isLoading
+                    enabled = !uiState.isLoading,
+                    modifier = Modifier.testTag("registerButton")
                 ) {
                     Text(
                         text = localizedString(StringKey.CREATE_ACCOUNT),

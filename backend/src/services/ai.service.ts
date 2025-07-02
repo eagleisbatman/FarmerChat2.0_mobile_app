@@ -523,19 +523,37 @@ If input is "जैविक खाद" → output "Organic fertilizer"`;
   }
   
   async transcribeAudio(audioBuffer: Buffer, language?: string): Promise<string> {
+    logger.info('=== AI SERVICE TRANSCRIBE START ===');
+    logger.info('Audio buffer size:', audioBuffer.length);
+    logger.info('Language:', language);
+    
     // Currently only OpenAI supports audio transcription
     const openaiProvider = this.providers.get('openai') as any;
+    
+    logger.info('OpenAI provider exists:', !!openaiProvider);
+    logger.info('OpenAI provider has transcribeAudio:', !!(openaiProvider && openaiProvider.transcribeAudio));
     
     if (!openaiProvider || !openaiProvider.transcribeAudio) {
       throw new Error('Audio transcription is not available. OpenAI provider is required.');
     }
     
     try {
+      logger.info('Calling OpenAI provider transcribeAudio...');
       const transcription = await openaiProvider.transcribeAudio(audioBuffer, language);
-      logger.info('Audio transcription successful', { language, length: transcription.length });
+      logger.info('=== AI SERVICE TRANSCRIBE SUCCESS ===');
+      logger.info('Audio transcription successful', { 
+        language, 
+        transcriptionLength: transcription.length,
+        transcriptionPreview: transcription.substring(0, 100) + '...'
+      });
       return transcription;
-    } catch (error) {
-      logger.error('Failed to transcribe audio:', error);
+    } catch (error: any) {
+      logger.error('=== AI SERVICE TRANSCRIBE ERROR ===');
+      logger.error('Failed to transcribe audio:', {
+        errorMessage: error.message,
+        errorType: error.constructor.name,
+        errorStack: error.stack
+      });
       throw error;
     }
   }

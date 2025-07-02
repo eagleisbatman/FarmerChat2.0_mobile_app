@@ -6,7 +6,7 @@ const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY || '',
 });
 
-// All 267 string keys from StringsManager.kt (including personalization benefits)
+// All 330+ string keys from StringsManager.kt (including personalization benefits and new additions)
 const ALL_STRING_KEYS = {
   // App Name
   APP_NAME: "FarmerChat",
@@ -266,7 +266,104 @@ const ALL_STRING_KEYS = {
   GENDER_BENEFIT: "Access gender-specific programs and tailored agricultural recommendations",
   ROLE_BENEFIT: "Receive content suited to your expertise level and professional needs",
   CROPS_BENEFIT: "Get crop-specific advice on planting, pest control, and harvest timing",
-  LIVESTOCK_BENEFIT: "Receive targeted guidance on animal health, feeding, and breeding"
+  LIVESTOCK_BENEFIT: "Receive targeted guidance on animal health, feeding, and breeding",
+  
+  // Voice transcription errors
+  SPEAK_IN_SELECTED_LANGUAGE: "Please speak in %s",
+  SPEAK_CLEARLY: "Please speak clearly into the microphone",
+  MESSAGE_TOO_SHORT: "Message too short. Please speak a complete sentence",
+  RECORDING_TOO_LONG: "Recording is too long. Please record a shorter message",
+  TRANSCRIPTION_FAILED: "Unable to transcribe. Please try again",
+  NO_RECORDING_FOUND: "No recording found",
+  AUDIO_TOO_LARGE: "Recording is too large. Please record a shorter message",
+  
+  // Connection and server errors
+  CONNECTION_ERROR: "Connection error. Please check your internet connection",
+  SERVER_NOT_RESPONDING: "Server is not responding. Please try again later",
+  CHECK_INTERNET_CONNECTION: "Please check your internet connection",
+  SERVICE_UNAVAILABLE: "Service temporarily unavailable",
+  AUTHENTICATION_EXPIRED: "Your session has expired. Please restart the app",
+  
+  // Phone and PIN Authentication (already added)
+  PHONE_PLACEHOLDER: "+91 9876543210",
+  COUNTRY_CODE_HELPER: "Include country code (e.g., +91 for India, +1 for USA)",
+  PIN_PLACEHOLDER: "••••••",
+  HIDE_PIN: "Hide PIN",
+  SHOW_PIN: "Show PIN",
+  CREATE_YOUR_PIN: "Create Your PIN",
+  CREATE_PIN_SUBTITLE: "Create a 6-digit PIN for secure login",
+  CONFIRM_PIN: "Confirm PIN",
+  PINS_DO_NOT_MATCH: "PINs do not match",
+  PHONE_MUST_START_WITH_CODE: "Phone number must start with country code (e.g., +91, +1)",
+  
+  // Content Descriptions (Accessibility)
+  SWIPE_TO_CANCEL: "Swipe to cancel",
+  CLEAR_SEARCH: "Clear search",
+  CHANGE_LOCATION: "Change location",
+  START_RECORDING: "Start recording",
+  STOP_RECORDING: "Stop recording",
+  
+  // Toast Messages
+  EXPORT_COMING_SOON: "Export feature coming soon",
+  COPIED_TO_CLIPBOARD: "Copied to clipboard",
+  
+  // Error Messages
+  CANNOT_CONNECT_SERVER: "Cannot connect to server",
+  ENSURE_BACKEND_RUNNING: "Please ensure the backend is running on port 3004",
+  ENTER_VALID_PHONE: "Please enter a valid phone number with country code",
+  ENTER_VALID_OTP: "Please enter a valid 6-digit OTP",
+  COMPLETE_ALL_FIELDS: "Please complete all required fields",
+  FAILED_SAVE_PROFILE: "Failed to save profile. Please try again.",
+  FAILED_SAVE_PHONE: "Failed to save phone number: %s",
+  ERROR_WITH_MESSAGE: "Error: %s",
+  FAILED_LOAD_PROFILE: "Failed to load user profile: %s",
+  FAILED_LOAD_CONVERSATIONS: "Failed to load conversations: %s",
+  FAILED_CREATE_CONVERSATION: "Failed to create conversation: %s",
+  FAILED_DELETE_CONVERSATION: "Failed to delete conversation: %s",
+  DATA_EXPORT_COMING: "Data export feature coming soon",
+  ERROR_DURING_EXPORT: "Error during data export: %s",
+  CONVERSATION_NOT_FOUND: "Conversation not found",
+  NO_ACTIVE_CONVERSATION: "No active conversation",
+  FAILED_SEND_MESSAGE: "Failed to send message: %s",
+  
+  // UI Text Labels
+  SHARE_ANSWER: "Share Answer",
+  QUESTION_PREFIX: "Q: ",
+  ANSWER_PREFIX: "A: ",
+  WHATSAPP: "WhatsApp",
+  COPY_TEXT: "Copy Text",
+  MORE_APPS: "More Apps",
+  REQUIRED_FIELD_ASTERISK: " *",
+  TAG_COUNT_PLUS: "+",
+  FARMERCHAT_ANSWER: "FarmerChat Answer",
+  SHARE_VIA: "Share via",
+  
+  // Placeholder Text
+  ENTER_PIN: "Enter 6-digit PIN",
+  PHONE_EXAMPLE: "1234567890",
+  PIN_EXAMPLE: "123456",
+  SEARCH_LANGUAGES: "Search from 50+ languages...",
+  SEARCH_LANGUAGES_SHORT: "Search languages...",
+  
+  // Field Labels
+  FIELD_CODE: "Code",
+  FIELD_PHONE_NUMBER: "Phone Number",
+  FIELD_CREATE_PIN: "Create PIN",
+  
+  // App Store Link
+  APP_STORE_LINK_TEXT: "Get more farming advice with FarmerChat",
+  APP_STORE_URL: "https://play.google.com/store/apps/details?id=com.digitalgreen.farmerchat",
+  
+  // Login/Register Screen
+  WELCOME_BACK: "Welcome back! Please login to continue",
+  LOGIN: "Login",
+  REGISTER: "Register",
+  SECURITY_PIN: "Security PIN",
+  DONT_HAVE_ACCOUNT: "Don't have an account?",
+  CREATE_ACCOUNT: "Create Account",
+  ALREADY_HAVE_ACCOUNT: "Already have an account?",
+  SIGN_IN: "Sign in",
+  CREATE_YOUR_ACCOUNT: "Create your account"
 };
 
 // All 53 supported languages
@@ -329,12 +426,37 @@ const SUPPORTED_LANGUAGES = [
 async function syncAllStringKeys() {
   logger.info('Starting complete string key synchronization...');
   
+  // Parse command line arguments
+  const args = process.argv.slice(2);
+  const skipCompleted = args.includes('--skip-completed');
+  const startFrom = args.find(arg => arg.startsWith('--start-from='))?.split('=')[1];
+  const onlyLanguage = args.find(arg => arg.startsWith('--language='))?.split('=')[1];
+  
+  if (args.includes('--help')) {
+    console.log(`
+Usage: npm run sync-all-string-keys [options]
+
+Options:
+  --skip-completed     Skip languages that already have all keys translated
+  --start-from=CODE    Start from a specific language code (e.g., --start-from=as)
+  --language=CODE      Only process a specific language (e.g., --language=sw)
+  --help              Show this help message
+
+Examples:
+  npm run sync-all-string-keys --skip-completed
+  npm run sync-all-string-keys --start-from=as
+  npm run sync-all-string-keys --language=sw
+    `);
+    process.exit(0);
+  }
+
   // First, add English translations for all keys
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
     
-    logger.info('Adding all 267 string keys with English translations...');
+    const totalKeys = Object.keys(ALL_STRING_KEYS).length;
+    logger.info(`Adding all ${totalKeys} string keys with English translations...`);
     for (const [key, value] of Object.entries(ALL_STRING_KEYS)) {
       await client.query(
         `INSERT INTO ui_translations (language_code, key, translation)
@@ -365,10 +487,31 @@ async function syncAllStringKeys() {
     existingTranslations.get(row.language_code)!.add(row.key);
   }
   
+  // Filter languages based on command line arguments
+  let languagesToProcess = SUPPORTED_LANGUAGES.filter(l => l.code !== 'en');
+  
+  if (onlyLanguage) {
+    languagesToProcess = languagesToProcess.filter(l => l.code === onlyLanguage);
+    if (languagesToProcess.length === 0) {
+      logger.error(`Language code '${onlyLanguage}' not found`);
+      process.exit(1);
+    }
+  }
+  
+  if (startFrom) {
+    const startIndex = languagesToProcess.findIndex(l => l.code === startFrom);
+    if (startIndex === -1) {
+      logger.error(`Language code '${startFrom}' not found`);
+      process.exit(1);
+    }
+    languagesToProcess = languagesToProcess.slice(startIndex);
+  }
+  
   // Translate missing keys for each language
-  for (const lang of SUPPORTED_LANGUAGES) {
-    if (lang.code === 'en') continue;
-    
+  let processedCount = 0;
+  let skippedCount = 0;
+  
+  for (const lang of languagesToProcess) {
     const existing = existingTranslations.get(lang.code) || new Set();
     const missingKeys: { key: string; text: string }[] = [];
     
@@ -379,11 +522,18 @@ async function syncAllStringKeys() {
     }
     
     if (missingKeys.length === 0) {
-      logger.info(`${lang.name}: All keys already translated ✓`);
-      continue;
+      if (skipCompleted) {
+        logger.info(`${lang.name}: All keys already translated ✓ (skipped)`);
+        skippedCount++;
+        continue;
+      } else {
+        logger.info(`${lang.name}: All keys already translated ✓`);
+        continue;
+      }
     }
     
-    logger.info(`${lang.name}: Translating ${missingKeys.length} missing keys...`);
+    logger.info(`\n[${processedCount + 1}/${languagesToProcess.length - skippedCount}] ${lang.name}: Translating ${missingKeys.length} missing keys...`);
+    processedCount++;
     
     // Translate in batches of 30
     const batchSize = 30;
@@ -468,9 +618,10 @@ Return ONLY this JSON format:
   
   const stats = finalResult.rows[0];
   logger.info('\n=== FINAL SYNCHRONIZATION RESULTS ===');
-  logger.info(`Total unique keys: ${stats.total_keys} (expected: 267)`);
+  const expectedKeys = Object.keys(ALL_STRING_KEYS).length;
+  logger.info(`Total unique keys: ${stats.total_keys} (expected: ${expectedKeys})`);
   logger.info(`Total languages: ${stats.total_languages} (expected: 53)`);
-  logger.info(`Total translations: ${stats.total_translations} (expected: ${267 * 53} = 14,151)`);
+  logger.info(`Total translations: ${stats.total_translations} (expected: ${expectedKeys * 53} = ${expectedKeys * 53})`);
   
   // Check which languages have all keys
   const completenessResult = await pool.query(`
@@ -483,11 +634,25 @@ Return ONLY this JSON format:
   `);
   
   logger.info('\n=== Language Completeness ===');
+  let completeCount = 0;
+  let incompleteCount = 0;
+  
   for (const row of completenessResult.rows) {
     const lang = SUPPORTED_LANGUAGES.find(l => l.code === row.language_code);
-    const status = row.key_count === 267 ? '✓' : `(${row.key_count}/267)`;
+    const isComplete = row.key_count >= expectedKeys;
+    const status = isComplete ? '✓' : `(${row.key_count}/${expectedKeys})`;
+    
+    if (isComplete) {
+      completeCount++;
+    } else {
+      incompleteCount++;
+    }
+    
     logger.info(`${lang?.name || row.language_code}: ${status}`);
   }
+  
+  logger.info(`\n✓ Complete: ${completeCount} languages`);
+  logger.info(`⚠ Incomplete: ${incompleteCount} languages`);
 }
 
 // Main execution

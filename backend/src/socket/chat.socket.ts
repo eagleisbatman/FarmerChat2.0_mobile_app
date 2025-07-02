@@ -63,7 +63,7 @@ export class ChatSocketHandler {
       // Handle chat message with streaming
       socket.on('chat:stream', async (data) => {
         try {
-          const { message, conversationId } = data;
+          const { message, conversationId, language } = data;
           
           if (!message || !conversationId) {
             socket.emit('chat:error', { 
@@ -95,11 +95,17 @@ export class ChatSocketHandler {
           // Emit typing indicator
           socket.emit('chat:typing', { isTyping: true });
 
+          // Use language from request if provided, otherwise fall back to user profile
+          const requestLanguage = language || socket.user?.language || 'en';
+
           const chatRequest: ChatRequest = {
             message,
             conversationId,
             userId: socket.userId!,
-            userProfile: socket.user,
+            userProfile: {
+              ...socket.user,
+              language: requestLanguage
+            },
             stream: true
           };
 
@@ -130,8 +136,11 @@ export class ChatSocketHandler {
           // Extract follow-up questions
           const followUpQuestions = await this.aiService.extractFollowUpQuestions(
             fullResponse,
-            socket.user?.language || 'en',
-            socket.user
+            requestLanguage,
+            {
+              ...socket.user,
+              language: requestLanguage
+            }
           );
 
           // Generate title if this is the first message in conversation
@@ -145,7 +154,7 @@ export class ChatSocketHandler {
             title = await this.aiService.generateConversationTitle(
               message,
               fullResponse,
-              socket.user?.language || 'en'
+              requestLanguage
             );
             
             // Update conversation title
@@ -161,8 +170,11 @@ export class ChatSocketHandler {
             // Run analytics processing in background
             this.aiService.processConversationAnalytics(
               conversationId,
-              socket.user?.language || 'en',
-              socket.user
+              requestLanguage,
+              {
+                ...socket.user,
+                language: requestLanguage
+              }
             ).catch(error => {
               logger.error('Failed to process conversation analytics:', error);
             });
