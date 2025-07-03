@@ -400,8 +400,8 @@ class AppRepository(private val context: Context) {
     }
     
     // Real-time Chat Streaming
-    fun startStreamingMessage(message: String, conversationId: String) {
-        webSocketClient.sendStreamingMessage(message, conversationId)
+    fun startStreamingMessage(message: String, conversationId: String, language: String? = null) {
+        webSocketClient.sendStreamingMessage(message, conversationId, language)
     }
     
     fun stopStreaming(conversationId: String) {
@@ -458,7 +458,10 @@ class AppRepository(private val context: Context) {
         return safeApiCall { NetworkConfig.translationApi.getTranslations(languageCode) }
             .mapCatching { response ->
                 if (response.success && response.data != null) {
-                    response.data
+                    // The API returns data with a nested translations object
+                    // We need to extract the translations from the response
+                    Log.d(TAG, "Got translation response for $languageCode")
+                    response.data.translations
                 } else {
                     throw Exception(response.error ?: "Failed to get translations")
                 }

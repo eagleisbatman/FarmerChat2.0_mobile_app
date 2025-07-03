@@ -2,6 +2,8 @@ package com.digitalgreen.farmerchat.ui.components
 
 import android.content.Context
 import android.content.Intent
+import com.digitalgreen.farmerchat.utils.StringsManager
+import com.digitalgreen.farmerchat.utils.StringsManager.StringKey
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -133,7 +135,7 @@ fun ShareBottomSheet(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp)
             ) {
-                Text("Cancel")
+                Text(localizedString(StringKey.CANCEL))
             }
         }
     }
@@ -197,11 +199,11 @@ private fun shareToWhatsApp(context: Context, question: String, answer: String) 
 private fun copyToClipboard(context: Context, question: String, answer: String) {
     val shareText = buildShareText(question, answer)
     val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
-    val clip = android.content.ClipData.newPlainText("FarmerChat Answer", shareText)
+    val clip = android.content.ClipData.newPlainText(StringsManager.getString(StringKey.FARMERCHAT_ANSWER), shareText)
     clipboard.setPrimaryClip(clip)
     
     // Show a toast
-    android.widget.Toast.makeText(context, localizedString(StringKey.COPIED_TO_CLIPBOARD), android.widget.Toast.LENGTH_SHORT).show()
+    android.widget.Toast.makeText(context, StringsManager.getString(StringsManager.StringKey.COPIED_TO_CLIPBOARD), android.widget.Toast.LENGTH_SHORT).show()
 }
 
 private fun shareToOtherApps(context: Context, question: String, answer: String) {
@@ -209,7 +211,7 @@ private fun shareToOtherApps(context: Context, question: String, answer: String)
     val intent = Intent(Intent.ACTION_SEND).apply {
         type = "text/plain"
         putExtra(Intent.EXTRA_TEXT, shareText)
-        putExtra(Intent.EXTRA_SUBJECT, "FarmerChat Answer")
+        putExtra(Intent.EXTRA_SUBJECT, StringsManager.getString(StringKey.FARMERCHAT_ANSWER))
     }
     
     context.startActivity(Intent.createChooser(intent, "Share via"))

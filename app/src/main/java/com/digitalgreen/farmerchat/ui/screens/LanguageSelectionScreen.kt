@@ -27,9 +27,22 @@ fun LanguageSelectionScreen(
     navController: NavController,
     settingsViewModel: ApiSettingsViewModel = viewModel(),
     onLanguageSelected: ((String) -> Unit)? = null,
-    suggestedLanguages: List<String> = emptyList()
+    suggestedLanguages: List<String> = emptyList(),
+    actualRegionalLanguages: List<String> = suggestedLanguages
 ) {
     val settingsState by settingsViewModel.settingsState.collectAsState()
+    
+    // Initialize the view model if needed
+    LaunchedEffect(Unit) {
+        settingsViewModel.initialize()
+    }
+    
+    // Debug logging
+    LaunchedEffect(suggestedLanguages, settingsState.currentLanguage) {
+        android.util.Log.d("LanguageSelectionScreen", "Received suggestedLanguages: $suggestedLanguages")
+        android.util.Log.d("LanguageSelectionScreen", "Actual regional languages: $actualRegionalLanguages")
+        android.util.Log.d("LanguageSelectionScreen", "Settings current language: ${settingsState.currentLanguage}")
+    }
     
     Scaffold(
         topBar = {
@@ -96,6 +109,7 @@ fun LanguageSelectionScreen(
                     }
                 },
                 suggestedLanguages = suggestedLanguages,
+                actualRegionalLanguages = actualRegionalLanguages,
                 modifier = Modifier.fillMaxSize()
             )
         }

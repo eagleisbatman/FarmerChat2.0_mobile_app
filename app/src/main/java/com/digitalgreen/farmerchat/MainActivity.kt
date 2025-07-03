@@ -9,10 +9,15 @@ import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import com.digitalgreen.farmerchat.navigation.FarmerChatNavigation
 import com.digitalgreen.farmerchat.ui.theme.FarmerChatTheme
+import com.digitalgreen.farmerchat.utils.StringsManager
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        
+        // Initialize StringsManager with TranslationManager
+        StringsManager.initialize(application)
+        
         setContent {
             FarmerChatTheme {
                 // A surface container using the 'background' color from the theme

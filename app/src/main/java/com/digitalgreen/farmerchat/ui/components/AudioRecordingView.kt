@@ -18,6 +18,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.digitalgreen.farmerchat.ui.theme.DesignSystem
+import com.digitalgreen.farmerchat.utils.StringsManager.StringKey
 import com.digitalgreen.farmerchat.utils.AudioRecordingManager
 import com.digitalgreen.farmerchat.utils.StringsManager
 import kotlinx.coroutines.delay
@@ -103,7 +104,7 @@ private fun IdleView(
         ) {
             Icon(
                 imageVector = Icons.Default.Mic,
-                contentDescription = "Start recording",
+                contentDescription = localizedString(StringKey.START_RECORDING),
                 modifier = Modifier.size(32.dp),
                 tint = MaterialTheme.colorScheme.onPrimary
             )
@@ -180,7 +181,7 @@ private fun RecordingView(
         ) {
             Icon(
                 imageVector = Icons.Default.Stop,
-                contentDescription = "Stop recording",
+                contentDescription = localizedString(StringKey.STOP_RECORDING),
                 modifier = Modifier.size(32.dp),
                 tint = Color.White
             )
@@ -235,7 +236,7 @@ private fun PlaybackView(
             ) {
                 Icon(
                     imageVector = Icons.Default.Delete,
-                    contentDescription = "Discard recording",
+                    contentDescription = localizedString(StringKey.DISCARD_RECORDING),
                     modifier = Modifier.size(24.dp)
                 )
             }
@@ -266,7 +267,7 @@ private fun PlaybackView(
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.Send,
-                    contentDescription = "Send for transcription",
+                    contentDescription = localizedString(StringKey.SEND_TRANSCRIPTION),
                     modifier = Modifier.size(24.dp),
                     tint = MaterialTheme.colorScheme.onSecondary
                 )

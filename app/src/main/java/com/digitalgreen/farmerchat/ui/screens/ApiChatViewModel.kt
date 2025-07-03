@@ -268,6 +268,43 @@ class ApiChatViewModel(application: Application) : AndroidViewModel(application)
                     "typing" -> {
                         // Handle typing indicators if needed
                     }
+                    "stopped" -> {
+                        // Handle streaming stopped event
+                        if (isStreaming) {
+                            isStreaming = false
+                            
+                            // Add the current streaming message as complete
+                            if (_currentStreamingMessage.value.isNotEmpty()) {
+                                val stoppedMessage = ChatMessage(
+                                    id = UUID.randomUUID().toString(),
+                                    content = _currentStreamingMessage.value,
+                                    isUser = false,
+                                    timestamp = Date(),
+                                    followUpQuestions = emptyList(),
+                                    user = false
+                                )
+                                _messages.value = _messages.value + stoppedMessage
+                                android.util.Log.d("ApiChatViewModel", "Added stopped message with content: ${stoppedMessage.content.take(50)}...")
+                            }
+                            
+                            // Clear streaming state
+                            _currentStreamingMessage.value = ""
+                            _isLoading.value = false
+                            _followUpQuestions.value = emptyList()
+                            
+                            // Update conversation's last message
+                            currentConversationId?.let { convId ->
+                                if (_messages.value.isNotEmpty()) {
+                                    val lastMessage = _messages.value.last()
+                                    repository.updateConversationLastMessage(
+                                        conversationId = convId,
+                                        message = lastMessage.content,
+                                        isUser = lastMessage.isUser
+                                    )
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -305,7 +342,9 @@ class ApiChatViewModel(application: Application) : AndroidViewModel(application)
             // Use WebSocket streaming for real-time responses
             isStreaming = true
             _currentStreamingMessage.value = ""
-            repository.startStreamingMessage(message, conversationId)
+            // Pass the user's language preference
+            val userLanguage = _userProfile.value?.language ?: "en"
+            repository.startStreamingMessage(message, conversationId, userLanguage)
             
             // The response will be handled by listenForStreamingEvents()
             // Comment out HTTP fallback for now:

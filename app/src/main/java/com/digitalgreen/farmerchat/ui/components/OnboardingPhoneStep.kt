@@ -22,6 +22,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.digitalgreen.farmerchat.ui.theme.DesignSystem
 import com.digitalgreen.farmerchat.utils.LocationLanguageMapper
+import com.digitalgreen.farmerchat.utils.StringsManager.StringKey
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -106,7 +107,7 @@ fun OnboardingPhoneStep(
                     )
                     Spacer(modifier = Modifier.width(DesignSystem.Spacing.xs))
                     Text(
-                        text = "Phone Number",
+                        text = localizedString(StringKey.PHONE_NUMBER),
                         fontSize = DesignSystem.Typography.labelLarge,
                         fontWeight = FontWeight.Medium,
                         color = MaterialTheme.colorScheme.primary
@@ -140,7 +141,7 @@ fun OnboardingPhoneStep(
                         value = countryCode,
                         onValueChange = { /* Read-only based on location */ },
                         modifier = Modifier.width(100.dp),
-                        label = { Text("Code") },
+                        label = { Text(localizedString(StringKey.COUNTRY_CODE)) },
                         readOnly = true,
                         singleLine = true
                     )
@@ -152,7 +153,7 @@ fun OnboardingPhoneStep(
                         modifier = Modifier
                             .weight(1f)
                             .focusRequester(phoneNumberFocusRequester),
-                        label = { Text("Phone Number") },
+                        label = { Text(localizedString(StringKey.PHONE_NUMBER)) },
                         placeholder = { Text(localizedString(StringKey.PHONE_NUMBER_PLACEHOLDER)) },
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(
@@ -208,7 +209,7 @@ fun OnboardingPhoneStep(
                     modifier = Modifier
                         .fillMaxWidth()
                         .focusRequester(pinFocusRequester),
-                    label = { Text("Create PIN") },
+                    label = { Text(localizedString(StringKey.CREATE_YOUR_PIN)) },
                     placeholder = { Text(localizedString(StringKey.PIN_PLACEHOLDER)) },
                     singleLine = true,
                     visualTransformation = PasswordVisualTransformation(),
@@ -230,7 +231,7 @@ fun OnboardingPhoneStep(
                     modifier = Modifier
                         .fillMaxWidth()
                         .focusRequester(confirmPinFocusRequester),
-                    label = { Text("Confirm PIN") },
+                    label = { Text(localizedString(StringKey.CONFIRM_PIN)) },
                     placeholder = { Text(localizedString(StringKey.PIN_PLACEHOLDER)) },
                     singleLine = true,
                     visualTransformation = PasswordVisualTransformation(),
@@ -271,7 +272,7 @@ fun OnboardingPhoneStep(
                 onClick = onBack,
                 modifier = Modifier.weight(1f)
             ) {
-                Text("Back")
+                Text(localizedString(StringKey.BACK))
             }
             
             // Skip button
@@ -279,7 +280,7 @@ fun OnboardingPhoneStep(
                 onClick = onSkip,
                 modifier = Modifier.weight(1f)
             ) {
-                Text("Skip for now")
+                Text(localizedString(StringKey.SKIP_FOR_NOW))
             }
             
             // Next button
@@ -288,7 +289,7 @@ fun OnboardingPhoneStep(
                 modifier = Modifier.weight(1f),
                 enabled = isValidInput
             ) {
-                Text("Continue")
+                Text(localizedString(StringKey.CONTINUE))
             }
         }
         

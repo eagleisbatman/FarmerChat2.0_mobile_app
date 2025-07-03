@@ -14,6 +14,7 @@ import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Translate
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -30,26 +31,64 @@ fun EnhancedLanguageSelectionView(
     selectedLanguage: String,
     onLanguageSelected: (String) -> Unit,
     suggestedLanguages: List<String> = emptyList(),
+    actualRegionalLanguages: List<String> = suggestedLanguages,
     modifier: Modifier = Modifier
 ) {
     var searchQuery by remember { mutableStateOf("") }
     
+    // Debug logging
+    LaunchedEffect(suggestedLanguages, actualRegionalLanguages, selectedLanguage) {
+        android.util.Log.d("EnhancedLanguageSelection", "Selected language: $selectedLanguage")
+        android.util.Log.d("EnhancedLanguageSelection", "Received suggestedLanguages: $suggestedLanguages")
+        android.util.Log.d("EnhancedLanguageSelection", "Actual regional languages: $actualRegionalLanguages")
+    }
+    
     // Get all languages and organize them
-    val (prioritizedLanguages, otherLanguages) = remember(searchQuery, suggestedLanguages) {
+    val (currentLanguageList, regionalLanguages, otherLanguages) = remember(searchQuery, suggestedLanguages, actualRegionalLanguages, selectedLanguage) {
         val allLanguages = if (searchQuery.isEmpty()) {
             LanguageManager.languages
         } else {
             LanguageManager.searchLanguages(searchQuery)
         }
         
-        // If we have suggested languages (based on country), prioritize them
-        if (suggestedLanguages.isNotEmpty() && searchQuery.isEmpty()) {
-            val suggestedSet = suggestedLanguages.toSet()
-            val prioritized = allLanguages.filter { it.code in suggestedSet }
-            val others = allLanguages.filter { it.code !in suggestedSet }
-            prioritized to others
+        // If we have regional languages and no search query
+        if (actualRegionalLanguages.isNotEmpty() && searchQuery.isEmpty()) {
+            // Get current language inside remember block
+            val currentLang = LanguageManager.getLanguageByCode(selectedLanguage)
+            
+            // Check if current language is regional
+            val isCurrentRegional = selectedLanguage in actualRegionalLanguages
+            
+            android.util.Log.d("EnhancedLanguageSelection", "Selected language code: $selectedLanguage")
+            android.util.Log.d("EnhancedLanguageSelection", "Is current regional: $isCurrentRegional")
+            android.util.Log.d("EnhancedLanguageSelection", "Current language object: $currentLang")
+            
+            // Get languages for each category
+            val currentLangList = if (!isCurrentRegional && currentLang != null) {
+                listOf(currentLang)
+            } else {
+                emptyList()
+            }
+            
+            // Get only actual regional languages
+            val regional = allLanguages.filter { it.code in actualRegionalLanguages }
+            
+            // Get all other languages (excluding current and regional)
+            val excludeSet = if (isCurrentRegional) {
+                actualRegionalLanguages.toSet()
+            } else {
+                actualRegionalLanguages.toSet() + selectedLanguage
+            }
+            val others = allLanguages.filter { it.code !in excludeSet }
+            
+            android.util.Log.d("EnhancedLanguageSelection", "Current list: ${currentLangList.map { it.code }}")
+            android.util.Log.d("EnhancedLanguageSelection", "Regional list: ${regional.map { it.code }}")
+            android.util.Log.d("EnhancedLanguageSelection", "Others list size: ${others.size}")
+            
+            Triple(currentLangList, regional, others)
         } else {
-            emptyList<Language>() to allLanguages
+            // No regional languages or searching - show all languages
+            Triple(emptyList<Language>(), emptyList(), allLanguages)
         }
     }
     
@@ -81,7 +120,7 @@ fun EnhancedLanguageSelectionView(
         // Show total language count
         if (searchQuery.isEmpty()) {
             Text(
-                text = "Choose from ${LanguageManager.languages.size} languages",
+                text = localizedString(StringKey.CHOOSE_FROM_LANGUAGES),
                 fontSize = 14.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(horizontal = DesignSystem.Spacing.md, vertical = DesignSystem.Spacing.xs)
@@ -95,11 +134,11 @@ fun EnhancedLanguageSelectionView(
             contentPadding = PaddingValues(horizontal = DesignSystem.Spacing.md, vertical = DesignSystem.Spacing.md),
             verticalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.sm)
         ) {
-            // Show prioritized languages first (if any)
-            if (prioritizedLanguages.isNotEmpty()) {
+            // Show current language if it's not regional
+            if (currentLanguageList.isNotEmpty()) {
                 item {
                     Text(
-                        text = "Suggested for your region",
+                        text = localizedString(StringKey.YOUR_CURRENT_LANGUAGE),
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Medium,
                         color = MaterialTheme.colorScheme.primary,
@@ -107,7 +146,38 @@ fun EnhancedLanguageSelectionView(
                     )
                 }
                 
-                items(prioritizedLanguages) { language ->
+                items(currentLanguageList) { language ->
+                    EnhancedLanguageCard(
+                        language = language,
+                        isSelected = true,
+                        isSuggested = false,
+                        onClick = { onLanguageSelected(language.code) }
+                    )
+                }
+                
+                if (regionalLanguages.isNotEmpty()) {
+                    item {
+                        HorizontalDivider(
+                            modifier = Modifier.padding(vertical = DesignSystem.Spacing.md),
+                            color = MaterialTheme.colorScheme.outlineVariant
+                        )
+                    }
+                }
+            }
+            
+            // Show regional languages
+            if (regionalLanguages.isNotEmpty()) {
+                item {
+                    Text(
+                        text = localizedString(StringKey.SUGGESTED_FOR_YOUR_REGION),
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(vertical = DesignSystem.Spacing.sm)
+                    )
+                }
+                
+                items(regionalLanguages) { language ->
                     EnhancedLanguageCard(
                         language = language,
                         isSelected = selectedLanguage == language.code,
@@ -123,7 +193,7 @@ fun EnhancedLanguageSelectionView(
                             color = MaterialTheme.colorScheme.outlineVariant
                         )
                         Text(
-                            text = "All other languages",
+                            text = localizedString(StringKey.ALL_OTHER_LANGUAGES),
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Medium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -153,6 +223,13 @@ fun EnhancedLanguageCard(
     isSuggested: Boolean,
     onClick: () -> Unit
 ) {
+    // Debug log
+    if (language.code == "am") {
+        LaunchedEffect(isSuggested) {
+            android.util.Log.d("EnhancedLanguageCard", "Amharic card - isSuggested: $isSuggested")
+        }
+    }
+    
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -228,7 +305,7 @@ fun EnhancedLanguageCard(
                             MaterialTheme.colorScheme.onSurface
                         }
                     )
-                    if (isSuggested && !isSelected) {
+                    if (isSuggested) {
                         Spacer(modifier = Modifier.width(DesignSystem.Spacing.sm))
                         Surface(
                             shape = MaterialTheme.shapes.small,

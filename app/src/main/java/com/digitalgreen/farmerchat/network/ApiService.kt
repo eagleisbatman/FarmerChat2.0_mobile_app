@@ -105,7 +105,7 @@ data class AudioTranscriptionResponse(
 
 interface TranslationApiService {
     @GET("translations/{languageCode}")
-    suspend fun getTranslations(@Path("languageCode") languageCode: String): Response<ApiResponse<TranslationBundle>>
+    suspend fun getTranslations(@Path("languageCode") languageCode: String): Response<ApiResponse<TranslationResponse>>
     
     @GET("translations/languages")
     suspend fun getSupportedLanguages(): Response<ApiResponse<List<Language>>>

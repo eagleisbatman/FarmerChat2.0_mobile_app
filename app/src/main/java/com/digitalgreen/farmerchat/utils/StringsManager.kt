@@ -1,5 +1,7 @@
 package com.digitalgreen.farmerchat.utils
 
+import android.app.Application
+import com.digitalgreen.farmerchat.FarmerChatApplication
 import com.digitalgreen.farmerchat.data.LanguageManager
 
 /**
@@ -7,6 +9,14 @@ import com.digitalgreen.farmerchat.data.LanguageManager
  * This provides a centralized place for all UI text that needs translation
  */
 object StringsManager {
+    
+    private var translationManager: TranslationManager? = null
+    
+    fun initialize(application: Application) {
+        if (application is FarmerChatApplication) {
+            translationManager = application.translationManager
+        }
+    }
     
     enum class StringKey {
         // App Name
@@ -89,6 +99,7 @@ object StringsManager {
         VOICE_INPUT,
         VOICE_INPUT_DESC,
         AI_SETTINGS,
+        AI_ASSISTANT,
         RESPONSE_LENGTH,
         CONCISE,
         DETAILED,
@@ -166,6 +177,7 @@ object StringsManager {
         // Dialog and Modal strings
         EDIT_NAME,
         EDIT_LOCATION,
+        CHANGE_LOCATION,
         ENTER_YOUR_NAME,
         ENTER_LOCATION,
         UPDATE_CROPS,
@@ -200,6 +212,8 @@ object StringsManager {
         
         // Export/Share
         EXPORT_FARMERCHAT_DATA,
+        SHARE_ANSWER,
+        FARMERCHAT_ANSWER,
         FAILED_TO_EXPORT,
         NO_PROFILE_DATA,
         
@@ -252,6 +266,7 @@ object StringsManager {
         NEW_PIN,
         ENTER_NEW_PIN,
         CONFIRM_NEW_PIN,
+        CONFIRM_PIN,
         RESET_PIN,
         SHOW_PIN,
         HIDE_PIN,
@@ -267,11 +282,71 @@ object StringsManager {
         VIEW_PRIVACY_POLICY,
         VIEW_TERMS,
         
+        // Privacy Policy Sections
+        PRIVACY_POLICY_TITLE,
+        PRIVACY_LAST_UPDATED,
+        PRIVACY_INTRODUCTION_TITLE,
+        PRIVACY_INTRODUCTION_CONTENT,
+        PRIVACY_INFO_COLLECT_TITLE,
+        PRIVACY_INFO_COLLECT_CONTENT,
+        PRIVACY_HOW_USE_TITLE,
+        PRIVACY_HOW_USE_CONTENT,
+        PRIVACY_DATA_STORAGE_TITLE,
+        PRIVACY_DATA_STORAGE_CONTENT,
+        PRIVACY_DATA_SHARING_TITLE,
+        PRIVACY_DATA_SHARING_CONTENT,
+        PRIVACY_YOUR_RIGHTS_TITLE,
+        PRIVACY_YOUR_RIGHTS_CONTENT,
+        PRIVACY_CONTACT_TITLE,
+        PRIVACY_CONTACT_CONTENT,
+        
+        // Terms & Conditions Sections
+        TERMS_CONDITIONS_TITLE,
+        TERMS_LAST_UPDATED,
+        TERMS_ACCEPTANCE_TITLE,
+        TERMS_ACCEPTANCE_CONTENT,
+        TERMS_SERVICE_DESC_TITLE,
+        TERMS_SERVICE_DESC_CONTENT,
+        TERMS_USER_ACCOUNTS_TITLE,
+        TERMS_USER_ACCOUNTS_CONTENT,
+        TERMS_ACCEPTABLE_USE_TITLE,
+        TERMS_ACCEPTABLE_USE_CONTENT,
+        TERMS_AGRI_DISCLAIMER_TITLE,
+        TERMS_AGRI_DISCLAIMER_CONTENT,
+        TERMS_INTELLECTUAL_TITLE,
+        TERMS_INTELLECTUAL_CONTENT,
+        TERMS_LIABILITY_TITLE,
+        TERMS_LIABILITY_CONTENT,
+        TERMS_PRIVACY_TITLE,
+        TERMS_PRIVACY_CONTENT,
+        TERMS_TERMINATION_TITLE,
+        TERMS_TERMINATION_CONTENT,
+        TERMS_CHANGES_TITLE,
+        TERMS_CHANGES_CONTENT,
+        TERMS_GOVERNING_LAW_TITLE,
+        TERMS_GOVERNING_LAW_CONTENT,
+        TERMS_CONTACT_TITLE,
+        TERMS_CONTACT_CONTENT,
+        
         // Placeholders
         PHONE_NUMBER_PLACEHOLDER,
+        PHONE_PLACEHOLDER_EXAMPLE,
         PIN_PLACEHOLDER,
         SEARCH_LANGUAGES_PLACEHOLDER,
         SEARCH_LANGUAGES_FULL_PLACEHOLDER,
+        
+        // Language Selection Section Headers
+        YOUR_CURRENT_LANGUAGE,
+        SUGGESTED_FOR_YOUR_REGION,
+        ALL_OTHER_LANGUAGES,
+        CHOOSE_FROM_LANGUAGES,
+        
+        // New Authentication Keys
+        PHONE_MUST_START_WITH_CODE,
+        COUNTRY_CODE_HELPER,
+        CREATE_YOUR_PIN,
+        CREATE_PIN_SUBTITLE,
+        TERMS_READ_TO_CONTINUE,
         
         // Additional Error Messages
         ERROR_SEND_VERIFICATION,
@@ -298,6 +373,10 @@ object StringsManager {
         ERROR_INVALID_CREDENTIALS,
         ERROR_SESSION_EXPIRED,
         ERROR_RATE_LIMITED,
+        
+        // Server Connection Errors
+        CANNOT_CONNECT_SERVER,
+        ENSURE_BACKEND_RUNNING,
         
         // Crop Categories
         CROP_CATEGORY_CEREALS,
@@ -337,7 +416,11 @@ object StringsManager {
         RECORDING_IN_PROGRESS,
         PLAY_RECORDING,
         DISCARD_RECORDING,
+        START_RECORDING,
+        STOP_RECORDING,
+        SEND_TRANSCRIPTION,
         SEND_FOR_TRANSCRIPTION,
+        SWIPE_TO_CANCEL,
         
         // Phone Collection V2
         SECURE_YOUR_ACCOUNT,
@@ -351,7 +434,6 @@ object StringsManager {
         SECURITY_PIN,
         DONT_HAVE_ACCOUNT,
         CREATE_ACCOUNT,
-        FORGOT_PIN,
         REMEMBER_ME,
         
         // Personalization explanations
@@ -437,6 +519,7 @@ object StringsManager {
             StringKey.VOICE_INPUT to "Voice Input",
             StringKey.VOICE_INPUT_DESC to "Enable voice recording for questions",
             StringKey.AI_SETTINGS to "AI Settings",
+            StringKey.AI_ASSISTANT to "AI Assistant",
             StringKey.RESPONSE_LENGTH to "Response Length",
             StringKey.CONCISE to "Concise",
             StringKey.DETAILED to "Detailed",
@@ -502,6 +585,7 @@ object StringsManager {
             // Dialog and Modal strings
             StringKey.EDIT_NAME to "Edit Name",
             StringKey.EDIT_LOCATION to "Edit Location",
+            StringKey.CHANGE_LOCATION to "Change location",
             StringKey.ENTER_YOUR_NAME to "Enter your name",
             StringKey.ENTER_LOCATION to "Enter location",
             StringKey.UPDATE_CROPS to "Update Crops",
@@ -536,6 +620,8 @@ object StringsManager {
             
             // Export/Share
             StringKey.EXPORT_FARMERCHAT_DATA to "Export FarmerChat Data",
+            StringKey.SHARE_ANSWER to "Share Answer",
+            StringKey.FARMERCHAT_ANSWER to "FarmerChat Answer",
             StringKey.FAILED_TO_EXPORT to "Failed to export data: %s",
             StringKey.NO_PROFILE_DATA to "No profile data",
             
@@ -613,7 +699,11 @@ object StringsManager {
             StringKey.RECORDING_IN_PROGRESS to "Recording...",
             StringKey.PLAY_RECORDING to "Play recording",
             StringKey.DISCARD_RECORDING to "Discard recording",
+            StringKey.START_RECORDING to "Start recording",
+            StringKey.STOP_RECORDING to "Stop recording",
+            StringKey.SEND_TRANSCRIPTION to "Send for transcription",
             StringKey.SEND_FOR_TRANSCRIPTION to "Send for transcription",
+            StringKey.SWIPE_TO_CANCEL to "Swipe to cancel",
             
             // Phone Collection V2
             StringKey.SECURE_YOUR_ACCOUNT to "Secure Your Account",
@@ -640,8 +730,13 @@ object StringsManager {
             StringKey.CROPS_BENEFIT to "Get crop-specific advice on planting, pest control, and harvest timing",
             StringKey.LIVESTOCK_BENEFIT to "Receive targeted guidance on animal health, feeding, and breeding",
             
+            // Language Selection Section Headers
+            StringKey.YOUR_CURRENT_LANGUAGE to "Your current language",
+            StringKey.SUGGESTED_FOR_YOUR_REGION to "Suggested for your region",
+            StringKey.ALL_OTHER_LANGUAGES to "All other languages",
+            StringKey.CHOOSE_FROM_LANGUAGES to "Choose from 53 languages",
+            
             // PIN Recovery
-            StringKey.FORGOT_PIN to "Forgot PIN?",
             StringKey.FORGOT_PIN_ENTER_PHONE to "Enter your registered phone number to reset your PIN",
             StringKey.FORGOT_PIN_VERIFY_IDENTITY to "We've sent a verification code to your phone",
             StringKey.FORGOT_PIN_CREATE_NEW to "Create a new 6-digit PIN for your account",
@@ -653,6 +748,7 @@ object StringsManager {
             StringKey.NEW_PIN to "New PIN",
             StringKey.ENTER_NEW_PIN to "Enter new 6-digit PIN",
             StringKey.CONFIRM_NEW_PIN to "Confirm new PIN",
+            StringKey.CONFIRM_PIN to "Confirm PIN",
             StringKey.RESET_PIN to "Reset PIN",
             StringKey.SHOW_PIN to "Show PIN",
             StringKey.HIDE_PIN to "Hide PIN",
@@ -668,8 +764,55 @@ object StringsManager {
             StringKey.VIEW_PRIVACY_POLICY to "View Privacy Policy",
             StringKey.VIEW_TERMS to "View Terms & Conditions",
             
+            // Privacy Policy Sections
+            StringKey.PRIVACY_POLICY_TITLE to "Privacy Policy",
+            StringKey.PRIVACY_LAST_UPDATED to "Last updated: %s",
+            StringKey.PRIVACY_INTRODUCTION_TITLE to "Introduction",
+            StringKey.PRIVACY_INTRODUCTION_CONTENT to "FarmerChat is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our mobile application.",
+            StringKey.PRIVACY_INFO_COLLECT_TITLE to "Information We Collect",
+            StringKey.PRIVACY_INFO_COLLECT_CONTENT to "• Personal Information: Name, location, phone number, gender\n• Agricultural Information: Crops you grow, livestock you raise, farming practices\n• Usage Data: App interactions, conversation history, preferences\n• Device Information: Device type, operating system, unique identifiers",
+            StringKey.PRIVACY_HOW_USE_TITLE to "How We Use Your Information",
+            StringKey.PRIVACY_HOW_USE_CONTENT to "• To provide personalized agricultural advice\n• To improve our AI recommendations\n• To send relevant notifications and updates\n• To analyze usage patterns and improve the app\n• To ensure proper app functionality\n• To comply with legal obligations",
+            StringKey.PRIVACY_DATA_STORAGE_TITLE to "Data Storage and Security",
+            StringKey.PRIVACY_DATA_STORAGE_CONTENT to "• Your data is encrypted in transit and at rest\n• We use industry-standard security measures\n• Data is stored on secure cloud servers\n• Regular security audits are performed\n• Access is limited to authorized personnel",
+            StringKey.PRIVACY_DATA_SHARING_TITLE to "Data Sharing",
+            StringKey.PRIVACY_DATA_SHARING_CONTENT to "We do not sell your personal information. We may share your data with:\n• Agricultural research organizations (anonymized)\n• Service providers who assist us\n• Legal authorities when required by law",
+            StringKey.PRIVACY_YOUR_RIGHTS_TITLE to "Your Rights",
+            StringKey.PRIVACY_YOUR_RIGHTS_CONTENT to "You have the right to:\n• Access your personal data\n• Correct inaccurate information\n• Delete your account and data\n• Export your data\n• Opt-out of certain data uses\n• Lodge a complaint with authorities",
+            StringKey.PRIVACY_CONTACT_TITLE to "Contact Us",
+            StringKey.PRIVACY_CONTACT_CONTENT to "If you have questions about this Privacy Policy:\n• Email: privacy@digitalgreen.org\n• Website: www.digitalgreen.org\n• Address: Digital Green, [Address]",
+            
+            // Terms & Conditions Sections
+            StringKey.TERMS_CONDITIONS_TITLE to "Terms & Conditions",
+            StringKey.TERMS_LAST_UPDATED to "Last updated: %s",
+            StringKey.TERMS_ACCEPTANCE_TITLE to "1. Acceptance of Terms",
+            StringKey.TERMS_ACCEPTANCE_CONTENT to "By downloading, installing, or using FarmerChat, you agree to be bound by these Terms & Conditions. If you do not agree to these terms, please do not use the application.",
+            StringKey.TERMS_SERVICE_DESC_TITLE to "2. Description of Service",
+            StringKey.TERMS_SERVICE_DESC_CONTENT to "FarmerChat provides:\n• AI-powered agricultural advice\n• Personalized recommendations\n• Agricultural best practices\n• Weather and market information\n• Community features",
+            StringKey.TERMS_USER_ACCOUNTS_TITLE to "3. User Accounts",
+            StringKey.TERMS_USER_ACCOUNTS_CONTENT to "• You must provide accurate information\n• You're responsible for account security\n• One account per user\n• Must be 13+ years old\n• Commercial use requires permission",
+            StringKey.TERMS_ACCEPTABLE_USE_TITLE to "4. Acceptable Use",
+            StringKey.TERMS_ACCEPTABLE_USE_CONTENT to "You agree not to:\n• Share false or misleading information\n• Harass or harm other users\n• Attempt to disrupt or hack the service\n• Use the app for illegal activities\n• Violate others' intellectual property rights\n• Send spam or unsolicited messages",
+            StringKey.TERMS_AGRI_DISCLAIMER_TITLE to "5. Agricultural Advice Disclaimer",
+            StringKey.TERMS_AGRI_DISCLAIMER_CONTENT to "• Advice is general in nature\n• Consult local experts for specific cases\n• We're not liable for crop damage\n• Results may vary by location\n• Always verify critical information\n• Use at your own risk",
+            StringKey.TERMS_INTELLECTUAL_TITLE to "6. Intellectual Property",
+            StringKey.TERMS_INTELLECTUAL_CONTENT to "• FarmerChat content is copyrighted\n• User-generated content remains yours\n• You grant us license to use your content\n• Respect others' intellectual property\n• Report any violations to us",
+            StringKey.TERMS_LIABILITY_TITLE to "7. Limitation of Liability",
+            StringKey.TERMS_LIABILITY_CONTENT to "To the maximum extent permitted by law:\n• Service provided as-is\n• No warranties given\n• Not liable for indirect damages\n• Our liability doesn't exceed fees paid\n• Some jurisdictions don't allow these limits",
+            StringKey.TERMS_PRIVACY_TITLE to "8. Privacy",
+            StringKey.TERMS_PRIVACY_CONTENT to "Your use of FarmerChat is governed by our Privacy Policy. Please review our Privacy Policy to understand our practices.",
+            StringKey.TERMS_TERMINATION_TITLE to "9. Termination",
+            StringKey.TERMS_TERMINATION_CONTENT to "• Either party may terminate anytime\n• We may suspend service for violations\n• Your data may be deleted after termination\n• Some provisions survive termination",
+            StringKey.TERMS_CHANGES_TITLE to "10. Changes to Terms",
+            StringKey.TERMS_CHANGES_CONTENT to "We reserve the right to modify these terms at any time. We will notify you of significant changes through the app. Continued use after changes constitutes acceptance.",
+            StringKey.TERMS_GOVERNING_LAW_TITLE to "11. Governing Law",
+            StringKey.TERMS_GOVERNING_LAW_CONTENT to "These Terms are governed by the laws of the jurisdiction where Digital Green operates, without regard to conflict of law provisions.",
+            StringKey.TERMS_CONTACT_TITLE to "12. Contact Information",
+            StringKey.TERMS_CONTACT_CONTENT to "For questions about these Terms & Conditions:\n• Email: legal@digitalgreen.org\n• Website: www.digitalgreen.org\n• Address: Digital Green, [Address]",
+            
             // Placeholders
             StringKey.PHONE_NUMBER_PLACEHOLDER to "1234567890",
+            StringKey.PHONE_PLACEHOLDER_EXAMPLE to "+91 9876543210",
             StringKey.PIN_PLACEHOLDER to "123456",
             StringKey.SEARCH_LANGUAGES_PLACEHOLDER to "Search languages...",
             StringKey.SEARCH_LANGUAGES_FULL_PLACEHOLDER to "Search from 50+ languages...",
@@ -859,6 +1002,10 @@ object StringsManager {
             StringKey.NETWORK_ERROR to "नेटवर्क त्रुटि",
             StringKey.TIMEOUT_ERROR to "अनुरोध समय समाप्त",
             
+            // Server Connection Errors
+            StringKey.CANNOT_CONNECT_SERVER to "Cannot connect to server",
+            StringKey.ENSURE_BACKEND_RUNNING to "Please ensure the backend is running on port 3004",
+            
             // User defaults
             StringKey.DEFAULT_USER_NAME to "किसान %s",
             
@@ -913,6 +1060,13 @@ object StringsManager {
             StringKey.SKIP_FOR_NOW to "अभी के लिए छोड़ें",
             StringKey.INVALID_PHONE_NUMBER to "कृपया एक वैध फ़ोन नंबर दर्ज करें",
             StringKey.INVALID_OTP to "अमान्य OTP। कृपया पुनः प्रयास करें।",
+            
+            // New Authentication Keys
+            StringKey.PHONE_MUST_START_WITH_CODE to "Phone number must start with country code (e.g., +91, +1)",
+            StringKey.COUNTRY_CODE_HELPER to "Include country code (e.g., +91 for India, +1 for USA)",
+            StringKey.CREATE_YOUR_PIN to "Create Your PIN",
+            StringKey.CREATE_PIN_SUBTITLE to "Create a 6-digit PIN for secure login",
+            StringKey.TERMS_READ_TO_CONTINUE to "Please read the entire document to continue",
             
             // Crop Categories
             StringKey.CROP_CATEGORY_CEREALS to "अनाज और दाने",
@@ -1214,8 +1368,34 @@ object StringsManager {
      * Get localized string for a given key and language code
      */
     fun getString(key: StringKey, languageCode: String = "en"): String {
+        // First try to get from TranslationManager (API translations)
+        translationManager?.let { manager ->
+            val apiTranslation = manager.getString(key.name, languageCode)
+            if (apiTranslation != null) {
+                android.util.Log.d("StringsManager", "Using API translation for ${key.name} in $languageCode: $apiTranslation")
+                return apiTranslation
+            }
+        }
+        
+        // Fall back to hardcoded translations
         val languageStrings = translations[languageCode] ?: translations["en"]!!
-        return languageStrings[key] ?: translations["en"]!![key] ?: key.name
+        val hardcodedTranslation = languageStrings[key] ?: translations["en"]!![key] ?: key.name
+        android.util.Log.d("StringsManager", "Using hardcoded translation for ${key.name} in $languageCode: $hardcodedTranslation")
+        return hardcodedTranslation
+    }
+    
+    /**
+     * Reload translations for a specific language
+     */
+    fun reloadTranslations(languageCode: String) {
+        translationManager?.loadTranslations(languageCode)
+    }
+    
+    /**
+     * Check if translations are loaded
+     */
+    fun isTranslationLoaded(): Boolean {
+        return translationManager?.translationsLoaded?.value ?: false
     }
     
     /**

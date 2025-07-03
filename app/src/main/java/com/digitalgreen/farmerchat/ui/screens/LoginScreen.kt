@@ -162,7 +162,7 @@ fun LoginScreen(
                             .testTag("phoneNumberInput"),
                         placeholder = {
                             Text(
-                                "+91 9876543210",
+                                localizedString(StringKey.PHONE_PLACEHOLDER_EXAMPLE),
                                 fontSize = 16.sp,  // Explicit font size for placeholder
                                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
                             )
@@ -190,7 +190,7 @@ fun LoginScreen(
                     
                     // Helper text for country code requirement
                     Text(
-                        text = "Include country code (e.g., +91 for India, +1 for USA)",
+                        text = localizedString(StringKey.COUNTRY_CODE_HELPER),
                         fontSize = 15.sp,  // Increased from bodySmall (14sp)
                         color = if (phoneNumber.isNotEmpty() && !phoneNumber.startsWith("+")) {
                             MaterialTheme.colorScheme.error
@@ -226,7 +226,7 @@ fun LoginScreen(
                             .testTag("pinInput"),
                         placeholder = {
                             Text(
-                                "••••••",
+                                localizedString(StringKey.PIN_PLACEHOLDER),
                                 fontSize = 16.sp,  // Explicit font size for placeholder
                                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
                             )
@@ -242,7 +242,7 @@ fun LoginScreen(
                             IconButton(onClick = { showPin = !showPin }) {
                                 Icon(
                                     imageVector = if (showPin) Icons.Default.VisibilityOff else Icons.Default.Visibility,
-                                    contentDescription = if (showPin) "Hide PIN" else "Show PIN"
+                                    contentDescription = if (showPin) localizedString(StringKey.HIDE_PIN) else localizedString(StringKey.SHOW_PIN)
                                 )
                             }
                         },
@@ -276,7 +276,7 @@ fun LoginScreen(
                 Text(
                     text = localizedString(StringKey.FORGOT_PIN),
                     color = DesignSystem.Colors.Primary,
-                    style = DesignSystem.Typography.bodyMedium
+                    fontSize = DesignSystem.Typography.bodyMedium
                 )
             }
             

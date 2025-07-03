@@ -192,7 +192,7 @@ private fun PhoneStep(
                     textStyle = LocalTextStyle.current.copy(fontSize = 18.sp),  // Larger input text
                     placeholder = { 
                         Text(
-                            "+91 9876543210",
+                            localizedString(StringKey.PHONE_PLACEHOLDER_EXAMPLE),
                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
                         ) 
                     },
@@ -213,9 +213,9 @@ private fun PhoneStep(
                     supportingText = {
                         Text(
                             text = if (uiState.phoneNumber.isNotEmpty() && !isValidPhone) {
-                                "Phone number must start with country code (e.g., +91, +1)"
+                                localizedString(StringKey.PHONE_MUST_START_WITH_CODE)
                             } else {
-                                "Include country code (e.g., +91 for India, +1 for USA)"
+                                localizedString(StringKey.COUNTRY_CODE_HELPER)
                             },
                             color = if (uiState.phoneNumber.isNotEmpty() && !isValidPhone) {
                                 MaterialTheme.colorScheme.error
@@ -256,7 +256,7 @@ private fun PhoneStep(
                 )
             } else {
                 Text(
-                    "Continue",
+                    localizedString(StringKey.CONTINUE),
                     fontSize = DesignSystem.Typography.bodyLarge,
                     fontWeight = DesignSystem.Typography.Weight.Medium
                 )
@@ -354,7 +354,7 @@ private fun PINStep(
         Spacer(modifier = Modifier.height(DesignSystem.Spacing.xl))
         
         Text(
-            text = "Create Your PIN",
+            text = localizedString(StringKey.CREATE_YOUR_PIN),
             fontSize = DesignSystem.Typography.headlineMedium,
             fontWeight = DesignSystem.Typography.Weight.Bold,
             textAlign = TextAlign.Center
@@ -363,7 +363,7 @@ private fun PINStep(
         Spacer(modifier = Modifier.height(DesignSystem.Spacing.sm))
         
         Text(
-            text = "Create a 6-digit PIN for secure login",
+            text = localizedString(StringKey.CREATE_PIN_SUBTITLE),
             fontSize = DesignSystem.Typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center
@@ -406,7 +406,7 @@ private fun PINStep(
                     textStyle = LocalTextStyle.current.copy(fontSize = 18.sp),  // Larger input text
                     placeholder = { 
                         Text(
-                            "••••••",
+                            localizedString(StringKey.PIN_PLACEHOLDER),
                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
                         ) 
                     },
@@ -422,7 +422,7 @@ private fun PINStep(
                         IconButton(onClick = { showPin = !showPin }) {
                             Icon(
                                 imageVector = if (showPin) Icons.Default.VisibilityOff else Icons.Default.Visibility,
-                                contentDescription = if (showPin) "Hide PIN" else "Show PIN"
+                                contentDescription = if (showPin) localizedString(StringKey.HIDE_PIN) else localizedString(StringKey.SHOW_PIN)
                             )
                         }
                     },
@@ -441,7 +441,7 @@ private fun PINStep(
                 
                 // Confirm PIN Field
                 Text(
-                    text = "Confirm PIN",
+                    text = localizedString(StringKey.CONFIRM_PIN),
                     fontSize = DesignSystem.Typography.bodyMedium,
                     fontWeight = FontWeight.Medium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -458,7 +458,7 @@ private fun PINStep(
                     textStyle = LocalTextStyle.current.copy(fontSize = 18.sp),  // Larger input text
                     placeholder = { 
                         Text(
-                            "••••••",
+                            localizedString(StringKey.PIN_PLACEHOLDER),
                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
                         ) 
                     },
@@ -474,7 +474,7 @@ private fun PINStep(
                         IconButton(onClick = { showConfirmPin = !showConfirmPin }) {
                             Icon(
                                 imageVector = if (showConfirmPin) Icons.Default.VisibilityOff else Icons.Default.Visibility,
-                                contentDescription = if (showConfirmPin) "Hide PIN" else "Show PIN"
+                                contentDescription = if (showConfirmPin) localizedString(StringKey.HIDE_PIN) else localizedString(StringKey.SHOW_PIN)
                             )
                         }
                     },
@@ -519,7 +519,7 @@ private fun PINStep(
                 )
             } else {
                 Text(
-                    "Create Account",
+                    localizedString(StringKey.CREATE_ACCOUNT),
                     fontSize = DesignSystem.Typography.bodyLarge,
                     fontWeight = DesignSystem.Typography.Weight.Medium
                 )

@@ -104,7 +104,7 @@ fun SmartLanguageSelector(
             leadingIcon = {
                 Icon(
                     imageVector = Icons.Default.Search,
-                    contentDescription = "Search",
+                    contentDescription = localizedString(StringKey.SEARCH),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             },
@@ -278,7 +278,7 @@ private fun LanguageCard(
             if (isSelected) {
                 Icon(
                     imageVector = Icons.Default.Check,
-                    contentDescription = "Selected",
+                    contentDescription = localizedString(StringKey.SELECTED),
                     tint = MaterialTheme.colorScheme.onPrimary,
                     modifier = Modifier.size(DesignSystem.IconSize.medium)
                 )

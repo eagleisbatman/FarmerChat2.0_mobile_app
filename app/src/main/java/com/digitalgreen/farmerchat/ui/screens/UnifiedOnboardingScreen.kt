@@ -351,7 +351,7 @@ fun UnifiedOnboardingScreen(
                             } else {
                                 Icon(
                                     imageVector = Icons.Default.Refresh,
-                                    contentDescription = "Change location",
+                                    contentDescription = localizedString(StringKey.CHANGE_LOCATION),
                                     tint = MaterialTheme.colorScheme.primary,
                                     modifier = Modifier.size(20.dp)
                                 )

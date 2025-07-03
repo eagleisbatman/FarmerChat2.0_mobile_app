@@ -157,7 +157,7 @@ fun MessageBubbleV2(
                     }
                     
                     // Action buttons (only for AI messages, no timestamp here)
-                    if (!isUser && (!isStreaming || message.content.isNotEmpty())) {
+                    if (!isUser && !isStreaming && message.content.isNotEmpty()) {
                         Spacer(modifier = Modifier.height(DesignSystem.Spacing.xs))
                         
                         Row(
@@ -183,7 +183,7 @@ fun MessageBubbleV2(
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Share,
-                                    contentDescription = "Share", // TODO: Add to StringsManager
+                                    contentDescription = localizedString(StringKey.SHARE_ANSWER),
                                     modifier = Modifier.size(DesignSystem.IconSize.medium),
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = DesignSystem.Opacity.high)
                                 )

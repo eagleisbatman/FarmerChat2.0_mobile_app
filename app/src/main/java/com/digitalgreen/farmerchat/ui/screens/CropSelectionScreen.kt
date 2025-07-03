@@ -154,7 +154,7 @@ fun CropSelectionScreen(
                 },
                 label = { Text(localizedString(StringKey.SEARCH)) },
                 leadingIcon = {
-                    Icon(Icons.Default.Search, contentDescription = "Search")
+                    Icon(Icons.Default.Search, contentDescription = localizedString(StringKey.SEARCH))
                 },
                 trailingIcon = {
                     if (searchQuery.isNotEmpty()) {
@@ -162,7 +162,7 @@ fun CropSelectionScreen(
                             searchQuery = ""
                             selectedCategory = null
                         }) {
-                            Icon(Icons.Default.Clear, contentDescription = "Clear")
+                            Icon(Icons.Default.Clear, contentDescription = localizedString(StringKey.CLEAR))
                         }
                     }
                 },
