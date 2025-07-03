@@ -2,6 +2,8 @@ package com.digitalgreen.farmerchat.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -23,7 +25,7 @@ import com.digitalgreen.farmerchat.ui.screens.LivestockSelectionScreen
 import com.digitalgreen.farmerchat.ui.screens.CropSelectionWrapper
 import com.digitalgreen.farmerchat.ui.screens.LivestockSelectionWrapper
 import com.digitalgreen.farmerchat.ui.screens.LanguageSelectionWrapper
-import com.digitalgreen.farmerchat.ui.screens.PhoneCollectionScreenV2
+// import com.digitalgreen.farmerchat.ui.screens.PhoneCollectionScreenV2 // Unused screen
 import com.digitalgreen.farmerchat.ui.screens.LanguageSelectionScreen
 import com.digitalgreen.farmerchat.ui.screens.NameSelectionScreen
 import com.digitalgreen.farmerchat.ui.screens.GenderSelectionScreen
@@ -31,6 +33,7 @@ import com.digitalgreen.farmerchat.ui.screens.RoleSelectionScreen
 import com.digitalgreen.farmerchat.ui.screens.ForgotPinScreen
 import com.digitalgreen.farmerchat.ui.screens.PrivacyPolicyScreen
 import com.digitalgreen.farmerchat.ui.screens.TermsConditionsScreen
+import com.digitalgreen.farmerchat.ui.screens.ApiSettingsViewModel
 import com.digitalgreen.farmerchat.utils.PreferencesManager
 import com.digitalgreen.farmerchat.utils.LocationLanguageMapper
 
@@ -349,12 +352,98 @@ fun FarmerChatNavigation(
                 // Regular language selection from settings
                 val context = LocalContext.current
                 val preferencesManager = remember { PreferencesManager(context) }
-                val userLocation = preferencesManager.getUserLocation() ?: ""
-                val suggestedLanguages = LocationLanguageMapper.getLocationBasedLanguages(userLocation)
+                val userLocation by preferencesManager.userLocation.collectAsState(initial = "")
+                
+                // Parse location string to find state/region
+                val suggestedLanguages = remember(userLocation) {
+                    android.util.Log.d("LanguageSelection", "Settings: userLocation = '$userLocation'")
+                    
+                    if (userLocation.isNotEmpty()) {
+                        // First try the whole location string
+                        var mapping = LocationLanguageMapper.getLanguagesForLocation(userLocation)
+                        android.util.Log.d("LanguageSelection", "Settings: Full location mapping = ${mapping?.primaryLanguages}")
+                        
+                        if (mapping != null) {
+                            mapping.primaryLanguages
+                        } else {
+                            // Split location string (e.g., "Bangalore, Karnataka, India")
+                            val locationParts = userLocation.split(",").map { it.trim() }
+                            android.util.Log.d("LanguageSelection", "Settings: locationParts = $locationParts")
+                            
+                            // Try to find languages based on different parts
+                            val languages = mutableSetOf<String>()
+                            
+                            // Check each part of the location
+                            for (part in locationParts) {
+                                val partMapping = LocationLanguageMapper.getLanguagesForLocation(part)
+                                android.util.Log.d("LanguageSelection", "Settings: Checking part '$part' -> found mapping: ${partMapping?.primaryLanguages}")
+                                partMapping?.let {
+                                    languages.addAll(it.primaryLanguages)
+                                }
+                            }
+                            
+                            android.util.Log.d("LanguageSelection", "Settings: Combined languages = $languages")
+                            
+                            // If we found languages, return them; otherwise, try partial matching
+                            if (languages.isNotEmpty()) {
+                                languages.toList()
+                            } else {
+                                // Try partial matching for common locations
+                                when {
+                                    userLocation.contains("Bangalore", ignoreCase = true) || 
+                                    userLocation.contains("Bengaluru", ignoreCase = true) -> {
+                                        android.util.Log.d("LanguageSelection", "Settings: Found Bangalore/Bengaluru")
+                                        listOf("en", "kn", "hi")
+                                    }
+                                    userLocation.contains("Karnataka", ignoreCase = true) -> {
+                                        android.util.Log.d("LanguageSelection", "Settings: Found Karnataka")
+                                        listOf("en", "kn", "hi")
+                                    }
+                                    userLocation.contains("Mumbai", ignoreCase = true) -> {
+                                        android.util.Log.d("LanguageSelection", "Settings: Found Mumbai")
+                                        listOf("en", "mr", "hi")
+                                    }
+                                    userLocation.contains("Delhi", ignoreCase = true) -> {
+                                        android.util.Log.d("LanguageSelection", "Settings: Found Delhi")
+                                        listOf("en", "hi", "ur")
+                                    }
+                                    userLocation.contains("Chennai", ignoreCase = true) -> {
+                                        android.util.Log.d("LanguageSelection", "Settings: Found Chennai")
+                                        listOf("en", "ta")
+                                    }
+                                    userLocation.contains("Hyderabad", ignoreCase = true) -> {
+                                        android.util.Log.d("LanguageSelection", "Settings: Found Hyderabad")
+                                        listOf("en", "te", "hi")
+                                    }
+                                    userLocation.contains("Kolkata", ignoreCase = true) -> {
+                                        android.util.Log.d("LanguageSelection", "Settings: Found Kolkata")
+                                        listOf("en", "bn", "hi")
+                                    }
+                                    else -> {
+                                        android.util.Log.d("LanguageSelection", "Settings: No match found for location")
+                                        emptyList()
+                                    }
+                                }
+                            }
+                        }
+                    } else {
+                        android.util.Log.d("LanguageSelection", "Settings: Location is empty")
+                        emptyList()
+                    }
+                }
+                
+                // Get current language and pass regional suggestions as-is
+                val currentLanguage = preferencesManager.getSelectedLanguage()
+                val settingsViewModel: ApiSettingsViewModel = viewModel()
+                
+                android.util.Log.d("LanguageSelection", "Current language: $currentLanguage")
+                android.util.Log.d("LanguageSelection", "Regional languages: $suggestedLanguages")
                 
                 LanguageSelectionScreen(
                     navController = navController,
-                    suggestedLanguages = suggestedLanguages
+                    settingsViewModel = settingsViewModel,
+                    suggestedLanguages = suggestedLanguages,
+                    actualRegionalLanguages = suggestedLanguages
                 )
             }
         }

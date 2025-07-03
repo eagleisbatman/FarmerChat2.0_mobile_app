@@ -1,6 +1,7 @@
 package com.digitalgreen.farmerchat.ui.components
 
 import androidx.compose.animation.animateContentSize
+import com.digitalgreen.farmerchat.utils.StringsManager.StringKey
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -50,7 +51,7 @@ fun MessageBubble(
             ) {
                 Icon(
                     imageVector = Icons.Default.Agriculture,
-                    contentDescription = "AI Assistant",
+                    contentDescription = localizedString(StringKey.AI_ASSISTANT),
                     modifier = Modifier.size(20.dp),
                     tint = MaterialTheme.colorScheme.onPrimaryContainer
                 )

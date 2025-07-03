@@ -268,6 +268,12 @@ const ALL_STRING_KEYS = {
   CROPS_BENEFIT: "Get crop-specific advice on planting, pest control, and harvest timing",
   LIVESTOCK_BENEFIT: "Receive targeted guidance on animal health, feeding, and breeding",
   
+  // Language Selection Section Headers
+  YOUR_CURRENT_LANGUAGE: "Your current language",
+  SUGGESTED_FOR_YOUR_REGION: "Suggested for your region",
+  ALL_OTHER_LANGUAGES: "All other languages",
+  CHOOSE_FROM_LANGUAGES: "Choose from 53 languages",
+  
   // Voice transcription errors
   SPEAK_IN_SELECTED_LANGUAGE: "Please speak in %s",
   SPEAK_CLEARLY: "Please speak clearly into the microphone",

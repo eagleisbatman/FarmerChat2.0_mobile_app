@@ -153,11 +153,16 @@ data class RateMessageRequest(
 )
 
 // Translation Models
+data class TranslationResponse(
+    @SerializedName("languageCode") val languageCode: String,
+    @SerializedName("translations") val translations: TranslationBundle
+)
+
 data class TranslationBundle(
-    @SerializedName("ui") val ui: Map<String, String>,
-    @SerializedName("crops") val crops: Map<String, CropTranslation>,
-    @SerializedName("livestock") val livestock: Map<String, LivestockTranslation>,
-    @SerializedName("metadata") val metadata: TranslationMetadata
+    @SerializedName("ui") val ui: Map<String, String>? = null,
+    @SerializedName("crops") val crops: Map<String, CropTranslation>? = null,
+    @SerializedName("livestock") val livestock: Map<String, LivestockTranslation>? = null,
+    @SerializedName("metadata") val metadata: TranslationMetadata? = null
 )
 
 data class CropTranslation(

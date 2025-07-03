@@ -126,10 +126,11 @@ class ChatWebSocketClient {
         }
     }
     
-    fun sendStreamingMessage(message: String, conversationId: String) {
+    fun sendStreamingMessage(message: String, conversationId: String, language: String? = null) {
         socket?.emit("chat:stream", JSONObject().apply {
             put("message", message)
             put("conversationId", conversationId)
+            language?.let { put("language", it) }
         })
     }
     

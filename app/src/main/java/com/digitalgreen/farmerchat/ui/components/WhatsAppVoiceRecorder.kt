@@ -1,6 +1,7 @@
 package com.digitalgreen.farmerchat.ui.components
 
 import androidx.compose.animation.*
+import com.digitalgreen.farmerchat.utils.StringsManager.StringKey
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -24,7 +25,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.testTag
 import com.digitalgreen.farmerchat.ui.theme.DesignSystem
 import com.digitalgreen.farmerchat.utils.AudioRecordingManager
-import com.digitalgreen.farmerchat.utils.StringsManager.StringKey
 import com.digitalgreen.farmerchat.ui.components.localizedString
 import kotlinx.coroutines.delay
 import kotlin.math.sin
@@ -86,7 +86,7 @@ fun WhatsAppVoiceRecorder(
                     ) {
                         Icon(
                             imageVector = Icons.Default.ChevronLeft,
-                            contentDescription = "Swipe to cancel",
+                            contentDescription = localizedString(StringKey.SWIPE_TO_CANCEL),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
                             modifier = Modifier.size(16.dp)
                         )

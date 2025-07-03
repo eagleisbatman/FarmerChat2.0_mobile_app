@@ -335,9 +335,9 @@ fun ChatScreen(
             }
         }
             
-            // Follow-up questions - always visible when available
+            // Follow-up questions - visible when available and not streaming
             AnimatedVisibility(
-                visible = followUpQuestions.isNotEmpty()
+                visible = followUpQuestions.isNotEmpty() && currentStreamingMessage.isEmpty()
             ) {
                 LazyRow(
                     modifier = Modifier

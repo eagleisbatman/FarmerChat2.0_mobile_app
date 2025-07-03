@@ -168,7 +168,7 @@ fun GenderSelectionScreen(
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Check,
-                                    contentDescription = "Selected",
+                                    contentDescription = localizedString(StringKey.SELECTED),
                                     tint = MaterialTheme.colorScheme.onPrimary,
                                     modifier = Modifier
                                         .padding(2.dp)

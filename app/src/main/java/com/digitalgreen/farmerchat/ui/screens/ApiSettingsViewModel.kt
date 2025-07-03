@@ -13,6 +13,7 @@ import com.digitalgreen.farmerchat.data.LanguageManager
 import com.digitalgreen.farmerchat.network.UpdateUserRequest
 import com.digitalgreen.farmerchat.utils.PreferencesManager
 import com.digitalgreen.farmerchat.utils.StringProvider
+import com.digitalgreen.farmerchat.utils.StringsManager
 import com.digitalgreen.farmerchat.utils.StringsManager.StringKey
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -112,6 +113,18 @@ class ApiSettingsViewModel(application: Application) : AndroidViewModel(applicat
                             responseLength = apiUser.responseLength
                         )
                     }
+                    
+                    // Update PreferencesManager with location from API
+                    if (!apiUser.location.isNullOrEmpty()) {
+                        viewModelScope.launch {
+                            preferencesManager.saveUserPreferences(
+                                language = savedLanguage,
+                                location = apiUser.location,
+                                crops = apiUser.crops.toSet(),
+                                livestock = apiUser.livestock.toSet()
+                            )
+                        }
+                    }
                 }
                 
                 // Update loading state to false after API call completes
@@ -133,6 +146,16 @@ class ApiSettingsViewModel(application: Application) : AndroidViewModel(applicat
                     currentLanguageName = languageName
                 )
             }
+            
+            // Load translations for the new language
+            val app = getApplication<FarmerChatApplication>()
+            app.translationManager.loadTranslations(languageCode)
+            
+            // Also reload in StringsManager
+            StringsManager.reloadTranslations(languageCode)
+            
+            // Wait a bit for translations to load
+            kotlinx.coroutines.delay(500)
             
             // Update user profile via API
             repository.updateUserProfile(language = languageCode)
@@ -211,6 +234,17 @@ class ApiSettingsViewModel(application: Application) : AndroidViewModel(applicat
             
             // Update via API
             repository.updateUserProfile(location = location)
+            
+            // Also update PreferencesManager so language selection can use it
+            val currentLanguage = preferencesManager.getSelectedLanguage()
+            val currentCrops = _settingsState.value.selectedCrops
+            val currentLivestock = _settingsState.value.selectedLivestock
+            preferencesManager.saveUserPreferences(
+                language = currentLanguage,
+                location = location,
+                crops = currentCrops.toSet(),
+                livestock = currentLivestock.toSet()
+            )
         }
     }
     

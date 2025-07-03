@@ -128,7 +128,7 @@ fun SplashScreen(
                         modifier = Modifier.padding(horizontal = DesignSystem.Spacing.lg)
                     ) {
                         Text(
-                            text = "Cannot connect to server",
+                            text = localizedString(StringKey.CANNOT_CONNECT_SERVER),
                             fontSize = DesignSystem.Typography.bodyLarge,
                             fontWeight = DesignSystem.Typography.Weight.Medium,
                             color = Color.White,
@@ -136,7 +136,7 @@ fun SplashScreen(
                         )
                         Spacer(modifier = Modifier.height(DesignSystem.Spacing.sm))
                         Text(
-                            text = "Please ensure the backend is running on port 3004",
+                            text = localizedString(StringKey.ENSURE_BACKEND_RUNNING),
                             fontSize = DesignSystem.Typography.bodyMedium,
                             color = Color.White.copy(alpha = DesignSystem.Opacity.high),
                             textAlign = TextAlign.Center

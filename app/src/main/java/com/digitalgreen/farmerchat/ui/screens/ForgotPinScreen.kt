@@ -78,7 +78,7 @@ fun ForgotPinScreen(
                     ForgotPinStep.VERIFY -> localizedString(StringKey.FORGOT_PIN_VERIFY_IDENTITY)
                     ForgotPinStep.NEW_PIN -> localizedString(StringKey.FORGOT_PIN_CREATE_NEW)
                 },
-                style = DesignSystem.Typography.titleMedium,
+                fontSize = DesignSystem.Typography.titleMedium,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(bottom = DesignSystem.Spacing.lg)
             )
@@ -120,7 +120,7 @@ fun ForgotPinScreen(
                     // Verification options
                     Text(
                         text = localizedString(StringKey.VERIFICATION_CODE_SENT),
-                        style = DesignSystem.Typography.bodyMedium,
+                        fontSize = DesignSystem.Typography.bodyMedium,
                         textAlign = TextAlign.Center,
                         modifier = Modifier.padding(bottom = DesignSystem.Spacing.md)
                     )

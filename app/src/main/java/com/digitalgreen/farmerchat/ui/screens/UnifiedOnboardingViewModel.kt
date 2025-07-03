@@ -116,6 +116,15 @@ class UnifiedOnboardingViewModel(application: Application) : AndroidViewModel(ap
     
     fun selectLanguage(language: String) {
         _uiState.update { it.copy(selectedLanguage = language) }
+        
+        // Load translations for the selected language
+        viewModelScope.launch {
+            val app = getApplication<FarmerChatApplication>()
+            app.translationManager.loadTranslations(language)
+            
+            // Also save to preferences for immediate use
+            preferencesManager.saveSelectedLanguage(language)
+        }
     }
     
     fun updateName(name: String) {

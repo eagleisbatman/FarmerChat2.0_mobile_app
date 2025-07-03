@@ -10,6 +10,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import com.digitalgreen.farmerchat.ui.theme.DesignSystem
+import com.digitalgreen.farmerchat.utils.StringsManager.StringKey
 import com.digitalgreen.farmerchat.ui.theme.appBarColor
 
 /**
@@ -38,7 +39,7 @@ fun FarmerChatAppBar(
                 IconButton(onClick = onBackClick) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Back",
+                        contentDescription = localizedString(StringKey.BACK),
                         tint = Color.White
                     )
                 }
@@ -119,7 +120,7 @@ fun ChatScreenAppBar(
             IconButton(onClick = onBackClick) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Back",
+                    contentDescription = localizedString(StringKey.BACK),
                     tint = Color.White
                 )
             }
